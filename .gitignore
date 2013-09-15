@@ -1,6 +1,9 @@
 # CMake ignores
 bin
 
+# CPM ignores
+cpm
+
 # Compiled Object files
 *.slo
 *.lo
