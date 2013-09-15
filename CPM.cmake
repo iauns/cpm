@@ -1,76 +1,49 @@
-# - Spire package management module
-# Handles setting up Spire and all of its modules in hopefully the most 
-# transparent way possible. This module has been heavily infulenced by
-# ExternalProject.cmake.
+# CPM - CMake Package Manager
 #
-# The spire library must be built as an ecosystem of static libraries.
-# If you have more than one shared library in your project, only
-# link spire in one location (one shared library, or once in the executable).
-# Otherwise function lookup for OpenGL will break when using GLEW.
+# TODO: Disable build_as_shared when using AddModule.
+#
+# A CMake module for managing external dependencies.
+# CPM can be used to build traditional C/C++ libraries and CPM modules.
+# In contrast to traditional C++ libraries, CPM modules have namespace
+# alteration and allow for multiple different versions of the same library to
+# be statically linked together and easily used without namespace conflicts.
+# CPM modules use add_subdirectory for CPM modules and ExternalProject for
+# traditional builds. CPM is inspired by Node.js' NPM package manager. 
+#
+# CPM consists of two function: CPM_AddModule(...) and CPM_AddExternal(...) .
+# CPM_AddModule accepts a few of the same parameters as ExternalProject
+# alongside adding a few of its own. The following variables are created in /
+# appended to PARENT_SCOPE whenever the add module function is called:
 # 
-# The Spire_AddCore and Spire_AddModule functions add the following
-# variables to the PARENT_SCOPE namespace:
-# 
-#  SPIRE_INCLUDE_DIRS   - All the spire include directories.
-#  SPIRE_LIBRARIES      - All libraries to link against.
+#  CPM_INCLUDE_DIRS     - All module search paths.
+#  CPM_LIBRARIES        - All libraries to link against. These are all imported targets.
 #
-# And these variables are only added by Spire_AddModule:
-#
-#  SPIRE_SHADER_DIRS    - All shader asset directories.
-#  SPIRE_ASSET_DIRS     - All asset directories.
-#
-# Spire_AddModule must be called after Spire_AddCore. AddModule needs
-# target properties that are set in Spire core.
-#
-# Spire core:
-#  Spire_AddCore(<name>           # Required - Target name that will be constructed for spire core.
-#    [PREFIX dir]                 # Same as ExternalProject_Add's PREFIX.
-#    [SOURCE_DIR dir]             # When specified, uses this directory as the source. If specified, spire core does not get automatically updated through git.
-#    [BINARY_DIR dir]             # Same as ExternalProject_Add's BINARY_DIR .
+# Add module function reference:
+#  CPM_AddModule(<name>           # Required - Module target name.
+#    [SOURCE_DIR dir]             # Uses 'dir' as the source directory as opposed to downloading.
 #    [GIT_TAG tag]                # Same as ExternalProject_Add's GIT_TAG
 #    [GIT_REPOSITORY repo]        # Same as ExternalProject_Add's GIT_REPOSITORY.
-#    [USE_STD_THREADS truth]      # Set to 'ON' if you want to use spire threads.
-#    [MODULE_DIR dir]             # Module directory. Preferably outside of where cleaning happens.
-#    [SHADER_OUTPUT_DIR dir]      # Shader directory into which shaders will be copied. If present, shaders will be copied to this directory.
-#    [ASSET_OUTPUT_DIR dir]       # Asset directory into which assets will be copied. If present, assets will be copied to this directory.
+#    [CMAKE_ARGS args...]         # Additional CMake arguments to set for only for this module.
 #    )
 #
-# Many of the ExternalProject settings are automatically generated for modules.
-# It is not recommeneded that you set SOURCE_DIR unless you are managing the
-# header locations for the source directory manually. If you set the source
-# directory, the source will not be downloaded and will not be updated using
-# git. You must manage that manually. Additionally, if you set the source
-# directory you can safely ignore the module name / repo and version function
-# parameters.
+# Many settings are automatically applied for modules. Setting SOURCE_DIR is
+# not recommeneded unless you are managing the header locations for the source
+# directory manually. If you set the source directory the project will not be
+# downloaded and will not be updated using git. You must manage that manually.
 #
-# You can find the public includes for a module in the SpireExt/<name> directory.
-# So the include path does depend on what you name the module's target.
+# Add external simply looks for the name plus an optional associated version.
+# If you use this function, additional data will be downloaded from a CPM
+# repository. This repository holds build scripts for various different popular
+# packages. CPM_AddExternal is not as robust as modules and can't be versioned
+# well. Additionally, you cannot link against multiple versions of the same
+# library unless you use shared libraries.
+# Add external function reference:
+#  CPM_AddExternal(<name>         # Required - External name (will be used to lookup external).
+#    [VERSION version]            # Attempt to find this version number.
+#    )
 #
-# Spire modules:
-#  Spire_AddModule(<spire-core>   # Required - Target name of spire-core.
-#     <module name>               # Required - Module name; this is *not* the name of the target! Target is named: spire_spm_<module name>
-#     <repo>                      # Required - Name of the package or git repo. Only git repos are supported for now.
-#     <version>                   # Required - Version of the package to be used.
-#     [SOURCE_DIR dir]            # Same as Spire_AddCore. Source directory which when specified disables git synchronization.
-#     [SHADER_DIR dir]            # Specifies the directory containing module's shaders.
-#     [ASSET_DIR dir]             # Specifies the asset directory containing all spire assets.
-#     )
-#
-# Note that if the SHADER_OUTPUT_DIR is not set during the Spire_AddCore
-# call, then shaders will not be copied (since it does not know the desired
-# output directory). Likewise for the ASSET_OUTPUT_DIR.
-#
-# TODO: Should have some transparent way of copying shaders and assets. Some function
-# that ends up copying all of the assets and shaders into the 'correct' output
-# directory (determining what the correct output directory is, may be a harder
-# thing to do).
-#
-# TODO: Figure out how to handle modules that have dependencies on other
-#       modules. Like NPM. This will stay unresolved until there is a clear
-#       need for this.
-#
-# Also remember: you will probably want to use add_dependencies with the target
-# name.
+# Also remember: you will probably want to use add_dependencies with the
+# ${CPM_LIBRARIES}.
 
 #-------------------------------------------------------------------------------
 # Pre-compute a regex to match documented keywords for each command.
@@ -84,12 +57,12 @@
 # Based on the current line in *this* file (SpirePM.cmake), we calc the number
 # of lines the documentation header consumes. Including this comment, that is
 # 12 lines upwards.
-math(EXPR _spm_documentation_line_count "${CMAKE_CURRENT_LIST_LINE} - 13")
+math(EXPR _cpm_documentation_line_count "${CMAKE_CURRENT_LIST_LINE} - 13")
 
 # Run a regex to extract parameter names from the *this* file (SpirePM.cmake).
 # Stuff the results into 'lines'.
 file(STRINGS "${CMAKE_CURRENT_LIST_FILE}" lines
-     LIMIT_COUNT ${_spm_documentation_line_count}
+     LIMIT_COUNT ${_cpm_documentation_line_count}
      REGEX "^#  (  \\[[A-Z0-9_]+ [^]]*\\] +#.*$|[A-Za-z0-9_]+\\()")
 
 # Iterate over the results we obtained 
@@ -99,41 +72,41 @@ foreach(line IN LISTS lines)
   if("${line}" MATCHES "^#  [A-Za-z0-9_]+\\(")
 
     # Are we already parsing a function?
-    if(_spm_func)
+    if(_cpm_func)
       # We are parsing a function, save the current list of keywords in 
-      # _spm_keywords_<function_name> in preparation to parse a new function.
-      set(_spm_keywords_${_spm_func} "${_spm_keywords_${_spm_func}})$")
+      # _cpm_keywords_<function_name> in preparation to parse a new function.
+      set(_cpm_keywords_${_cpm_func} "${_cpm_keywords_${_cpm_func}})$")
     endif()
 
-    # Note that _spm_func gets *set* HERE. See 'cmake --help-command string'.
-    # In this case, we are extracting the function's name into _spm_func.
-    string(REGEX REPLACE "^#  ([A-Za-z0-9_]+)\\(.*" "\\1" _spm_func "${line}")
+    # Note that _cpm_func gets *set* HERE. See 'cmake --help-command string'.
+    # In this case, we are extracting the function's name into _cpm_func.
+    string(REGEX REPLACE "^#  ([A-Za-z0-9_]+)\\(.*" "\\1" _cpm_func "${line}")
 
-    #message("function [${_spm_func}]")
+    #message("function [${_cpm_func}]")
 
-    # Clear vars (we will be building a REGEX in _spm_keywords, hence
-    # the ^(. _spm_keyword_sep is only use to inject a separator at appropriate
+    # Clear vars (we will be building a REGEX in _cpm_keywords, hence
+    # the ^(. _cpm_keyword_sep is only use to inject a separator at appropriate
     # places while we are building the regex. In essence, we are skipping the
     # first '|' that would usually be inserted.
-    set(_spm_keywords_${_spm_func} "^(")
-    set(_spm_keyword_sep)
+    set(_cpm_keywords_${_cpm_func} "^(")
+    set(_cpm_keyword_sep)
   else()
     # Otherwise we must be parsing a parameter of the function. Extract the name
-    # of the parameter into _spm_key
-    string(REGEX REPLACE "^#    \\[([A-Z0-9_]+) .*" "\\1" _spm_key "${line}")
+    # of the parameter into _cpm_key
+    string(REGEX REPLACE "^#    \\[([A-Z0-9_]+) .*" "\\1" _cpm_key "${line}")
     # Syntax highlighting gets a little wonky around this regex, need this - "
 
-    #message("  keyword [${_spm_key}]")
+    #message("  keyword [${_cpm_key}]")
 
-    set(_spm_keywords_${_spm_func}
-      "${_spm_keywords_${_spm_func}}${_spm_keyword_sep}${_spm_key}")
-    set(_spm_keyword_sep "|")
+    set(_cpm_keywords_${_cpm_func}
+      "${_cpm_keywords_${_cpm_func}}${_cpm_keyword_sep}${_cpm_key}")
+    set(_cpm_keyword_sep "|")
   endif()
 endforeach()
 # Duplicate of the 'Are we already parsing a function?' code above.
 # Just completes the regex.
-if(_spm_func)
-  set(_spm_keywords_${_spm_func} "${_spm_keywords_${_spm_func}})$")
+if(_cpm_func)
+  set(_cpm_keywords_${_cpm_func} "${_cpm_keywords_${_cpm_func}})$")
 endif()
 
 # Include external project
@@ -150,7 +123,7 @@ set(DIR_OF_SPIREPM ${CMAKE_CURRENT_LIST_DIR})
 # name 'f'. 'name' is the target name. 'ns' (namespace) is a value prepended
 # onto the key name before being added to the target namespace. 'args' list of
 # arguments to process.
-function(_spm_parse_arguments f ns args)
+function(_cpm_parse_arguments f ns args)
   # Transfer the arguments to this function into target properties for the new
   # custom target we just added so that we can set up all the build steps
   # correctly based on target properties.
@@ -172,7 +145,7 @@ function(_spm_parse_arguments f ns args)
 
       # Now check to see if the argument is in our list of approved keywords.
       # If is, then make sure we don't treat it as a value.
-      if(_spm_keywords_${f} AND arg MATCHES "${_spm_keywords_${f}}")
+      if(_cpm_keywords_${f} AND arg MATCHES "${_cpm_keywords_${f}}")
         set(is_value 0)
       endif()
 
@@ -213,7 +186,7 @@ endfunction()
 
 
 # See: http://stackoverflow.com/questions/7747857/in-cmake-how-do-i-work-around-the-debug-and-release-directories-visual-studio-2
-function(_spm_build_target_output_dirs parent_var_to_update output_dir)
+function(_cpm_build_target_output_dirs parent_var_to_update output_dir)
 
   set(outputs)
   set(outputs ${outputs} "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY:STRING=${output_dir}")
@@ -247,44 +220,44 @@ endfunction()
 #  SPIRE_LIBRARY         - All libraries to link against, including modules.
 #
 function(Spire_AddCore name)
-  # Parse all function arguments into our namespace prepended with _SPM_.
-  _spm_parse_arguments(Spire_AddCore _SPM_ "${ARGN}")
+  # Parse all function arguments into our namespace prepended with _CPM_.
+  _cpm_parse_arguments(Spire_AddCore _CPM_ "${ARGN}")
 
   # Setup any defaults that the user provided.
-  if (DEFINED _SPM_PREFIX)
-    set(_ep_prefix "PREFIX" "${_SPM_PREFIX}")
+  if (DEFINED _CPM_PREFIX)
+    set(_ep_prefix "PREFIX" "${_CPM_PREFIX}")
   else()
     set(_ep_prefix "PREFIX" "${CMAKE_CURRENT_BINARY_DIR}/spire-core")
-    # We also set the _SPM_PREFIX variable in this case since we use it below.
-    set(_SPM_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/spire-core")
+    # We also set the _CPM_PREFIX variable in this case since we use it below.
+    set(_CPM_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/spire-core")
   endif()
 
-  if (DEFINED _SPM_GIT_TAG)
-    set(_ep_git_tag "GIT_TAG" ${_SPM_GIT_TAG})
+  if (DEFINED _CPM_GIT_TAG)
+    set(_ep_git_tag "GIT_TAG" ${_CPM_GIT_TAG})
   else()
     set(_ep_git_tag "GIT_TAG" "origin/master")
   endif()
 
-  if (DEFINED _SPM_GIT_REPOSITORY)
-    set(_ep_git_repo "GIT_REPOSITORY" ${_SPM_GIT_REPOSITORY})
+  if (DEFINED _CPM_GIT_REPOSITORY)
+    set(_ep_git_repo "GIT_REPOSITORY" ${_CPM_GIT_REPOSITORY})
   else()
     set(_ep_git_repo "GIT_REPOSITORY" "https://github.com/SCIInstitute/spire.git")
   endif()
 
-  if (DEFINED _SPM_SOURCE_DIR)
-    set(_ep_source_dir "SOURCE_DIR" "${_SPM_SOURCE_DIR}")
+  if (DEFINED _CPM_SOURCE_DIR)
+    set(_ep_source_dir "SOURCE_DIR" "${_CPM_SOURCE_DIR}")
     # Clear git repo or git tag, if any.
     set(_ep_git_repo)
     set(_ep_git_tag)
     set(_ep_update_command "UPDATE_COMMAND" "cmake .")
   endif()
 
-  if (DEFINED _SPM_BINARY_DIR)
-    set(_ep_bin_dir "BINARY_DIR" $_SPM_BINARY_DIR)
+  if (DEFINED _CPM_BINARY_DIR)
+    set(_ep_bin_dir "BINARY_DIR" $_CPM_BINARY_DIR)
   endif()
 
-  if (DEFINED _SPM_USE_STD_THREADS)
-    set(_ep_spire_use_threads "-DUSE_STD_THREADS:BOOL=${_SPM_USE_STD_THREADS}")
+  if (DEFINED _CPM_USE_STD_THREADS)
+    set(_ep_spire_use_threads "-DUSE_STD_THREADS:BOOL=${_CPM_USE_STD_THREADS}")
   else()
     set(_ep_spire_use_threads "-DUSE_STD_THREADS:BOOL=ON")
   endif()
@@ -293,9 +266,9 @@ function(Spire_AddCore name)
   # into the CMAKE_ARGS key in ExternalProject_Add. These are a series
   # binary of output directories. We want a central location for everything
   # so we can keep track of the binaries.
-  set(_SPM_BASE_OUTPUT_DIR "${_SPM_PREFIX}/spire_modules_bin")
-  set(_SPM_CORE_OUTPUT_DIR "${_SPM_BASE_OUTPUT_DIR}/spire_core")
-  _spm_build_target_output_dirs(_ep_spire_output_dirs ${_SPM_CORE_OUTPUT_DIR})
+  set(_CPM_BASE_OUTPUT_DIR "${_CPM_PREFIX}/spire_modules_bin")
+  set(_CPM_CORE_OUTPUT_DIR "${_CPM_BASE_OUTPUT_DIR}/spire_core")
+  _cpm_build_target_output_dirs(_ep_spire_output_dirs ${_CPM_CORE_OUTPUT_DIR})
 
   ExternalProject_Add(${name}
     ${_ep_prefix}
@@ -310,7 +283,7 @@ function(Spire_AddCore name)
       ${_ep_spire_output_dirs}
     )
 
-  if (DEFINED _SPM_SOURCE_DIR)
+  if (DEFINED _CPM_SOURCE_DIR)
     # Forces a build even though we are source only.
     ExternalProject_Add_Step(${name} forcebuild
       COMMAND ${CMAKE_COMMAND} -E echo
@@ -320,20 +293,20 @@ function(Spire_AddCore name)
   endif()
 
   # This target property is used to place compiled modules where they belong.
-  set_target_properties(${name} PROPERTIES SPIRE_MODULE_OUTPUT_DIRECTORY "${_SPM_BASE_OUTPUT_DIR}")
+  set_target_properties(${name} PROPERTIES SPIRE_MODULE_OUTPUT_DIRECTORY "${_CPM_BASE_OUTPUT_DIR}")
 
   # Setup imported library.
   set(spire_library_name Spire)
   set(spire_library_target_name SpireCoreLibraryTarget)
   set(spire_library_path 
-    "${_SPM_CORE_OUTPUT_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${spire_library_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    "${_CPM_CORE_OUTPUT_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${spire_library_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
   add_library(${spire_library_target_name} STATIC IMPORTED GLOBAL)
   add_dependencies(${spire_library_target_name} ${name})
   set_property(TARGET ${spire_library_target_name} PROPERTY IMPORTED_LOCATION "${spire_library_path}")
 
   # Library path for the core module.
   set(SPIRE_LIBRARIES ${SPIRE_LIBRARIES} "${spire_library_target_name}" PARENT_SCOPE)
-  set(SPIRE_LIBRARY_DIRS ${SPIRE_LIBRARY_DIRS} "${_SPM_CORE_OUTPUT_DIR}" PARENT_SCOPE)
+  set(SPIRE_LIBRARY_DIRS ${SPIRE_LIBRARY_DIRS} "${_CPM_CORE_OUTPUT_DIR}" PARENT_SCOPE)
 
   # Retrieving properties from external projects will retrieve their fully
   # initialized values (including if any defaults were set).
@@ -357,13 +330,13 @@ function(Spire_AddCore name)
   set_target_properties(${name} PROPERTIES SPIRE_BASE_MODULE_SRC_DIR "${PREFIX}/module_src/SpireExt")
 
   # Set output directory for assets if the user passed the variable in.
-  if (DEFINED _SPM_ASSET_OUTPUT_DIR)
-    set_target_properties(${name} PROPERTIES ASSET_OUTPUT_DIR "${_SPM_ASSET_OUTPUT_DIR}")
+  if (DEFINED _CPM_ASSET_OUTPUT_DIR)
+    set_target_properties(${name} PROPERTIES ASSET_OUTPUT_DIR "${_CPM_ASSET_OUTPUT_DIR}")
   endif()
 
   # Set output directory for shaders if the user passed the variable in.
-  if (DEFINED _SPM_SHADER_OUTPUT_DIR)
-    set_target_properties(${name} PROPERTIES SHADER_OUTPUT_DIR "${_SPM_SHADER_OUTPUT_DIR}")
+  if (DEFINED _CPM_SHADER_OUTPUT_DIR)
+    set_target_properties(${name} PROPERTIES SHADER_OUTPUT_DIR "${_CPM_SHADER_OUTPUT_DIR}")
   endif()
 
 endfunction()
@@ -379,7 +352,7 @@ endfunction()
 # the generated static library.
 function (Spire_AddModule spire_core module_name repo version)
   
-  set(target_name "spire_spm_${module_name}")
+  set(target_name "cpm_${module_name}")
 
   # The name we will link against.
   set(MODULE_STATIC_LIB_NAME "spirelib_${module_name}")
@@ -395,18 +368,18 @@ function (Spire_AddModule spire_core module_name repo version)
   set(MODULE_PREFIX "${SPIRE_CORE_PREFIX}/module_build/${module_name}/${version}")
   set(MODULE_SRC_DIR "${MODULE_PREFIX}/SpireExt/${module_name}")
 
-  # Parse all function arguments into our namespace prepended with _SPM_.
-  _spm_parse_arguments(Spire_AddCore _SPM_ "${ARGN}")
+  # Parse all function arguments into our namespace prepended with _CPM_.
+  _cpm_parse_arguments(Spire_AddCore _CPM_ "${ARGN}")
 
   # Extract desired output directory from spire_core target.
-  get_target_property(_SPM_BASE_OUTPUT_DIR ${spire_core} SPIRE_MODULE_OUTPUT_DIRECTORY)
-  set(MODULE_BIN_OUTPUT_DIR "${_SPM_BASE_OUTPUT_DIR}/${target_name}")
-  _spm_build_target_output_dirs(_ep_spire_output_dirs ${MODULE_BIN_OUTPUT_DIR})
+  get_target_property(_CPM_BASE_OUTPUT_DIR ${spire_core} SPIRE_MODULE_OUTPUT_DIRECTORY)
+  set(MODULE_BIN_OUTPUT_DIR "${_CPM_BASE_OUTPUT_DIR}/${target_name}")
+  _cpm_build_target_output_dirs(_ep_spire_output_dirs ${MODULE_BIN_OUTPUT_DIR})
 
   # If the user specified the source directory then don't automatically generate
   # it for them and wipe out all git / download info.
-  if (DEFINED _SPM_SOURCE_DIR)
-    set(_ep_source_dir "SOURCE_DIR" "${_SPM_SOURCE_DIR}")
+  if (DEFINED _CPM_SOURCE_DIR)
+    set(_ep_source_dir "SOURCE_DIR" "${_CPM_SOURCE_DIR}")
     # Clear git repo or git tag, if any.
     set(_ep_git_repo)
     set(_ep_git_tag)
@@ -414,7 +387,7 @@ function (Spire_AddModule spire_core module_name repo version)
     # Attempt to set include directory intelligently. This will allow use to
     # use SpireExt/<module name> if the directory hierarchy is setup correctly
     # on-disk.
-    set(SPIRE_MODULE_INCLUDE_DIRS ${SPIRE_MODULE_INCLUDE_DIRS} ${_SPM_SOURCE_DIR}/../.. PARENT_SCOPE)
+    set(SPIRE_MODULE_INCLUDE_DIRS ${SPIRE_MODULE_INCLUDE_DIRS} ${_CPM_SOURCE_DIR}/../.. PARENT_SCOPE)
   else()
     # If they did not, place the source directory in a consistent directory
     # hierarchy such that the user can access the project using:
@@ -428,14 +401,14 @@ function (Spire_AddModule spire_core module_name repo version)
     set(SPIRE_MODULE_INCLUDE_DIRS ${SPIRE_MODULE_INCLUDE_DIRS} ${MODULE_PREFIX} PARENT_SCOPE)
   endif()
 
-  if (DEFINED _SPM_SHADER_DIR)
+  if (DEFINED _CPM_SHADER_DIR)
     # Set appropriate shader variable in PARENT_SCOPE.
-    set(SPIRE_SHADER_DIRS ${SPIRE_SHADER_DIRS} ${_SPM_SHADER_DIR} PARENT_SCOPE)
+    set(SPIRE_SHADER_DIRS ${SPIRE_SHADER_DIRS} ${_CPM_SHADER_DIR} PARENT_SCOPE)
   endif()
 
-  if (DEFINED _SPM_ASSET_DIR)
+  if (DEFINED _CPM_ASSET_DIR)
     # Set appropriate asset variable in PARENT_SCOPE.
-    set(SPIRE_ASSET_DIRS ${SPIRE_ASSET_DIRS} ${_SPM_ASSET_DIR} PARENT_SCOPE)
+    set(SPIRE_ASSET_DIRS ${SPIRE_ASSET_DIRS} ${_CPM_ASSET_DIR} PARENT_SCOPE)
   endif()
 
   get_target_property(CORE_INCLUDE_DIRS ${spire_core} SPIRE_CORE_INCLUDE_DIRS)
@@ -466,7 +439,7 @@ function (Spire_AddModule spire_core module_name repo version)
       ${_ep_spire_output_dirs}
     )
 
-  if (DEFINED _SPM_SOURCE_DIR)
+  if (DEFINED _CPM_SOURCE_DIR)
     # Forces a build even though we are source only.
     ExternalProject_Add_Step(${target_name} forcebuild
       COMMAND ${CMAKE_COMMAND} -E echo

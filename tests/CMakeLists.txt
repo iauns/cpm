@@ -6,7 +6,7 @@ project (Foo)
 #------------------------------------------------------------------------------
 set (CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
 if (${CPM_DIR} MATCHES "${CMAKE_CURRENT_BINARY_DIR}")
-  message("Placing CPM in the binary directory is not recommended.")
+  message("NOTE: Placing CPM in the binary directory is not recommended.")
 endif ()
 
 find_package(Git)
@@ -20,7 +20,7 @@ if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
     OUTPUT_VARIABLE head_sha
     )
   if(error_code)
-    message(FATAL_ERROR "Failed to get the hash for HEAD")
+    message(FATAL_ERROR "CPM failed to get the hash for HEAD")
   endif()
 endif()
 
