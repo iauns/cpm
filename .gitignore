@@ -3,6 +3,7 @@ bin
 
 # CPM ignores
 cpm
+modules
 
 # Compiled Object files
 *.slo

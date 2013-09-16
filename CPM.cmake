@@ -117,7 +117,7 @@ include(ExternalProject)
 # We do NOT want to access CMAKE_CURRENT_LIST_DIR from a function invokation.
 # If we do, then CMAKE_CURRENT_LIST_DIR will contain the calling CMakeLists.txt
 # file. See: http://stackoverflow.com/questions/12802377/in-cmake-how-can-i-find-the-directory-of-an-included-file
-set(DIR_OF_SPIREPM ${CMAKE_CURRENT_LIST_DIR})
+set(DIR_OF_CPM ${CMAKE_CURRENT_LIST_DIR})
 
 # Function for parsing arguments and values coming into the specified function
 # name 'f'. 'name' is the target name. 'ns' (namespace) is a value prepended
@@ -186,6 +186,7 @@ endfunction()
 
 
 # See: http://stackoverflow.com/questions/7747857/in-cmake-how-do-i-work-around-the-debug-and-release-directories-visual-studio-2
+# This is only for CMake files.
 function(_cpm_build_target_output_dirs parent_var_to_update output_dir)
 
   set(outputs)
@@ -195,53 +196,55 @@ function(_cpm_build_target_output_dirs parent_var_to_update output_dir)
 
   # Second, for multi-config builds (e.g. msvc)
   foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-    set(outputs ${outputs} "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}:STRING=${output_dir}")
-    set(outputs ${outputs} "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}:STRING=${output_dir}")
-    set(outputs ${outputs} "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG}:STRING=${output_dir}")
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
+    set(outputs ${outputs} "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER}:STRING=${output_dir}/${OUTPUTCONFIG}")
+    set(outputs ${outputs} "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER}:STRING=${output_dir}/${OUTPUTCONFIG}")
+    set(outputs ${outputs} "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER}:STRING=${output_dir}/${OUTPUTCONFIG}")
   endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 
   set(${parent_var_to_update} ${outputs} PARENT_SCOPE)
 
 endfunction()
 
-function(Spire_BuildCoreThirdPartyIncludes out_var source_dir)
-  set(ret_val ${ret_val} "${source_dir}/Spire/3rdParty/glm")
-  set(ret_val ${ret_val} "${source_dir}/Spire/3rdParty/glew/include")
-  set(${out_var} ${ret_val} PARENT_SCOPE)
+# See: http://stackoverflow.com/questions/7747857/in-cmake-how-do-i-work-around-the-debug-and-release-directories-visual-studio-2
+# Sets all values in the parent function scope.
+function(_cpm_set_output_dirs output_dir)
+
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${output_dir}" PARENT_SCOPE)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${output_dir}" PARENT_SCOPE)
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${output_dir}" PARENT_SCOPE)
+
+  # Second, for multi-config builds (e.g. msvc).
+  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${output_dir}/${OUTPUTCONFIG}" PARENT_SCOPE)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${output_dir}/${OUTPUTCONFIG}" PARENT_SCOPE)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${output_dir}/${OUTPUTCONFIG}" PARENT_SCOPE)
+  endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+
 endfunction()
 
-
 # 'name' - Name of the target that will be created.
-# This function will define or add to the following variables in the parent's
-# namespace.
-# 
-#  SPIRE_INCLUDE_DIR     - All the spire include directories, including modules.
-#  SPIRE_LIBRARY         - All libraries to link against, including modules.
-#
-function(Spire_AddCore name)
+function(CPM_AddModule name)
   # Parse all function arguments into our namespace prepended with _CPM_.
-  _cpm_parse_arguments(Spire_AddCore _CPM_ "${ARGN}")
+  _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
 
-  # Setup any defaults that the user provided.
-  if (DEFINED _CPM_PREFIX)
-    set(_ep_prefix "PREFIX" "${_CPM_PREFIX}")
-  else()
-    set(_ep_prefix "PREFIX" "${CMAKE_CURRENT_BINARY_DIR}/spire-core")
-    # We also set the _CPM_PREFIX variable in this case since we use it below.
-    set(_CPM_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/spire-core")
-  endif()
+  # Determine base module directory.
+  set(_CPM_BASE_MODULE_DIR "${DIR_OF_CPM}/modules")
 
+  # Sane default for GIT_TAG if it is not specified
   if (DEFINED _CPM_GIT_TAG)
     set(_ep_git_tag "GIT_TAG" ${_CPM_GIT_TAG})
   else()
     set(_ep_git_tag "GIT_TAG" "origin/master")
   endif()
 
+  if ((NOT DEFINED _CPM_GIT_REPOSITORY) AND (NOT DEFINED _CPM_SOURCE_DIR))
+    message(FATAL_ERROR "CPM: You must specify either a git repository or source directory.")
+  endif()
+
   if (DEFINED _CPM_GIT_REPOSITORY)
     set(_ep_git_repo "GIT_REPOSITORY" ${_CPM_GIT_REPOSITORY})
-  else()
-    set(_ep_git_repo "GIT_REPOSITORY" "https://github.com/SCIInstitute/spire.git")
   endif()
 
   if (DEFINED _CPM_SOURCE_DIR)
@@ -252,23 +255,7 @@ function(Spire_AddCore name)
     set(_ep_update_command "UPDATE_COMMAND" "cmake .")
   endif()
 
-  if (DEFINED _CPM_BINARY_DIR)
-    set(_ep_bin_dir "BINARY_DIR" $_CPM_BINARY_DIR)
-  endif()
-
-  if (DEFINED _CPM_USE_STD_THREADS)
-    set(_ep_spire_use_threads "-DUSE_STD_THREADS:BOOL=${_CPM_USE_STD_THREADS}")
-  else()
-    set(_ep_spire_use_threads "-DUSE_STD_THREADS:BOOL=ON")
-  endif()
-
-  # All the following 3 lines do is construct a series of values that will go
-  # into the CMAKE_ARGS key in ExternalProject_Add. These are a series
-  # binary of output directories. We want a central location for everything
-  # so we can keep track of the binaries.
-  set(_CPM_BASE_OUTPUT_DIR "${_CPM_PREFIX}/spire_modules_bin")
-  set(_CPM_CORE_OUTPUT_DIR "${_CPM_BASE_OUTPUT_DIR}/spire_core")
-  _cpm_build_target_output_dirs(_ep_spire_output_dirs ${_CPM_CORE_OUTPUT_DIR})
+  _cpm_set_output_dirs()
 
   ExternalProject_Add(${name}
     ${_ep_prefix}
@@ -432,7 +419,7 @@ function (Spire_AddModule spire_core module_name repo version)
     CMAKE_ARGS
       -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
       -DSPIRE_OUTPUT_MODULE_NAME:STRING=${MODULE_STATIC_LIB_NAME}
-      -DMOD_SPIRE_CMAKE_MODULE_PATH:STRING=${DIR_OF_SPIREPM}
+      -DMOD_SPIRE_CMAKE_MODULE_PATH:STRING=${DIR_OF_CPM}
       -DMOD_SPIRE_CORE_SRC:STRING=${SPIRE_CORE_SRC}
       -DOUTPUT_SHADER_DIR:STRING=${OUTPUT_SHADER_DIR}
       -DOUTPUT_ASSET_DIR:STRING=${OUTPUT_ASSET_DIR}
