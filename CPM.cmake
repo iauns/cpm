@@ -59,7 +59,7 @@
 # 12 lines upwards.
 math(EXPR _cpm_documentation_line_count "${CMAKE_CURRENT_LIST_LINE} - 13")
 
-# Run a regex to extract parameter names from the *this* file (SpirePM.cmake).
+# Run a regex to extract parameter names from the *this* file (CPM.cmake).
 # Stuff the results into 'lines'.
 file(STRINGS "${CMAKE_CURRENT_LIST_FILE}" lines
      LIMIT_COUNT ${_cpm_documentation_line_count}
@@ -229,7 +229,7 @@ function(CPM_AddModule name)
   # Parse all function arguments into our namespace prepended with _CPM_.
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
 
-  # Determine base module directory.
+  # Determine base module directory and target directory for module.
   set(_CPM_BASE_MODULE_DIR "${DIR_OF_CPM}/modules")
 
   # Sane default for GIT_TAG if it is not specified
@@ -245,6 +245,11 @@ function(CPM_AddModule name)
 
   if (DEFINED _CPM_GIT_REPOSITORY)
     set(_ep_git_repo "GIT_REPOSITORY" ${_CPM_GIT_REPOSITORY})
+
+    # Build module suffix (unique ID) based off of the sanitized url and
+    # the repo tag.
+    string(REGEX REPLACE ":" "" path_unid "${line}")
+    message("Path unid: ${path_unid}")
   endif()
 
   if (DEFINED _CPM_SOURCE_DIR)
@@ -253,78 +258,80 @@ function(CPM_AddModule name)
     set(_ep_git_repo)
     set(_ep_git_tag)
     set(_ep_update_command "UPDATE_COMMAND" "cmake .")
+
+    # Build module suffix (unique ID) based off source location.
   endif()
 
   _cpm_set_output_dirs()
 
-  ExternalProject_Add(${name}
-    ${_ep_prefix}
-    ${_ep_source_dir}
-    ${_ep_git_repo}
-    ${_ep_git_tag}
-    ${_ep_bin_dir}
-    INSTALL_COMMAND ""
-    CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-      ${_ep_spire_use_threads}
-      ${_ep_spire_output_dirs}
-    )
+  #ExternalProject_Add(${name}
+  #  ${_ep_prefix}
+  #  ${_ep_source_dir}
+  #  ${_ep_git_repo}
+  #  ${_ep_git_tag}
+  #  ${_ep_bin_dir}
+  #  INSTALL_COMMAND ""
+  #  CMAKE_ARGS
+  #    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+  #    ${_ep_spire_use_threads}
+  #    ${_ep_spire_output_dirs}
+  #  )
 
-  if (DEFINED _CPM_SOURCE_DIR)
-    # Forces a build even though we are source only.
-    ExternalProject_Add_Step(${name} forcebuild
-      COMMAND ${CMAKE_COMMAND} -E echo
-      ALWAYS 1
-      DEPENDERS build
-      )
-  endif()
+  #if (DEFINED _CPM_SOURCE_DIR)
+  #  # Forces a build even though we are source only.
+  #  ExternalProject_Add_Step(${name} forcebuild
+  #    COMMAND ${CMAKE_COMMAND} -E echo
+  #    ALWAYS 1
+  #    DEPENDERS build
+  #    )
+  #endif()
 
-  # This target property is used to place compiled modules where they belong.
-  set_target_properties(${name} PROPERTIES SPIRE_MODULE_OUTPUT_DIRECTORY "${_CPM_BASE_OUTPUT_DIR}")
+  ## This target property is used to place compiled modules where they belong.
+  #set_target_properties(${name} PROPERTIES SPIRE_MODULE_OUTPUT_DIRECTORY "${_CPM_BASE_OUTPUT_DIR}")
 
-  # Setup imported library.
-  set(spire_library_name Spire)
-  set(spire_library_target_name SpireCoreLibraryTarget)
-  set(spire_library_path 
-    "${_CPM_CORE_OUTPUT_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${spire_library_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-  add_library(${spire_library_target_name} STATIC IMPORTED GLOBAL)
-  add_dependencies(${spire_library_target_name} ${name})
-  set_property(TARGET ${spire_library_target_name} PROPERTY IMPORTED_LOCATION "${spire_library_path}")
+  ## Setup imported library.
+  #set(spire_library_name Spire)
+  #set(spire_library_target_name SpireCoreLibraryTarget)
+  #set(spire_library_path 
+  #  "${_CPM_CORE_OUTPUT_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${spire_library_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+  #add_library(${spire_library_target_name} STATIC IMPORTED GLOBAL)
+  #add_dependencies(${spire_library_target_name} ${name})
+  #set_property(TARGET ${spire_library_target_name} PROPERTY IMPORTED_LOCATION "${spire_library_path}")
 
-  # Library path for the core module.
-  set(SPIRE_LIBRARIES ${SPIRE_LIBRARIES} "${spire_library_target_name}" PARENT_SCOPE)
-  set(SPIRE_LIBRARY_DIRS ${SPIRE_LIBRARY_DIRS} "${_CPM_CORE_OUTPUT_DIR}" PARENT_SCOPE)
+  ## Library path for the core module.
+  #set(SPIRE_LIBRARIES ${SPIRE_LIBRARIES} "${spire_library_target_name}" PARENT_SCOPE)
+  #set(SPIRE_LIBRARY_DIRS ${SPIRE_LIBRARY_DIRS} "${_CPM_CORE_OUTPUT_DIR}" PARENT_SCOPE)
 
-  # Retrieving properties from external projects will retrieve their fully
-  # initialized values (including if any defaults were set).
-  ExternalProject_Get_Property(${name} PREFIX)
-  ExternalProject_Get_Property(${name} SOURCE_DIR)
-  ExternalProject_Get_Property(${name} BINARY_DIR)
-  ExternalProject_Get_Property(${name} INSTALL_DIR)
+  ## Retrieving properties from external projects will retrieve their fully
+  ## initialized values (including if any defaults were set).
+  #ExternalProject_Get_Property(${name} PREFIX)
+  #ExternalProject_Get_Property(${name} SOURCE_DIR)
+  #ExternalProject_Get_Property(${name} BINARY_DIR)
+  #ExternalProject_Get_Property(${name} INSTALL_DIR)
 
-  set(SPIRE_INCLUDE_DIR ${SPIRE_INCLUDE_DIR} "${SOURCE_DIR}")
-  set(SPIRE_INCLUDE_DIR ${SPIRE_INCLUDE_DIR} PARENT_SCOPE)
+  #set(SPIRE_INCLUDE_DIR ${SPIRE_INCLUDE_DIR} "${SOURCE_DIR}")
+  #set(SPIRE_INCLUDE_DIR ${SPIRE_INCLUDE_DIR} PARENT_SCOPE)
 
-  set(SPIRE_MODULE_INCLUDE_DIRS PARENT_SCOPE)
+  #set(SPIRE_MODULE_INCLUDE_DIRS PARENT_SCOPE)
 
-  Spire_BuildCoreThirdPartyIncludes(spire_third_party_dirs ${SOURCE_DIR})
-  set(SPIRE_3RDPARTY_INCLUDE_DIRS ${spire_third_party_dirs})
-  set(SPIRE_3RDPARTY_INCLUDE_DIRS "${SPIRE_3RDPARTY_INCLUDE_DIRS}" PARENT_SCOPE)
+  #Spire_BuildCoreThirdPartyIncludes(spire_third_party_dirs ${SOURCE_DIR})
+  #set(SPIRE_3RDPARTY_INCLUDE_DIRS ${spire_third_party_dirs})
+  #set(SPIRE_3RDPARTY_INCLUDE_DIRS "${SPIRE_3RDPARTY_INCLUDE_DIRS}" PARENT_SCOPE)
 
-  # Also set a target property containing all of the includes needed for the
-  # core spire library. This is used by modules in order.
-  set_target_properties(${name} PROPERTIES SPIRE_CORE_INCLUDE_DIRS "${SPIRE_INCLUDE_DIRS};${SPIRE_3RDPARTY_INCLUDE_DIRS}")
-  set_target_properties(${name} PROPERTIES SPIRE_BASE_MODULE_SRC_DIR "${PREFIX}/module_src/SpireExt")
+  ## Also set a target property containing all of the includes needed for the
+  ## core spire library. This is used by modules in order.
+  #set_target_properties(${name} PROPERTIES SPIRE_CORE_INCLUDE_DIRS "${SPIRE_INCLUDE_DIRS};${SPIRE_3RDPARTY_INCLUDE_DIRS}")
+  #set_target_properties(${name} PROPERTIES SPIRE_BASE_MODULE_SRC_DIR "${PREFIX}/module_src/SpireExt")
 
-  # Set output directory for assets if the user passed the variable in.
-  if (DEFINED _CPM_ASSET_OUTPUT_DIR)
-    set_target_properties(${name} PROPERTIES ASSET_OUTPUT_DIR "${_CPM_ASSET_OUTPUT_DIR}")
-  endif()
+  ## Set output directory for assets if the user passed the variable in.
+  #if (DEFINED _CPM_ASSET_OUTPUT_DIR)
+  #  set_target_properties(${name} PROPERTIES ASSET_OUTPUT_DIR "${_CPM_ASSET_OUTPUT_DIR}")
+  #endif()
 
-  # Set output directory for shaders if the user passed the variable in.
-  if (DEFINED _CPM_SHADER_OUTPUT_DIR)
-    set_target_properties(${name} PROPERTIES SHADER_OUTPUT_DIR "${_CPM_SHADER_OUTPUT_DIR}")
-  endif()
+  ## Set output directory for shaders if the user passed the variable in.
+  #if (DEFINED _CPM_SHADER_OUTPUT_DIR)
+  #  set_target_properties(${name} PROPERTIES SHADER_OUTPUT_DIR "${_CPM_SHADER_OUTPUT_DIR}")
+  #endif()
 
 endfunction()
 
