@@ -4,6 +4,7 @@ bin
 # CPM ignores
 cpm
 modules
+externals
 
 # Compiled Object files
 *.slo
