@@ -279,7 +279,8 @@ function(CPM_AddModule name)
 
   # Get rid of any characters that would be offensive to paths.
   string(REGEX REPLACE "/" "_" path_unid "${path_unid}")
-  string(REGEX REPLACE "[:/.-?+!\\]" "" path_unid "${path_unid}")
+  # Ensure the 'hyphen (-)' is at the beginning or end of the [].
+  string(REGEX REPLACE "[:/\\.?-]" "" path_unid "${path_unid}")
 
   # Setup common directory names.
   set(this_module_dir "${base_module_dir}/${path_unid}")
