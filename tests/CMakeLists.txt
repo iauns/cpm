@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 project (Foo)
 
 ##------------------------------------------------------------------------------
-## Required CPM Setup
+## Required CPM Setup - See: http://github.com/iauns/cpm
 ##------------------------------------------------------------------------------
 #set (CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
 #if (${CPM_DIR} MATCHES "${CMAKE_CURRENT_BINARY_DIR}")
