@@ -38,3 +38,5 @@ CPM_AddModule("SpireModule"
   GIT_REPOSITORY "https://github.com/SCIInstitute/spire"
   GIT_TAG "v0.1.1")
 
+#CPM_AddExternal("CMongoDB"
+#GIT_REPOSITORY "/")

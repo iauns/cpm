@@ -63,6 +63,8 @@
 # library unless you use shared libraries.
 # Add external function reference:
 #  CPM_AddExternal(<name>         # Required - External name (will be used to lookup external).
+#    [GIT_REPOSITORY repo]        # Indicates git repository containing recipe to build external.
+#    [GIT_TAG tag]                # Tag inside of the git repo.
 #    [VERSION version]            # Attempt to find this version number.
 #    )
 #
@@ -346,5 +348,10 @@ function(CPM_AddModule name)
   #       CPM_INCLUDE_DIRS to the appropriate value.
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${SOURCE_DIR}/include")
 
+endfunction()
+
+function(CPM_AddExternal name)
+  # Attempt to find common directory for external project build recipes?
+  # Or just download them to the cpm directory?
 endfunction()
 
