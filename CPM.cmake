@@ -304,7 +304,7 @@ function(CPM_AddModule name)
       -DCPM_OUTPUT_LIB_NAME:STRING=${module_lib_name}
       -DCPM_UNIQUE_ID:STRING=${path_unid}
       -DCPM_DIR:STRING=${DIR_OF_CPM}
-      ${_ep_spire_output_dirs}
+      ${_ep_output_bin_dirs}
       ${_CPM_CMAKE_ARGS}
     )
 
