@@ -234,9 +234,9 @@ function(CPM_AddModule name)
 
   # Sane default for GIT_TAG if it is not specified
   if (DEFINED _CPM_GIT_TAG)
-    set(_ep_git_tag "GIT_TAG" ${_CPM_GIT_TAG})
+    set(git_tag ${_CPM_GIT_TAG})
   else()
-    set(_ep_git_tag "GIT_TAG" "origin/master")
+    set(git_tag "origin/master")
   endif()
 
   if ((NOT DEFINED _CPM_GIT_REPOSITORY) AND (NOT DEFINED _CPM_SOURCE_DIR))
@@ -244,25 +244,26 @@ function(CPM_AddModule name)
   endif()
 
   if (DEFINED _CPM_GIT_REPOSITORY)
-    set(_ep_git_repo "GIT_REPOSITORY" ${_CPM_GIT_REPOSITORY})
+    set(git_repo ${_CPM_GIT_REPOSITORY})
 
-    # Build module suffix (unique ID) based off of the sanitized url and
-    # the repo tag.
-    string(REGEX REPLACE ":" "" path_unid "${line}")
-    message("Path unid: ${path_unid}")
+    set(path_unid ${git_repo})
+    string(REGEX REPLACE "https://github.com/" "github_" path_unid "${path_unid}")
+    string(REGEX REPLACE "http://github.com/" "github_" path_unid "${path_unid}")
+
+    # Append tag
+    set(path_unid "${path_unid}_${git_tag}")
   endif()
 
   if (DEFINED _CPM_SOURCE_DIR)
-    set(_ep_source_dir "SOURCE_DIR" "${_CPM_SOURCE_DIR}")
-    # Clear git repo or git tag, if any.
-    set(_ep_git_repo)
-    set(_ep_git_tag)
-    set(_ep_update_command "UPDATE_COMMAND" "cmake .")
-
-    # Build module suffix (unique ID) based off source location.
+    set(source_dir "SOURCE_DIR" "${_CPM_SOURCE_DIR}")
+    set(path_unid ${_CPM_SOURCE_DIR})
   endif()
 
-  _cpm_set_output_dirs()
+  string(REGEX REPLACE "/" "_" path_unid "${path_unid}")
+  string(REGEX REPLACE "[:/?\\]" "" path_unid "${path_unid}")
+  message("Path unid: ${path_unid}")
+
+  #_cpm_set_output_dirs()
 
   #ExternalProject_Add(${name}
   #  ${_ep_prefix}
