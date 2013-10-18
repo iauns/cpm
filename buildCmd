@@ -1,0 +1,3 @@
+# For testing purposes.
+# Use the following command from the ./bin directory of the project.
+cmake -D CPM_DIR="../cpm".. ../tests
