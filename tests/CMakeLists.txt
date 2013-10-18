@@ -1,9 +1,11 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 project (Foo)
 
-##------------------------------------------------------------------------------
-## Required CPM Setup - See: http://github.com/iauns/cpm
-##------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Required CPM Setup - See: http://github.com/iauns/cpm
+#------------------------------------------------------------------------------
+# Downloads the most current version of CPM if CPM.cmake is not found.
+# Otherwise, the current version of CPM is kept as-is.
 set (CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
 if (${CPM_DIR} MATCHES "${CMAKE_CURRENT_BINARY_DIR}")
   message("NOTE: Placing CPM in the binary directory is not recommended.")
@@ -24,7 +26,7 @@ if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
   endif()
 endif()
 
-#message('CPM dir: ${CPM_DIR}')
+message("CPM dir: ${CPM_DIR}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CPM_DIR})
 include(CPM)
 
