@@ -159,7 +159,7 @@ set(CPM_DIR_OF_CPM ${CMAKE_CURRENT_LIST_DIR})
 # If CPM_UNIQUE_ID exists then use that as the base directory for CPM.
 # Note that we are already in the parent's namespace (we are not in a
 # function), so we directly modify the appropriate GLOBAL variables.
-if (defined CPM_UNIQUE_ID)
+if (DEFINED CPM_UNIQUE_ID)
   set(CPM_NS_HEADER_FILE "${CPM_DIR_OF_CPM}/include/${CPM_UNIQUE_ID}/cpm/cpm.h")
   set(CPM_INCLUDE_DIRS "${CPM_DIR_OF_CPM}/include/${CPM_UNIQUE_ID}")
 else()
