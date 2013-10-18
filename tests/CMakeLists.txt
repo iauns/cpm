@@ -26,7 +26,6 @@ if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
   endif()
 endif()
 
-message("CPM dir: ${CPM_DIR}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CPM_DIR})
 include(CPM)
 
