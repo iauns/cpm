@@ -1,5 +1,16 @@
 # CPM - CMake Package Manager
 #
+# I fully implemented the external project approach, see commit SHA:
+# 107d0952bd3a64c371d1d3224271bdcca915b2fa . I also tagged it as 
+# "External_Project_Approach". The biggest issue that I ran acrossed was lack 
+# of support for static library linkage (which makes sense). I thought about
+# building the linkages as you go, but that would require two runs of cmake,
+# which I feel is not acceptable.
+#
+# The approach you see below is a mishmash of ExternalProject and
+# addSubdirectory. I tried to take the good of ExternalProject, and merge that
+# with the good of add_subdirectory.
+#
 # TODO: We might need to create a file with all of the static libraries
 #       dependencies in it so that we can link against those at the executable
 #       level. This will be an issue when we have CPM builds relying on other
