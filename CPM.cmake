@@ -1,5 +1,9 @@
 # CPM - CMake Package Manager
 #
+# TODO: We might need to create a file with all of the static libraries
+#       dependencies in it so that we can link against those at the executable
+#       level. This will be an issue when we have CPM builds relying on other
+#       CPM builds (I don't know if this is already done for external projects).
 # TODO: Add include prefixes. Since we know that all public includes will be
 #       located in ./include, we can copy that directory to a new location
 #       and prefix it with something. This is so we can fix include issues
