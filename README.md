@@ -63,8 +63,8 @@ Advantages of Using CPM
 Building CPM Modules
 ====================
 
-When building CPM modules, there are some basic guidelines that you should
-follow.
+When building CPM modules for others to use, there are some basic guidelines
+that you should follow.
 
 Include Directories
 -------------------
