@@ -11,15 +11,11 @@
 # addSubdirectory. I tried to take the good of ExternalProject, and merge that
 # with the good of add_subdirectory.
 #
-# TODO: We might need to create a file with all of the static libraries
-#       dependencies in it so that we can link against those at the executable
-#       level. This will be an issue when we have CPM builds relying on other
-#       CPM builds (I don't know if this is already done for external projects).
 # TODO: Add include prefixes. Since we know that all public includes will be
-#       located in ./include, we can copy that directory to a new location
-#       and prefix it with something. This is so we can fix include issues
-#       at the local CMake level instead of having to go upstream with
-#       requests or patch the project.
+#       located in ./include, we can copy the contents of that directory to a
+#       new location and prefix it with something. This is so we can fix
+#       include issues at the local CMake level instead of having to go
+#       upstream with requests or patch the project.
 #       Name: INCLUDE_PREFIX.
 # TODO: Possibly add an output variable for unique id or other paths the user
 #       may want with regards to the module. This way users could add 
