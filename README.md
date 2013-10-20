@@ -124,8 +124,8 @@ Sally codes CPM module `A` in which she wants to expose a class from Bob's CPM
 module `B`. Sally currently has version 0.11 of Bob's module `B`. A new
 programmer, James, wants to use Sally's module `A` module.
 
-Force one module version
-------------------------
+Force only one module version
+-----------------------------
 
 This issues arises, for example, if you are using something like the OpenGL
 extension wrangler. The extension wrangler depends on OpenGL context specific
@@ -137,8 +137,8 @@ handling and Extension Wrangler's binding of function pointers.
 FAQ
 ===
 
-Why add_subdirectory instead of External Projects?
---------------------------------------------------
+Why add_subdirectory instead of ExternalProject?
+------------------------------------------------
 
 CPM was initially built using external projects, but the external project
 mechanism proved to be too restrictive. When using external projects, a
