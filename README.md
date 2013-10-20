@@ -108,8 +108,8 @@ Common Issues
 
 Below are some common issues users encounter and solutions to them.
 
-Ensuring matching module versions
----------------------------------
+Matching module versions
+------------------------
 
 Some module interfaces require the ability to expose classes from other
 included modules. This is allowed. By doing this, you tie your module and its
@@ -124,8 +124,8 @@ Sally codes CPM module `A` in which she wants to expose a class from Bob's CPM
 module `B`. Sally currently has version 0.11 of Bob's module `B`. A new
 programmer, James, wants to use Sally's module `A` module.
 
-Ensuring a module is only included once in a static linkage unit
-----------------------------------------------------------------
+Force one module version
+------------------------
 
 This issues arises, for example, if you are using something like the OpenGL
 extension wrangler. The extension wrangler depends on OpenGL context specific
