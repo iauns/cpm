@@ -252,6 +252,50 @@ function(_cpm_parse_arguments f ns args)
   endforeach()
 endfunction()
 
+# Function for clearing parsed arguments. Used directly before calling
+# add_subdirectory on a child module.
+function(_cpm_clear_arguments f ns args)
+  # Transfer the arguments to this function into target properties for the new
+  # custom target we just added so that we can set up all the build steps
+  # correctly based on target properties.
+  #
+  # We loop through ARGN and consider the namespace starting with an upper-case
+  # letter followed by at least two more upper-case letters, numbers or
+  # underscores to be keywords.
+  set(key)
+
+  foreach(arg IN LISTS args)
+    set(is_value 1)
+
+    # Check to see if we have a keyword. Otherwise, we will have a value
+    # associated with a keyword. Confirm that the arg doesn't match a few
+    # common exceptions.
+    if(arg MATCHES "^[A-Z][A-Z0-9_][A-Z0-9_]+$" AND
+        NOT ((arg STREQUAL "${key}") AND (key STREQUAL "COMMAND")) AND
+        NOT arg MATCHES "^(TRUE|FALSE)$")
+
+      # Now check to see if the argument is in our list of approved keywords.
+      # If is, then make sure we don't treat it as a value.
+      if(_cpm_keywords_${f} AND arg MATCHES "${_cpm_keywords_${f}}")
+        set(is_value 0)
+      endif()
+
+    endif()
+
+    if(is_value)
+      if(key)
+        set(${ns}${key} PARENT_SCOPE)
+      else()
+        # Missing Keyword
+        message(AUTHOR_WARNING "value '${arg}' with no previous keyword in ${f}")
+      endif()
+    else()
+      # Set the key to use in the next iteration.
+      set(key "${arg}")
+    endif()
+  endforeach()
+endfunction()
+
 
 # See: http://stackoverflow.com/questions/7747857/in-cmake-how-do-i-work-around-the-debug-and-release-directories-visual-studio-2
 # This is only for CMake files.
@@ -274,6 +318,23 @@ function(_cpm_build_target_output_dirs parent_var_to_update output_dir)
 
 endfunction()
 
+# Same as above but places the output directories in the parent scope.
+function(_cpm_set_target_output_dirs parent_var_to_update output_dir)
+
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${output_dir}" PARENT_SCOPE)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${output_dir}" PARENT_SCOPE)
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${output_dir}" PARENT_SCOPE)
+
+  # Second, for multi-config builds (e.g. msvc)
+  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${output_dir}/${OUTPUTCONFIG}" PARENT_SCOPE)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${output_dir}/${OUTPUTCONFIG}" PARENT_SCOPE)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${output_dir}/${OUTPUTCONFIG}" PARENT_SCOPE)
+  endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+
+endfunction()
+
 # 'name' - Name of the target that will be created.
 function(CPM_AddModule name)
 
@@ -281,7 +342,7 @@ function(CPM_AddModule name)
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
 
   # Determine base module directory and target directory for module.
-  set(base_module_dir "${CPM_DIR_OF_CPM}/modules")
+  set(__CPM_BASE_MODULE_DIR "${CPM_DIR_OF_CPM}/modules")
 
   # Sane default for GIT_TAG if it is not specified
   if (DEFINED _CPM_GIT_TAG)
@@ -294,103 +355,203 @@ function(CPM_AddModule name)
     message(FATAL_ERROR "CPM: You must specify either a git repository or source directory.")
   endif()
 
+  if ((DEFINED _CPM_GIT_REPOSITORY) AND (DEFINED _CPM_SOURCE_DIR))
+    message(FATAL_ERROR "CPM: You cannot specify both a git repository and a source directory.")
+  endif()
+
   # Check to see if we should use git to download the source.
-  set(using_git FALSE)
+  set(__CPM_USING_GIT FALSE)
   if (DEFINED _CPM_GIT_REPOSITORY)
-    set(using_git TRUE)
-    set(git_repo ${_CPM_GIT_REPOSITORY})
+    set(__CPM_USING_GIT TRUE)
 
-    set(_ep_git_repo "GIT_REPOSITORY" "${git_repo}")
-    set(_ep_git_tag "GIT_TAG" ${_SPM_GIT_TAG})
+    set(__CPM_PATH_UNID ${_CPM_GIT_REPOSITORY})
+    string(REGEX REPLACE "https://github.com/" "github_" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
+    string(REGEX REPLACE "http://github.com/" "github_" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
 
-    set(path_unid ${git_repo})
-    string(REGEX REPLACE "https://github.com/" "github_" path_unid "${path_unid}")
-    string(REGEX REPLACE "http://github.com/" "github_" path_unid "${path_unid}")
-
-    set(path_unid "${path_unid}_${git_tag}")
+    set(__CPM_PATH_UNID "${__CPM_PATH_UNID}_${_CPM_GIT_TAG}")
   endif()
 
   # Check to see if the source is stored locally.
   if (DEFINED _CPM_SOURCE_DIR)
-    set(path_unid ${_CPM_SOURCE_DIR})
-    set(_ep_source_dir "SOURCE_DIR" "${_CPM_SOURCE_DIR}")
+    set(__CPM_PATH_UNID ${_CPM_SOURCE_DIR})
+    set(__CPM_MODULE_SOURCE_DIR "${_CPM_SOURCE_DIR}")
   endif()
 
+  # Build UNID
   # Get rid of any characters that would be offensive to paths.
-  string(REGEX REPLACE "/" "_" path_unid "${path_unid}")
+  string(REGEX REPLACE "/" "_" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
   # Ensure the 'hyphen (-)' is at the beginning or end of the [].
-  string(REGEX REPLACE "[:/\\.?-]" "" path_unid "${path_unid}")
+  string(REGEX REPLACE "[:/\\.?-]" "" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
 
-  # Setup common directory names.
-  set(this_module_dir "${base_module_dir}/${path_unid}")
-  set(this_module_ep_dir "${base_module_dir}/${path_unid}/ep")
-  set(this_module_bin_dir "${base_module_dir}/${path_unid}/bin")
+  # Construct paths from UNID
+  set(__CPM_MODULE_BIN_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_PATH_UNID}/bin")
 
-  # Build a set of target output directories based off of the configuration type
-  _cpm_build_target_output_dirs(_ep_output_bin_dirs ${this_module_bin_dir})
+  if (__CPM_USING_GIT)
+    set(__CPM_MODULE_SOURCE_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_PATH_UNID}/src")
+    # Download the code if it doesn't already exist. Otherwise make sure
+    # the code is updated (on the latest branch or tag).
+    if (NOT EXISTS "${__CPM_MODULE_SOURCE_DIR}/")
+      # Much of this clone code is taken from external project's generation
+      # of its *gitclone.cmake files.
+      # Try the clone 3 times (from External Project source).
+      # We don't set a timeout here because we absolutely need to clone the
+      # directory in order to continue with the build process.
+      set(error_code 1)
+      set(number_of_tries 0)
+      while(error_code AND number_of_tries LESS 3)
+        execute_process(
+          COMMAND "${GIT_EXECUTABLE}" clone "${_CPM_GIT_REPOSITORY}" "${__CPM_MODULE_SOURCE_DIR}"
+          WORKING_DIRECTORY "${CPM_DIR_OF_CPM}"
+          RESULT_VARIABLE error_code
+          )
+        math(EXPR number_of_tries "${number_of_tries} + 1")
+      endwhile()
 
-  # Setup the external project.
-  set(module_lib_name ${path_unid})
-  set(_ep_module_target "${path_unid}_ep")
-  ExternalProject_Add(${_ep_module_target}
-    "PREFIX;${this_module_ep_dir}"
-    ${_ep_git_repo}
-    ${_ep_git_tag}
-    ${_ep_source_dir}
-    INSTALL_COMMAND ""
-    CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-      -DCPM_OUTPUT_LIB_NAME:STRING=${module_lib_name}
-      -DCPM_UNIQUE_ID:STRING=${path_unid}
-      -DCPM_DIR:STRING=${CPM_DIR_OF_CPM}
-      ${_ep_output_bin_dirs}
-      ${_CPM_CMAKE_ARGS}
-    )
+      # Check to see if we really have cloned the repository.
+      if(number_of_tries GREATER 1)
+        message(STATUS "Had to git clone more than once:
+        ${number_of_tries} times.")
+      endif()
+      if(error_code)
+        message(FATAL_ERROR "Failed to clone repository: 'https://github.com/SCIInstitute/spire'")
+      endif()
 
-  if (DEFINED _CPM_SOURCE_DIR)
-    # Forces a build even though we are source only.
-    ExternalProject_Add_Step(${_ep_module_target} forcebuild
-      COMMAND ${CMAKE_COMMAND} -E echo
-      ALWAYS 1
-      DEPENDERS build
+      # Checkout the appropriate tag.
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" checkout ${_CPM_GIT_TAG}
+        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
+        RESULT_VARIABLE error_code
+        )
+      if(error_code)
+        message(FATAL_ERROR "Failed to checkout tag: '${_CPM_GIT_TAG}'")
+      endif()
+
+      # Initialize and update any submodules that may be present in the repo.
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" submodule init
+        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
+        RESULT_VARIABLE error_code
+        )
+      if(error_code)
+        message(FATAL_ERROR "Failed to init submodules in: '${__CPM_MODULE_SOURCE_DIR}'")
+      endif()
+
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
+        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
+        RESULT_VARIABLE error_code
+        )
+      if(error_code)
+        message(FATAL_ERROR "Failed to update submodules in: '${__CPM_MODULE_SOURCE_DIR}'")
+      endif()
+    endif()
+
+    # Attempt to update with a timeout.
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" rev-list --max-count=1 HEAD
+      WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
+      RESULT_VARIABLE error_code
+      OUTPUT_VARIABLE head_sha
       )
-  endif()
+    if(error_code)
+      message(FATAL_ERROR "Failed to get the hash for HEAD")
+    endif()
+
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" show-ref master
+      WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
+      OUTPUT_VARIABLE show_ref_output
+      )
+    # If a remote ref is asked for, which can possibly move around,
+    # we must always do a fetch and checkout.
+    if("${show_ref_output}" MATCHES "remotes")
+      set(is_remote_ref 1)
+    else()
+      set(is_remote_ref 0)
+    endif()
+
+    # This will fail if the tag does not exist (it probably has not been fetched
+    # yet).
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" rev-list --max-count=1 master
+      WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
+      RESULT_VARIABLE error_code
+      OUTPUT_VARIABLE tag_sha
+      )
+
+    # Is the hash checkout out that we want?
+    if(error_code OR is_remote_ref OR NOT ("${tag_sha}" STREQUAL "${head_sha}"))
+      # Fetch the remote repository and limit it to 15 seconds.
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" fetch
+        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
+        RESULT_VARIABLE error_code
+        TIMEOUT 15
+        )
+      if(error_code)
+        message("Failed to fetch repository '${_CPM_GIT_REPOSITORY}'. Skipping fetch.")
+      endif()
+
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" checkout ${_CPM_GIT_TAG}
+        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
+        RESULT_VARIABLE error_code
+        )
+      if(error_code)
+        message(FATAL_ERROR "Failed to checkout tag: '${_CPM_GIT_TAG}'")
+      endif()
+
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
+        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
+        RESULT_VARIABLE error_code
+        TIMEOUT 15
+        )
+      if(error_code)
+        message("Failed to update submodules in: '${__CPM_MODULE_SOURCE_DIR}'. Skipping submodule update.")
+      endif()
+    endif()
+
+  endif(__CPM_USING_GIT)
+
+  # We are either using the git clone or we are using a user supplied source
+  # directory. We are ready to set our target variables and proceed with
+  # the add subdirectory.
+
+  # Set variables CPM will use inside of the library target.
+  set(CPM_UNIQUE_ID ${__CPM_PATH_UNID})
+  set(CPM_TARGET_NAME "${__CPM_PATH_UNID}_ep")
+  set(CPM_OUTPUT_LIB_NAME ${__CPM_PATH_UNID})
+  set(CPM_DIR ${CPM_DIR_OF_CPM})
+
+  # Set target output directories.
+  _cpm_set_target_output_dirs(_ep_output_bin_dirs "${__CPM_MODULE_BIN_DIR}")
+
+  # Clear out the arguments so the child instances of CPM don't pick them up.
+  # !!!!! NOTE !!!!!  If you want access to the _CPM arguments after this point,
+  #                   you must reparse them using _cpm_parse_arguments
+  _cpm_clear_arguments(CPM_AddModule _CPM_ "${ARGN}")
+
+  # Clear out other variables we set in the function that may interfer
+  # with further calls to CPM.
+  set(__CPM_USING_GIT)
+  set(__CPM_BASE_MODULE_DIR)
+
+  # Setup the project.
+  add_subdirectory(${__CPM_MODULE_SOURCE_DIR})
 
   # Append a definition to the cpm header file that must be included to
   # correct for the namespace modifications.
-  file(APPEND ${CPM_NS_HEADER_FILE} "using namespace ${path_unid};\n")
+  file(APPEND ${CPM_NS_HEADER_FILE} "using namespace ${__CPM_PATH_UNID};\n")
 
-  # Setup imported library.
-  set(lib_suffix ${CMAKE_STATIC_LIBRARY_SUFFIX})
-  set(lib_prefix ${CMAKE_STATIC_LIBRARY_SUFFIX})
-  set(module_library_name ${module_lib_name})
-  set(module_library_target_name ${path_unid}_primtgt)
-  set(module_library_path "${this_module_bin_dir}")
-  set(module_library_filename  "${lib_prefix}${module_lib_name}${lib_suffix}")
-  add_library(${module_library_target_name} STATIC IMPORTED GLOBAL)
-  add_dependencies(${module_library_target_name} ${_ep_module_target})
-  set_property(TARGET ${module_library_target_name} PROPERTY IMPORTED_LOCATION
-    "${module_library_path}/${module_library_filename}")
-
-  # Ensure all of the configuration locations are setup correctly.
-  # Second, for multi-config builds (e.g. msvc)
-  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
-    set_property(TARGET ${module_library_target_name} PROPERTY IMPORTED_LOCATION_${OUTPUTCONFIG_UPPER}
-      "${module_library_path}/${OUTPUTCONFIG}/${module_library_filename}")
-  endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
-
-  # Grab source directory
-  ExternalProject_Get_Property(${_ep_module_target} SOURCE_DIR)
-
-  # Append to pre-existing libraries.
-  set(CPM_LIBRARIES ${CPM_LIBRARIES} "${module_library_target_name}" PARENT_SCOPE)
+  # Append target to pre-existing libraries.
+  set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
 
   # Note: This is where we should perform an additional external project step
   #       (ExternalProject_Add_Step) to copy the include files to the 
   #       appropriate directory if INCLUDE_PREFIX was specified. Then set
   #       CPM_INCLUDE_DIRS to the appropriate value.
-  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${SOURCE_DIR}/include")
+  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include")
 
 endfunction()
 
@@ -398,4 +559,125 @@ function(CPM_AddExternal name)
   # Attempt to find common directory for external project build recipes?
   # Or just download them to the cpm directory?
 endfunction()
+
+## 'name' - Name of the target that will be created.
+#function(CPM_AddModule name)
+#
+#  # Parse all function arguments into our namespace prepended with _CPM_.
+#  _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
+#
+#  # Determine base module directory and target directory for module.
+#  set(base_module_dir "${CPM_DIR_OF_CPM}/modules")
+#
+#  # Sane default for GIT_TAG if it is not specified
+#  if (DEFINED _CPM_GIT_TAG)
+#    set(git_tag ${_CPM_GIT_TAG})
+#  else()
+#    set(git_tag "origin/master")
+#  endif()
+#
+#  if ((NOT DEFINED _CPM_GIT_REPOSITORY) AND (NOT DEFINED _CPM_SOURCE_DIR))
+#    message(FATAL_ERROR "CPM: You must specify either a git repository or source directory.")
+#  endif()
+#
+#  # Check to see if we should use git to download the source.
+#  set(using_git FALSE)
+#  if (DEFINED _CPM_GIT_REPOSITORY)
+#    set(using_git TRUE)
+#    set(git_repo ${_CPM_GIT_REPOSITORY})
+#
+#    set(_ep_git_repo "GIT_REPOSITORY" "${git_repo}")
+#    set(_ep_git_tag "GIT_TAG" ${_SPM_GIT_TAG})
+#
+#    set(path_unid ${git_repo})
+#    string(REGEX REPLACE "https://github.com/" "github_" path_unid "${path_unid}")
+#    string(REGEX REPLACE "http://github.com/" "github_" path_unid "${path_unid}")
+#
+#    set(path_unid "${path_unid}_${git_tag}")
+#  endif()
+#
+#  # Check to see if the source is stored locally.
+#  if (DEFINED _CPM_SOURCE_DIR)
+#    set(path_unid ${_CPM_SOURCE_DIR})
+#    set(_ep_source_dir "SOURCE_DIR" "${_CPM_SOURCE_DIR}")
+#  endif()
+#
+#  # Get rid of any characters that would be offensive to paths.
+#  string(REGEX REPLACE "/" "_" path_unid "${path_unid}")
+#  # Ensure the 'hyphen (-)' is at the beginning or end of the [].
+#  string(REGEX REPLACE "[:/\\.?-]" "" path_unid "${path_unid}")
+#
+#  # Setup common directory names.
+#  set(this_module_dir "${base_module_dir}/${path_unid}")
+#  set(this_module_ep_dir "${base_module_dir}/${path_unid}/ep")
+#  set(this_module_bin_dir "${base_module_dir}/${path_unid}/bin")
+#
+#  # Build a set of target output directories based off of the configuration type
+#  _cpm_build_target_output_dirs(_ep_output_bin_dirs ${this_module_bin_dir})
+#
+#  # Setup the external project.
+#  set(module_lib_name ${path_unid})
+#  set(_ep_module_target "${path_unid}_ep")
+#  ExternalProject_Add(${_ep_module_target}
+#    "PREFIX;${this_module_ep_dir}"
+#    ${_ep_git_repo}
+#    ${_ep_git_tag}
+#    ${_ep_source_dir}
+#    INSTALL_COMMAND ""
+#    CMAKE_ARGS
+#      -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+#      -DCPM_OUTPUT_LIB_NAME:STRING=${module_lib_name}
+#      -DCPM_UNIQUE_ID:STRING=${path_unid}
+#      -DCPM_DIR:STRING=${CPM_DIR_OF_CPM}
+#      ${_ep_output_bin_dirs}
+#      ${_CPM_CMAKE_ARGS}
+#    )
+#
+#  if (DEFINED _CPM_SOURCE_DIR)
+#    # Forces a build even though we are source only.
+#    ExternalProject_Add_Step(${_ep_module_target} forcebuild
+#      COMMAND ${CMAKE_COMMAND} -E echo
+#      ALWAYS 1
+#      DEPENDERS build
+#      )
+#  endif()
+#
+#  # Append a definition to the cpm header file that must be included to
+#  # correct for the namespace modifications.
+#  file(APPEND ${CPM_NS_HEADER_FILE} "using namespace ${path_unid};\n")
+#
+#  # Setup imported library.
+#  set(lib_suffix ${CMAKE_STATIC_LIBRARY_SUFFIX})
+#  set(lib_prefix ${CMAKE_STATIC_LIBRARY_SUFFIX})
+#  set(module_library_name ${module_lib_name})
+#  set(module_library_target_name ${path_unid}_primtgt)
+#  set(module_library_path "${this_module_bin_dir}")
+#  set(module_library_filename  "${lib_prefix}${module_lib_name}${lib_suffix}")
+#  add_library(${module_library_target_name} STATIC IMPORTED GLOBAL)
+#  add_dependencies(${module_library_target_name} ${_ep_module_target})
+#  set_property(TARGET ${module_library_target_name} PROPERTY IMPORTED_LOCATION
+#    "${module_library_path}/${module_library_filename}")
+#
+#  # Ensure all of the configuration locations are setup correctly.
+#  # Second, for multi-config builds (e.g. msvc)
+#  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+#    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
+#    set_property(TARGET ${module_library_target_name} PROPERTY IMPORTED_LOCATION_${OUTPUTCONFIG_UPPER}
+#      "${module_library_path}/${OUTPUTCONFIG}/${module_library_filename}")
+#  endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+#
+#  # Grab source directory
+#  ExternalProject_Get_Property(${_ep_module_target} SOURCE_DIR)
+#
+#  # Append to pre-existing libraries.
+#  set(CPM_LIBRARIES ${CPM_LIBRARIES} "${module_library_target_name}" PARENT_SCOPE)
+#
+#  # Note: This is where we should perform an additional external project step
+#  #       (ExternalProject_Add_Step) to copy the include files to the 
+#  #       appropriate directory if INCLUDE_PREFIX was specified. Then set
+#  #       CPM_INCLUDE_DIRS to the appropriate value.
+#  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${SOURCE_DIR}/include")
+#
+#endfunction()
+
 

@@ -4,8 +4,6 @@ project (Foo)
 #------------------------------------------------------------------------------
 # Required CPM Setup - See: http://github.com/iauns/cpm
 #------------------------------------------------------------------------------
-# Downloads the most current version of CPM if CPM.cmake is not found.
-# Otherwise, the current version of CPM is kept as-is.
 set (CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
 if (${CPM_DIR} MATCHES "${CMAKE_CURRENT_BINARY_DIR}")
   message("NOTE: Placing CPM in the binary directory is not recommended.")
@@ -29,12 +27,9 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CPM_DIR})
 include(CPM)
 
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_BINARY_DIR}/..)
-#include(CPM)
-
-#------------------------------------------------------------------------------
-# Include modules and externals
-#------------------------------------------------------------------------------
+# Include modules and externals. All modules must come before any project
+# specific setup such as setting compiler flags. See the github readme for
+# a full explanation.
 CPM_AddModule("SpireModule"
   GIT_REPOSITORY "https://github.com/SCIInstitute/spire"
   GIT_TAG "origin/concurrent")
