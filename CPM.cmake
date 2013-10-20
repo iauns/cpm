@@ -534,7 +534,7 @@ function(CPM_AddModule name)
   set(__CPM_BASE_MODULE_DIR)
 
   # Setup the project.
-  add_subdirectory(${__CPM_MODULE_SOURCE_DIR})
+  add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
 
   # Append a definition to the cpm header file that must be included to
   # correct for the namespace modifications.
