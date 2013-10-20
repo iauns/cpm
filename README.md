@@ -60,11 +60,6 @@ Advantages of Using CPM
 * All module code will be included in any generated project solution.
 * Encourages small, well-tested and composable code modules. Similar to NPM.
 
-Disadvantages of Using CPM
-==========================
-
-* Only supports Git.
-
 Building CPM Modules
 ====================
 
