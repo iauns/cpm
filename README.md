@@ -52,7 +52,7 @@ This will automatically download, build, and link version 0.7.0 of a thin
 OpenGL client named Spire.
 
 Advantages of Using CPM
-=======================
+-----------------------
 
 * Automatically manages code retrieval and the build.
 * You can use multiple different versions of the same statically linked module
