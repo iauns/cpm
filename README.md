@@ -33,8 +33,7 @@ if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
   endif()
 endif()
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CPM_DIR})
-include(CPM)
+include(${CPM_DIR}/CPM.cmake)
 ```
 
 Then add the `${CPM_LIBRARIES}` variable to your `target_link_libraries`.
