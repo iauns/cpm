@@ -193,7 +193,7 @@ file(APPEND ${CPM_NS_HEADER_FILE} "      #define CPM_NAMESPACE_NAME##_def\\\n")
 file(APPEND ${CPM_NS_HEADER_FILE} "      namespace CPM_NAMESPACE_NAME {\\\n")
 file(APPEND ${CPM_NS_HEADER_FILE} "    #else\\\n")
 file(APPEND ${CPM_NS_HEADER_FILE} "      }\\\n")
-file(APPEND ${CPM_NS_HEADER_FILE} "    #endif\\\n")
+file(APPEND ${CPM_NS_HEADER_FILE} "    #endif\n")
 file(APPEND ${CPM_NS_HEADER_FILE} "#endif\n\n")
 file(APPEND ${CPM_NS_HEADER_FILE} "#endif\n")
 
