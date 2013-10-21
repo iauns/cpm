@@ -65,11 +65,45 @@ Building CPM Modules
 When building CPM modules for others to use, there are some basic guidelines
 that you should follow.
 
-Include Directories
+CMakeLists.txt Entry
+--------------------
+
+Add the following to the top of your CMakeLists.txt file for your module. It
+is only slightly larger than what is required if you were using CPM as an end
+user:
+
+```
+```
+
+Alternatively, if you are not using CPM dependencies in your module, you can
+include this minimal CMakeLists.txt entry:
+
+```
+
+```
+
+A file with the following in it is also required:
+
+```
+
+```
+
+Include this file everywhere you use the CPM namespace.
+
+Library target name
 -------------------
 
+Ensure that your generated library target name is ``. This will match up with
+what CPM is expecting and allow your module to function properly with other
+users' code.
+
+Includes & Include Directories
+------------------------------
+
 All of your module's public interface headers should be in the 'include'
-subdirectory.
+subdirectory. Additionally, you should include cpm/cpm.h. This header will
+include your unique namespace definitions and any additional using directives
+for CPM modules that you are using.
 
 Wrapping Namespace
 ------------------
