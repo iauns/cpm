@@ -492,6 +492,7 @@ function(CPM_AddModule name)
         COMMAND "${GIT_EXECUTABLE}" checkout ${_CPM_GIT_TAG}
         WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
         RESULT_VARIABLE error_code
+        OUTPUT_QUIET TRUE
         )
       if(error_code)
         message(FATAL_ERROR "Failed to checkout tag: '${_CPM_GIT_TAG}'")
