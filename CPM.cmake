@@ -418,6 +418,7 @@ function(CPM_AddModule name)
         WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
         RESULT_VARIABLE error_code
         OUTPUT_QUIET
+        ERROR_QUIET
         )
       if(error_code)
         message(FATAL_ERROR "Failed to checkout tag: '${_CPM_GIT_TAG}'")
@@ -494,6 +495,7 @@ function(CPM_AddModule name)
         WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
         RESULT_VARIABLE error_code
         OUTPUT_QUIET
+        ERROR_QUIET
         )
       if(error_code)
         message(FATAL_ERROR "Failed to checkout tag: '${_CPM_GIT_TAG}'")
