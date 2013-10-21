@@ -331,8 +331,7 @@ function(_cpm_set_target_output_dirs parent_var_to_update output_dir)
 
 endfunction()
 
-# 'name' - Name of the target that will be created.
-function(CPM_AddModule name)
+function(CPM_AddModule)
 
   # Parse all function arguments into our namespace prepended with _CPM_.
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
@@ -387,6 +386,7 @@ function(CPM_AddModule name)
     # Download the code if it doesn't already exist. Otherwise make sure
     # the code is updated (on the latest branch or tag).
     if (NOT EXISTS "${__CPM_MODULE_SOURCE_DIR}/")
+      message(STATUS "Cloning module repo (${_CPM_GIT_REPOSITORY})")
       # Much of this clone code is taken from external project's generation
       # of its *gitclone.cmake files.
       # Try the clone 3 times (from External Project source).
