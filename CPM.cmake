@@ -443,12 +443,12 @@ macro(_cpm_check_and_add_preproc moduleName defShortName fullUNID)
   else()
     # Add our definition to the list of pre-existing preproc items.
     # We use this list to clear out existing entries in our subdirectories.
-    set(${CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC}} ${fullUNID} PARENT_SCOPE)
-    set(CPM_KV_LIST_PREPROC_NS_MAP ${CPM_KV_LIST_PREPROC_NS_MAP} ${__CPM_LAST_MODULE_PREPROC} PARENT_SCOPE)
+    set(${CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC}} ${fullUNID})# PARENT_SCOPE)
+    set(CPM_KV_LIST_PREPROC_NS_MAP ${CPM_KV_LIST_PREPROC_NS_MAP} ${__CPM_LAST_MODULE_PREPROC})# PARENT_SCOPE)
   endif()
 
   # Add the interface definition to our list of preprocessor definitions.
-  set(CPM_DEFINITIONS ${CPM_DEFINITIONS} "-D${__CPM_LAST_MODULE_PREPROC}=${fullUNID}" PARENT_SCOPE)
+  set(CPM_DEFINITIONS ${CPM_DEFINITIONS} "-D${__CPM_LAST_MODULE_PREPROC}=${fullUNID}")# PARENT_SCOPE)
 
   # Clear our variable.
   set(__CPM_LAST_MODULE_PREPROC)
@@ -711,17 +711,17 @@ macro(CPM_AddModule name)
   # Add the module version to the map.
   if (NOT DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID})
     # Add this entry to the map list.
-    set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} ${__CPM_PATH_UNID} PARENT_SCOPE)
+    set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} ${__CPM_PATH_UNID}) #PARENT_SCOPE)
   endif()
-  set(CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID} ${__CPM_PATH_UNID_VERSION} PARENT_SCOPE)
+  set(CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID} ${__CPM_PATH_UNID_VERSION}) #PARENT_SCOPE)
 
   # Setup module interface definition. This is the name the module is using
   # to identify itself in it's headers.
-  #if (DEFINED CPM_LAST_MODULE_NAME)
-  #  _cpm_check_and_add_preproc(${name} ${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
-  #else()
-  #  message(FATAL_ERROR "A ${CPM_LAST_MODULE_NAME} module (${__CPM_MODULE_SOURCE_DIR}) failed to define its name!")
-  #endif()
+  if (DEFINED CPM_LAST_MODULE_NAME)
+    _cpm_check_and_add_preproc(${name} ${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
+  else()
+    message(FATAL_ERROR "A ${CPM_LAST_MODULE_NAME} module (${__CPM_MODULE_SOURCE_DIR}) failed to define its name!")
+  endif()
 
   # Set the appropriate preprocessor definition for this module and populate 
   # our namespace header file.
@@ -731,8 +731,10 @@ macro(CPM_AddModule name)
   set(__CPM_MODULE_PREPROC)
 
   # Append target to pre-existing libraries.
-  set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
-  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include" PARENT_SCOPE)
+  #set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
+  #set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include" PARENT_SCOPE)
+  set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}")
+  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include")
 
   if (DEFINED CPM_SHOW_HIERARCHY)
     if(__CPM_USING_GIT)
@@ -744,7 +746,7 @@ macro(CPM_AddModule name)
 
   # Now propogate the version map upwards (we don't really *need* to do this).
   # But makes it clear what we are trying to do.
-  _cpm_propogate_version_map_up()
+  #_cpm_propogate_version_map_up()
 endfunction()
 
 function(CPM_AddExternal name)
