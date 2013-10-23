@@ -33,6 +33,12 @@ CPM_AddModule("spire"
               GIT_REPOSITORY  "https://github.com/SCIInstitute/spire"
               GIT_TAG         "origin/concurrent")
 
+# Do the following only if we include spire...
+# do this AFTER we have included all other modules.
+CPM_InitModule(${CPM_MODULE_NAME})
+include_directories(${CPM_INCLUDE_DIRS})
+add_definitions(${CPM_DEFINITIONS})
+
 #CPM_AddExternal("CMongoDB"
 #GIT_REPOSITORY "/")
 

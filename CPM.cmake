@@ -50,6 +50,10 @@
 #    [CMAKE_ARGS args...]         # Additional CMake arguments to set for only for this module.
 #    )
 #
+# Define CPM_SHOW_HIERARCHY to see all modules and their dependencies in
+# a hierarchical fashion. The output from defining this is usually best viewed
+# after all of the modules have cloned their source.
+#
 # Many settings are automatically applied for modules. Setting SOURCE_DIR is
 # not recommeneded unless you are managing the header locations for the source
 # directory manually. If you set the source directory the project will not be
@@ -62,59 +66,50 @@
 # well. Additionally, you cannot link against multiple versions of the same
 # library unless you use shared libraries.
 #
-# Add external function reference:
-#  CPM_AddExternal(<name>         # Required - External name (will be used to lookup external).
-#    [GIT_REPOSITORY repo]        # Indicates git repository containing recipe to build external.
-#    [GIT_TAG tag]                # Tag inside of the git repo.
-#    [VERSION version]            # Attempt to find this version number.
-#    )
+# Add external function reference: CPM_AddExternal(<name>         # Required -
+# External name (will be used to lookup external).  [GIT_REPOSITORY repo]
+# # Indicates git repository containing recipe to build external.  [GIT_TAG
+# tag]                # Tag inside of the git repo.  [VERSION version]
+# # Attempt to find this version number.)
 #
 # Also remember: you will probably want to use add_dependencies with the
 # ${CPM_LIBRARIES}.
 #
-# CPM also adds the following variables to the global namespace for CPM
-# script purposes only. These variables are unlikely to be useful to you.
+# CPM also adds the following variables to the global namespace for CPM script
+# purposes only. These variables are unlikely to be useful to you.
 #
-#  CPM_DIR_OF_CPM               - Variable that stores the location of *this* file.
-#  CPM_USING_NS_HEADER_FILE     - Header file containing using directives for all
-#                                 automatically generated header files.
-#  CPM_KV_MOD_VERSION_MAP_*     - A key/value module version mapping. 
-#                                 Key: Unique path (no version)
-#                                 Val: The most recently added module version.
-#                                 This is used to enforce, if requested, that
-#                                 only one version of a particular module exists
-#                                 in the build chain.
-#  CPM_KV_LIST_MOD_VERSION_MAP  - A list of entries in CPM_KV_MOD_VERSION_MAP.
-#                                 This list is used to propagate information to
-#                                 the parent_scope when CPM_INIT_MODULE is
-#                                 called and at the end of the AddModule
-#                                 function.
-#  CPM_KV_PREPROC_NS_MAP_*      - A key/value C preprocessor namespace mapping.
-#                                 Key: C Preprocessor name.
-#                                 Val: The *full* unique ID of the module.
-#                                 This ensures that namespace definitions do not
-#                                 overlap on one another. Either by accident by
-#                                 naming different modules the same, or through
-#                                 an imported modules interface (modules can
-#                                 force you to import a particular version of
-#                                 a module if they expose it in their interface).
-#  CPM_KV_LIST_PREPROC_NS_MAP   - A list of entries in CPM_KV_PREPROC_NS_MAP.
-#                                 This list is used to clear the map when
-#                                 descending the build hierarchy using
-#                                 add_subdirectory.
+#  CPM_DIR_OF_CPM               - Variable that stores the location of *this*
+#  file.  CPM_USING_NS_HEADER_FILE     - Header file containing using
+#  directives for all automatically generated header files.
+#  CPM_KV_MOD_VERSION_MAP_*     - A key/value module version mapping.  Key:
+#  Unique path (no version) Val: The most recently added module version.  This
+#  is used to enforce, if requested, that only one version of a particular
+#  module exists in the build chain.  CPM_KV_LIST_MOD_VERSION_MAP  - A list of
+#  entries in CPM_KV_MOD_VERSION_MAP.  This list is used to propagate
+#  information to the parent_scope when CPM_INIT_MODULE is called and at the
+#  end of the AddModule function.  CPM_KV_PREPROC_NS_MAP_*      - A key/value C
+#  preprocessor namespace mapping.  Key: C Preprocessor name.  Val: The *full*
+#  unique ID of the module.  This ensures that namespace definitions do not
+#  overlap on one another. Either by accident by naming different modules the
+#  same, or through an imported modules interface (modules can force you to
+#  import a particular version of a module if they expose it in their
+#  interface).  CPM_KV_LIST_PREPROC_NS_MAP   - A list of entries in
+#  CPM_KV_PREPROC_NS_MAP.  This list is used to clear the map when descending
+#  the build hierarchy using add_subdirectory.  CPM_HIERARCHY_LEVEL          -
+#  Variable only useful when displaying the module hierarchy. 
 #
 # NOTE: End users aren't required to finalize their modules after they add them
-#       because all appropriate constraints do not need to be propogated further
-#       then the top level file. 
+# because all appropriate constraints do not need to be propogated further then
+# the top level file. 
 #
 #-------------------------------------------------------------------------------
 # Pre-compute a regex to match documented keywords for each command.
 #-------------------------------------------------------------------------------
 # This code parses the *current* file and extracts parameter key words from the
-# documentation given above. It will match "# ... [...] # ..." style statements,
-# or "#  <funcname>(" style statements.
-# This code was pretty much lifted directly from KitWare's ExternalProject.cmake,
-# but then I documented what it's doing. It's not exactly straight forward.
+# documentation given above. It will match "# ... [...] # ..." style
+# statements, or "#  <funcname>(" style statements.  This code was pretty much
+# lifted directly from KitWare's ExternalProject.cmake, but then I documented
+# what it's doing. It's not exactly straight forward.
 
 # Based on the current line in *this* file (SpirePM.cmake), we calc the number
 # of lines the documentation header consumes. Including this comment, that is
@@ -187,6 +182,17 @@ set(CPM_DIR_OF_CPM ${CMAKE_CURRENT_LIST_DIR})
 
 # Clear out any definitions a parent_scope might have declared.
 set(CPM_DEFINITIONS)
+
+# Increment the module hierarchy level if it exists.
+if (DEFINED CPM_SHOW_HIERARCHY)
+  if (DEFINED CPM_HIERARCHY_LEVEL)
+    math(EXPR CPM_HIERARCHY_LEVEL "${CPM_HIERARCHY_LEVEL}+1")
+  else()
+    set(CPM_HIERARCHY_LEVEL 0)
+    message("CPM Module Dependency Hierarchy:")
+    message("Top")
+  endif()
+endif()
 
 # If CPM_UNIQUE_ID exists then use that as the base directory for CPM.
 # Note that we are already in the parent's namespace (we are not in a
@@ -445,6 +451,21 @@ macro(_cpm_check_and_add_preproc moduleName defShortName fullUNID)
   set(__CPM_LAST_MODULE_PREPROC)
 endmacro()
 
+function(_cpm_print_with_hierarchy_level msg)
+  # while ${number} is between 0 and 11
+  if (DEFINED CPM_HIERARCHY_LEVEL)
+    set(number 0)
+    set(spacing "  ")
+    WHILE( number GREATER 0 AND number LESS ${CPM_HIERARCHY_LEVEL} )
+      set(spacing "${spacing}  ")
+      MATH( EXPR number "${number} - 1" ) # decrement number
+    ENDWHILE( number GREATER 0 AND number LESS 11 )
+    message("${spacing}| ${msg}")
+  else()
+    message(msg)
+  endif()
+endfunction()
+
 # name - Required as this name determines what preprocessor definition will
 #        be generated for this module.
 function(CPM_AddModule name)
@@ -658,7 +679,7 @@ function(CPM_AddModule name)
 
   # Clear out other variables we set in the function that may interfer
   # with further calls to CPM.
-  set(__CPM_USING_GIT)
+  #set(__CPM_USING_GIT)
   set(__CPM_BASE_MODULE_DIR)
   set(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
 
@@ -707,6 +728,14 @@ function(CPM_AddModule name)
   # Append target to pre-existing libraries.
   set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include" PARENT_SCOPE)
+
+  if (DEFINED CPM_SHOW_HIERARCHY)
+    if(__CPM_USING_GIT)
+      _cpm_print_with_hierarchy_level("${name} - GIT - Tag: ${_CPM_GIT_TAG} - Unid: ${__CPM_FULL_UNID}")
+    else()
+      _cpm_print_with_hierarchy_level("${name} - Source - Unid: ${__CPM_FULL_UNID}")
+    endif()
+  endif()
 
   # Now propogate the version map upwards (we don't really *need* to do this).
   # But makes it clear what we are trying to do.
