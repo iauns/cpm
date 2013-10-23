@@ -716,7 +716,7 @@ function(CPM_AddModule name)
   if (DEFINED CPM_LAST_MODULE_NAME)
     _cpm_check_and_add_preproc(${name} ${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
   else()
-    message(FATAL_ERROR "A module (${__CPM_MODULE_SOURCE_DIR}) failed to define its name!")
+    message(FATAL_ERROR "A ${CPM_LAST_MODULE_NAME} module (${__CPM_MODULE_SOURCE_DIR}) failed to define its name!")
   endif()
 
   # Set the appropriate preprocessor definition for this module and populate 
