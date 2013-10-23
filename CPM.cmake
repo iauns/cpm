@@ -388,13 +388,15 @@ macro(_cpm_propogate_version_map_up)
   # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
   # parent CPM_AddModule function's namespace. CPM_AddModule will
   # propogate the versioning information up again to it's parent's namespace.
-  foreach(_cpm_kvName IN LISTS CPM_KV_LIST_MOD_VERSION_MAP)
-    set(CPM_KV_MOD_VERSION_MAP_${_cpm_kvName} ${CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}} PARENT_SCOPE)
-  endforeach()
-  set(_cpm_kvName) # Clear kvName
+  if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    foreach(_cpm_kvName IN LISTS CPM_KV_LIST_MOD_VERSION_MAP)
+      set(CPM_KV_MOD_VERSION_MAP_${_cpm_kvName} ${CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}} PARENT_SCOPE)
+    endforeach()
+    set(_cpm_kvName) # Clear kvName
 
-  # Now propogate the list itself upwards.
-  set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} PARENT_SCOPE)
+    # Now propogate the list itself upwards.
+    set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} PARENT_SCOPE)
+  endif()
 endmacro()
 
 # This macro initializes a CPM module. We use a macro for this code so that
@@ -404,7 +406,9 @@ endmacro()
 macro(CPM_InitModule name)
   # Ensure the parent function knows what we decided to name ourselves.
   # This name will correspond to our module's namespace directives.
-  set(CPM_LAST_MODULE_NAME ${name} PARENT_SCOPE)
+  if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    set(CPM_LAST_MODULE_NAME ${name} PARENT_SCOPE)
+  endif()
 
   # Build the appropriate definition for the module. We stored the unique ID
   _cpm_build_preproc_name(name __CPM_TMP_VAR)
