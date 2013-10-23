@@ -184,7 +184,7 @@ set(CPM_DIR_OF_CPM ${CMAKE_CURRENT_LIST_DIR})
 set(CPM_DEFINITIONS)
 
 # Increment the module hierarchy level if it exists.
-if (DEFINED CPM_SHOW_HIERARCHY)
+if ((DEFINED CPM_SHOW_HIERARCHY) AND (CPM_SHOW_HIERARCHY)
   if (DEFINED CPM_HIERARCHY_LEVEL)
     math(EXPR CPM_HIERARCHY_LEVEL "${CPM_HIERARCHY_LEVEL}+1")
   else()
@@ -740,7 +740,7 @@ function(CPM_AddModule name)
   set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include" PARENT_SCOPE)
 
-  if (DEFINED CPM_SHOW_HIERARCHY)
+  if ((DEFINED CPM_SHOW_HIERARCHY) AND (CPM_SHOW_HIERARCHY))
     if(__CPM_USING_GIT)
       _cpm_print_with_hierarchy_level("${name} - GIT - Tag: ${_CPM_GIT_TAG} - Unid: ${__CPM_FULL_UNID}")
     else()
