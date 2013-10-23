@@ -407,6 +407,7 @@ macro(CPM_InitModule name)
   set(CPM_LAST_MODULE_NAME ${name})
   set(CPM_LAST_MODULE_NAME ${CPM_LAST_MODULE_NAME} PARENT_SCOPE)
   message("Initializing macro: ${name}")
+  message("Initializing macro 2: ${CPM_LAST_MODULE_NAME }")
 
   # Build the appropriate definition for the module. We stored the unique ID
   _cpm_build_preproc_name(name __CPM_TMP_VAR)
