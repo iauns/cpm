@@ -62,11 +62,14 @@ always capitalized before being added to your preprocessor definitions.
 So, in the 'spire' example above we would have a new preprocessor definition
 `CPM_SPIRE_NS` added to our project. This declares the namepsace under which
 we have bound Spire and you can access spire through this namespace:
-`CPM_SPIRE_NS::Interface`. Using this approach, we can *statically* link
-against multiple different versions of the spire library and control a number
-of settings regarding how these libraries are linked into your program.
-Linking against different versions of a library becomes very useful if
-multiple modules depend on different versions of the same library.
+`CPM_SPIRE_NS::Interface`. In general you will want to rename the namespace
+to something more appropriate: `namespace Spire = CPM_SPIRE_NS`.
+
+Using this approach, we can *statically* link against multiple different
+versions of the spire library and control a number of settings regarding how
+these libraries are linked into your program.  Linking against different
+versions of a library becomes very useful if multiple modules depend on
+different versions of the same library.
 
 CPM Externals
 -------------
