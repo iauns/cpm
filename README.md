@@ -32,23 +32,60 @@ if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
     message(FATAL_ERROR "CPM failed to get the hash for HEAD")
   endif()
 endif()
-
 include(${CPM_DIR}/CPM.cmake)
+
+# Include any modules here...
+
+# Finalize CPM.
+CPM_Finish()
 ```
 
 Then add the `${CPM_LIBRARIES}` variable to your `target_link_libraries`.
 
-That's it. You should be able to start using CPM modules right away by adding
-something like:
+That's it. You will be able to start using CPM modules right away by adding
+something like
 
 ```
-CPM_AddModule("SpireModule"
+CPM_AddModule("spire"
   GIT_REPOSITORY "https://github.com/SCIInstitute/spire"
   GIT_TAG "v0.7.0")
 ```
 
-This will automatically download, build, and link version 0.7.0 of a thin
-OpenGL client named Spire.
+to the "# Include any modules here" section mentioned in the code snippet
+above. This will automatically download, build, and link version 0.7.0 of a
+thin OpenGL client named Spire. A new namespace is generated for 'spire' and
+a preprocessor definition for this namespace is automatically added to your 
+project. This definition always follows the form "`CPM_<NAME>_NS`" where
+`<NAME>` is the first argument of your call to `CPM_AddModule`. The name is
+always capitalized before being added to your preprocessor definitions.
+
+So, in the 'spire' example above we would have a new preprocessor definition
+`CPM_SPIRE_NS` added to our project. This declares the namepsace under which
+we have bound Spire and you can access spire through this namespace:
+`CPM_SPIRE_NS::Interface`. Using this approach, we can *statically* link
+against multiple different versions of the spire library and control a number
+of settings regarding how these libraries are linked into your program.
+Linking against different versions of a library becomes very useful if
+multiple modules depend on different versions of the same library.
+
+CPM Externals
+-------------
+
+If the library you are interested in using isn't a CPM module, no worries. You
+can use CPM externals. While you won't be able to link against multiple
+versions of the library, or use any of the package constraints, you can
+quickly include the library if there is a CPM formula for it.
+
+No formulas? Please contribute one to our externals repository. We are
+actively looking for contributions to CPM's externals repository.
+
+A CPM external is any C or C++ library that does not use CPM and has a
+formula registered in CPM's externals registry. You can use externals to
+quickly build and link against various useful libraries. For example, to build
+and link the MongoDB C library into your project, simply add the following to
+your CMakeLists.txt file:
+
+
 
 Advantages of Using CPM
 -----------------------
@@ -170,8 +207,12 @@ about this corner case. This is a particular affectation of OpenGL's context
 handling and Extension Wrangler's binding of function pointers.
 
 To enforce this during the CMake configure step, include a call to
-CPM_ForceOnlyOneModuleVersion anywhere in your module's CMakeLists.txt file.
-Usually this call is made directly after calling CPM_InitModule.
+`CPM_ForceOnlyOneModuleVersion` anywhere in your module's CMakeLists.txt file.
+Usually this call is made directly after calling `CPM_InitModule`.
+
+Building CPM Externals
+======================
+
 
 FAQ
 ===
@@ -194,4 +235,13 @@ configure and build cycle.
 Another advantage of `add_subdirectory` is that it include's the module's
 source code as part of any project solution that is generated from CMake. See
 the `CPM Advantages` section.
+
+How do I see the module hierarchy?
+----------------------------------
+
+When building your project define: `CPM_SHOW_HIERARCHY=TRUE`.
+
+On the command line this would look something like:
+
+```cmake -DCPM_SHOW_HIERARCHY=TRUE ...```
 
