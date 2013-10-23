@@ -35,7 +35,7 @@ CPM_AddModule("spire"
 
 # Do the following only if we include spire...
 # do this AFTER we have included all other modules.
-CPM_InitModule(${CPM_MODULE_NAME})
+CPM_InitModule("module")
 include_directories(${CPM_INCLUDE_DIRS})
 add_definitions(${CPM_DEFINITIONS})
 
