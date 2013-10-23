@@ -371,7 +371,8 @@ endfunction()
 
 # Builds the preprocessor name from 'name' and stores it in 'parentVar'.
 function(_cpm_build_preproc_name name parentVar)
-  set(parentVar "CPM_${name}_NS" PARENT_SCOPE)
+  string(TOUPPER ${name} CPM_UPPER_CASE_NAME)
+  set(${parentVar} "CPM_${CPM_UPPER_CASE_NAME}_NS" PARENT_SCOPE)
 endfunction()
 
 # Exports the module with 'name'. This is necessary if you need to expose
