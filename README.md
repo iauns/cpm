@@ -162,17 +162,27 @@ libraries will cause undue amounts of chaos. Most users won't need to worry
 about this corner case. This is a particular affectation of OpenGL's context
 handling and Extension Wrangler's binding of function pointers.
 
+To enforce this during the CMake configure step, include a call to
+CPM_ForceOnlyOneModuleVersion anywhere in your module's CMakeLists.txt file.
+Usually this call is made directly after calling CPM_InitModule.
+
 FAQ
 ===
 
 Why add_subdirectory instead of ExternalProject?
 ------------------------------------------------
 
-CPM was initially built using external projects, but the external project
+CPM was initially built using external projects but the external project
 mechanism proved to be too restrictive. When using external projects, a
-cmake+build+cmake cycle was required to detect all static dependencies. One of
-CPM's tenets is to never require a departure from the standard cmake + build,
-so we couldn't use external projects as-is.
+cmake+build+cmake+build cycle was required to detect all static dependencies.
+One of CPM's tenets is to never require a departure from the standard cmake +
+build sequence, so we couldn't use external projects as-is.
+
+After working on CPM it became clear that `add_subdirectory` was the right
+choice. `add_subdirectory` allows us to easily enforce configuration
+constraints, such as only allowing one version of a library to be statically
+linked, without needing to read/write to files and use the akward double
+configure and build cycle.
 
 Another advantage of `add_subdirectory` is that it include's the module's
 source code as part of any project solution that is generated from CMake. See

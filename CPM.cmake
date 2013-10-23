@@ -7,28 +7,15 @@
 # building the linkages as you go, but that would require two runs of cmake,
 # which I feel is not acceptable.
 #
-# The approach you see below is a mishmash of ExternalProject and
-# addSubdirectory. I tried to take the good of ExternalProject, and merge that
-# with the good of add_subdirectory.
-#
+# TODO: Add a recursive display of all modules and versions and their
+#       dependencies. Similar to npm's display.
+# TODO: Implement 'export module interface'.
 # TODO: Add include prefixes. Since we know that all public includes will be
 #       located in ./include, we can copy the contents of that directory to a
 #       new location and prefix it with something. This is so we can fix
 #       include issues at the local CMake level instead of having to go
 #       upstream with requests or patch the project.
 #       Name: INCLUDE_PREFIX.
-# TODO: Possibly add an output variable for unique id or other paths the user
-#       may want with regards to the module. This way users could add 
-#       ExternalProject steps to the module. This may be useful for copying
-#       assets from the child projects.
-#       We could set this up using something like:
-#       "EP_TARGET variable" where 'variable' will be populated in the parent
-#       scope with the external project target name. Or something like
-#       "EP_SOURCE_DIR variable".
-#       Of course, depending on what you are doing, copying assets could
-#       be (and probably should be) a cmake argument passed to the external
-#       project. Possibly specifying the directory where the assets should be
-#       copied.
 # TODO: Add library constraints. Some modules may require the user to use
 #       the same version of GLM it uses, for instance. This is to avoid
 #       conflicts regarding what headers are used. This shouldn't be hard
@@ -51,13 +38,15 @@
 # appended to PARENT_SCOPE whenever the add module function is called:
 # 
 #  CPM_INCLUDE_DIRS     - All module search paths.
-#  CPM_LIBRARIES        - All libraries to link against. These are all imported targets.
+#  CPM_LIBRARIES        - All targets to link against.
+#  CPM_DEFINITIONS      - Definitions for all CPM namespaces.
 #
 # Add module function reference:
 #  CPM_AddModule(<name>           # Required - Module target name.
 #    [SOURCE_DIR dir]             # Uses 'dir' as the source directory as opposed to downloading.
 #    [GIT_TAG tag]                # Same as ExternalProject_Add's GIT_TAG
 #    [GIT_REPOSITORY repo]        # Same as ExternalProject_Add's GIT_REPOSITORY.
+#    [PREPROCESSOR_POSTFIX post]  # Adds "_${PREPROCESSOR_POSTFIX}" onto all C preprocessor definitions.
 #    [CMAKE_ARGS args...]         # Additional CMake arguments to set for only for this module.
 #    )
 #
@@ -86,25 +75,37 @@
 # CPM also adds the following variables to the global namespace for CPM
 # script purposes only. These variables are unlikely to be useful to you.
 #
-#  CPM_DIR_OF_CPM             - Variable that stores the location of *this* file.
-#  CPM_USING_NS_HEADER_FILE   - Header file containing using directives for all
-#                               automatically generated header files.
-#  CPM_PREPROC_NS_HEADER_FILE - Header which includes namespace directives.
-#  CPM_KV_MOD_VERSION_MAP_*   - A key/value module version mapping. 
-#                               Key: Unique path (no version)
-#                               Val: The most recently added module version.
-#                               This is used to enforce, if requested, that
-#                               only one version of a particular module exists
-#                               in the build chain.
-#  CPM_KV_PREPROC_NS_DEFS_*   - A key/value C preprocessor namespace mapping.
-#                               Key: C Preprocessor name.
-#                               Val: The *full* unique ID of the module.
-#                               This ensures that namespace definitions do not
-#                               overlap on one another. Either by accident by
-#                               naming different modules the same, or through
-#                               an imported modules interface (modules can
-#                               force you to import a particular version of
-#                               a module if they expose it in their interface).
+#  CPM_DIR_OF_CPM               - Variable that stores the location of *this* file.
+#  CPM_USING_NS_HEADER_FILE     - Header file containing using directives for all
+#                                 automatically generated header files.
+#  CPM_KV_MOD_VERSION_MAP_*     - A key/value module version mapping. 
+#                                 Key: Unique path (no version)
+#                                 Val: The most recently added module version.
+#                                 This is used to enforce, if requested, that
+#                                 only one version of a particular module exists
+#                                 in the build chain.
+#  CPM_KV_LIST_MOD_VERSION_MAP  - A list of entries in CPM_KV_MOD_VERSION_MAP.
+#                                 This list is used to propagate information to
+#                                 the parent_scope when CPM_INIT_MODULE is
+#                                 called and at the end of the AddModule
+#                                 function.
+#  CPM_KV_PREPROC_NS_MAP_*      - A key/value C preprocessor namespace mapping.
+#                                 Key: C Preprocessor name.
+#                                 Val: The *full* unique ID of the module.
+#                                 This ensures that namespace definitions do not
+#                                 overlap on one another. Either by accident by
+#                                 naming different modules the same, or through
+#                                 an imported modules interface (modules can
+#                                 force you to import a particular version of
+#                                 a module if they expose it in their interface).
+#  CPM_KV_LIST_PREPROC_NS_MAP   - A list of entries in CPM_KV_PREPROC_NS_MAP.
+#                                 This list is used to clear the map when
+#                                 descending the build hierarchy using
+#                                 add_subdirectory.
+#
+# NOTE: End users aren't required to finalize their modules after they add them
+#       because all appropriate constraints do not need to be propogated further
+#       then the top level file. 
 #
 #-------------------------------------------------------------------------------
 # Pre-compute a regex to match documented keywords for each command.
@@ -184,6 +185,9 @@ endif()
 # file. See: http://stackoverflow.com/questions/12802377/in-cmake-how-can-i-find-the-directory-of-an-included-file
 set(CPM_DIR_OF_CPM ${CMAKE_CURRENT_LIST_DIR})
 
+# Clear out any definitions a parent_scope might have declared.
+set(CPM_DEFINITIONS)
+
 # If CPM_UNIQUE_ID exists then use that as the base directory for CPM.
 # Note that we are already in the parent's namespace (we are not in a
 # function), so we directly modify the appropriate GLOBAL variables.
@@ -191,12 +195,10 @@ set(CPM_DIR_OF_CPM ${CMAKE_CURRENT_LIST_DIR})
 if (DEFINED CPM_UNIQUE_ID)
   set(CPM_AUTOGEN_INCLUDE_DIR "${CPM_DIR_OF_CPM}/include/${CPM_UNIQUE_ID}")
   set(CPM_USING_NS_HEADER_FILE "${CPM_AUTOGEN_INCLUDE_DIR}/cpm/cpm.h")
-  set(CPM_PREPROC_NS_HEADER_FILE "${CPM_AUTOGEN_INCLUDE_DIR}/cpm/cpmns.h")
   set(CPM_INCLUDE_DIRS "${CPM_AUTOGEN_INCLUDE_DIR}")
 else()
   set(CPM_AUTOGEN_INCLUDE_DIR "${CPM_DIR_OF_CPM}/include")
   set(CPM_USING_NS_HEADER_FILE "${CPM_AUTOGEN_INCLUDE_DIR}/cpm/cpm.h")
-  set(CPM_PREPROC_NS_HEADER_FILE "${CPM_AUTOGEN_INCLUDE_DIR}/cpm/cpmns.h")
   set(CPM_INCLUDE_DIRS "${CPM_AUTOGEN_INCLUDE_DIR}")
 endif()
 
@@ -205,14 +207,13 @@ file(REMOVE ${CPM_USING_NS_HEADER_FILE})
 file(APPEND ${CPM_USING_NS_HEADER_FILE} "// This file was automatically generated by CPM.\n")
 file(APPEND ${CPM_USING_NS_HEADER_FILE} "// It includes using directives for all automatically generated namespaces.\n\n")
 
-file(REMOVE ${CPM_PREPROC_NS_HEADER_FILE})
-file(APPEND ${CPM_PREPROC_NS_HEADER_FILE} "// This file was automatically generated by CPM.\n")
-if (DEFINED CPM_UNIQUE_ID)
-  file(APPEND ${CPM_PREPROC_NS_HEADER_FILE} "#define CPM_NAMESPACE ${CPM_UNIQUE_ID}\n")
-else()
-  file(APPEND ${CPM_PREPROC_NS_HEADER_FILE} "using namespace CPM_TOP_LEVEL_NAMESPACE_;\n")
-  file(APPEND ${CPM_PREPROC_NS_HEADER_FILE} "#define CPM_NAMESPACE CPM_TOP_LEVEL_NAMESPACE_\n")
-endif()
+# Clear out the old CPM_KV_PREPROC_NS_MAP
+foreach(_cpm_kvName IN LISTS CPM_KV_LIST_PREPROC_NS_MAP)
+  set(CPM_KV_PREPROC_NS_MAP_${_cpm_kvName})
+endforeach()
+# Clear out both the list, and the 'for' variable
+set(CPM_KV_LIST_PREPROC_NS_MAP)
+set(_cpm_kvName)
 
 # Function for parsing arguments and values coming into the specified function
 # name 'f'. 'name' is the target name. 'ns' (namespace) is a value prepended
@@ -362,14 +363,32 @@ function(_cpm_set_target_output_dirs parent_var_to_update output_dir)
 
 endfunction()
 
+# Builds the preprocessor name from 'name' and stores it in 'parentVar'.
+function(_cpm_build_preproc_name name parentVar)
+  set(parentVar "CPM_${name}_NS" PARENT_SCOPE)
+endfunction()
+
 # Exports the module with 'name'. This is necessary if you need to expose
-# other module interfaces through your interface. It is not necessary if you
-# are just using the module, but is necessary if you expose the module's 
-# interface in your CPM module's interface. CPM runs a check to see if you are
-# using non-exported modules in your interface code, and fails/warns if you are.
-# The check is not exhastive however.
+# other module interfaces through your module interface. This is not necessary
+# if you are using the module but not exposing it via your public interface.
+# CPM runs a check to see if you are using non-exported modules in your
+# interface code, and fails/warns if you are. The check is not exhastive
+# however. Use this sparingly.
 macro(CPM_ExportModuleInterface name)
   
+endmacro()
+
+macro(_cpm_propogate_version_map_up)
+  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
+  # parent CPM_AddModule function's namespace. CPM_AddModule will
+  # propogate the versioning information up again to it's parent's namespace.
+  foreach(_cpm_kvName IN LISTS CPM_KV_LIST_MOD_VERSION_MAP)
+    set(CPM_KV_MOD_VERSION_MAP_${_cpm_kvName} ${CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}} PARENT_SCOPE)
+  endforeach()
+  set(_cpm_kvName) # Clear kvName
+
+  # Now propogate the list itself upwards.
+  set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} PARENT_SCOPE)
 endmacro()
 
 # This macro initializes a CPM module. We use a macro for this code so that
@@ -377,8 +396,20 @@ endmacro()
 # name - Same as the name parameter in CPM_AddModule. A preprocessor definition
 #        using this name will be generated for namespaces.
 macro(CPM_InitModule name)
-  # Construct a preprocessor value using 'name'. We use add_definitions.
-  
+  # Ensure the parent function knows what we decided to name ourselves.
+  # This name will correspond to our module's namespace directives.
+  set(CPM_LAST_MODULE_NAME ${name} PARENT_SCOPE)
+
+  # Build the appropriate definition for the module. We stored the unique ID
+  _cpm_build_preproc_name(name __CPM_TMP_VAR)
+  if (DEFINED CPM_UNIQUE_ID)
+    add_definitions("-D${__CPM_TMP_VAR}=${CPM_UNIQUE_ID}")
+  else()
+    add_definitions("-D${__CPM_TMP_VAR}=CPM_TESTING_UPPER_LEVEL_NAMESPACE")
+  endif()
+  set(__CPM_TMP_VAR) # Clean up
+
+  _cpm_propogate_version_map_up()
 endmacro()
 
 # This macro forces one, and only one, version of a module to be linked into
@@ -387,7 +418,31 @@ endmacro()
 macro(CPM_ForceOnlyOneModuleVersion)
   # Set a flag in the parent namespace to force a check against module name
   # and version.
-  set(CPM_FORCE_ONLY_ONE_MODULE_VERSION TRUE)
+  set(CPM_FORCE_ONLY_ONE_MODULE_VERSION TRUE PARENT_SCOPE)
+endmacro()
+
+# We use this code in multiple places to check that we don't have preprocessor
+# conflicts, and if we don't, then add the appropriate defintion.
+macro(_cpm_check_and_add_preproc moduleName defShortName fullUNID)
+  _cpm_build_preproc_name(${defShortName} __CPM_LAST_MODULE_PREPROC)
+
+  # Ensure that we don't have a name conflict
+  if (DEFINED CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC})
+    if (NOT "${CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC}}" STREQUAL "${fullUNID}")
+      message(FATAL_ERROR "Namespace preprocessor conflict. Current module: ${moduleName}. Preprocessor definition: ${__CPM_LAST_MODULE_PREPROC}.")
+    endif()
+  else()
+    # Add our definition to the list of pre-existing preproc items.
+    # We use this list to clear out existing entries in our subdirectories.
+    set(${CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC}} ${fullUNID} PARENT_SCOPE)
+    set(CPM_KV_LIST_PREPROC_NS_MAP ${CPM_KV_LIST_PREPROC_NS_MAP} ${__CPM_LAST_MODULE_PREPROC} PARENT_SCOPE)
+  endif()
+
+  # Add the interface definition to our list of preprocessor definitions.
+  set(CPM_DEFINITIONS ${CPM_DEFINITIONS} "-D${__CPM_LAST_MODULE_PREPROC}=${fullUNID}" PARENT_SCOPE)
+
+  # Clear our variable.
+  set(__CPM_LAST_MODULE_PREPROC)
 endmacro()
 
 # name - Required as this name determines what preprocessor definition will
@@ -610,173 +665,56 @@ function(CPM_AddModule name)
   # Setup the project.
   add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
 
+  # Parse the arguments once again after adding the subdirectory (since we
+  # cleared them all).
+  _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
+
+  # Enforce one module version if the module has requested it.
   if (DEFINED CPM_FORCE_ONLY_ONE_MODULE_VERSION)
     if(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
       # Check version of __CPM_PATH_UNID in our pre-existing map key/value map.
+      if (DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID})
+        if (NOT "${CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID}}" STREQUAL "${__CPM_PATH_UNID_VERSION}")
+          message(FATAL_ERROR "Module '${name}' was declared as only allowing one version of its module. Another version of the module was found: ${CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID}}.")
+        endif()
+      endif()
     endif()
   endif()
+  set(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
 
+  # Add the module version to the map.
+  if (NOT DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID})
+    # Add this entry to the map list.
+    set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} ${__CPM_PATH_UNID} PARENT_SCOPE)
+  endif()
+  set(CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID} ${__CPM_PATH_UNID_VERSION} PARENT_SCOPE)
+
+  # Setup module interface definition. This is the name the module is using
+  # to identify itself in it's headers.
   if (DEFINED CPM_LAST_MODULE_NAME)
-    # Build the include header files for the module in the current autogen dir.
-    # We need both the cpm.hpp and cpmns.hpp. This means that we need to know
-    # all of the modules that were added.
-    # If the module is including any other modules in the *public* interface, 
-    # then those modules *must* match the version of the modules being included
-    # by the parent. Otherwise there will be linking errors.
-    # Exposing internal module interfaces is not a good idea when it comes
-    # to resolving dependencies...
+    _cpm_check_and_add_preproc(${name} ${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
   else()
     message(FATAL_ERROR "A module (${__CPM_MODULE_SOURCE_DIR}) failed to define its name!")
   endif()
 
-  # Build include for the cpm module.
-  #file(REMOVE ${CPM_PREPROC_NS_HEADER_FILE})
-  #file(APPEND ${CPM_PREPROC_NS_HEADER_FILE} "// This file was automatically generated by CPM.\n")
-  #if (DEFINED CPM_UNIQUE_ID)
-  #  file(APPEND ${CPM_PREPROC_NS_HEADER_FILE} "#define CPM_NAMESPACE ${CPM_UNIQUE_ID}\n")
-  #else()
-  #  file(APPEND ${CPM_PREPROC_NS_HEADER_FILE} "using namespace CPM_TOP_LEVEL_NAMESPACE_;\n")
-  #  file(APPEND ${CPM_PREPROC_NS_HEADER_FILE} "#define CPM_NAMESPACE CPM_TOP_LEVEL_NAMESPACE_\n")
-  #endif()
-
-  # Append a definition to the cpm header file that must be included to
-  # correct for the namespace modifications.
-  file(APPEND ${CPM_USING_NS_HEADER_FILE} "using namespace ${__CPM_FULL_UNID};\n")
+  # Set the appropriate preprocessor definition for this module and populate 
+  # our namespace header file.
+  _cpm_check_and_add_preproc(${name} ${name} ${__CPM_FULL_UNID})
+  _cpm_build_preproc_name(${name} __CPM_MODULE_PREPROC)
+  file(APPEND ${CPM_USING_NS_HEADER_FILE} "using namespace ${__CPM_MODULE_PREPROC};\n")
+  set(__CPM_MODULE_PREPROC)
 
   # Append target to pre-existing libraries.
   set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
+  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include" PARENT_SCOPE)
 
-  # Note: This is where we should perform an additional external project step
-  #       (ExternalProject_Add_Step) to copy the include files to the 
-  #       appropriate directory if INCLUDE_PREFIX was specified. Then set
-  #       CPM_INCLUDE_DIRS to the appropriate value.
-  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include")
-
+  # Now propogate the version map upwards (we don't really *need* to do this).
+  # But makes it clear what we are trying to do.
+  _cpm_propogate_version_map_up()
 endfunction()
 
 function(CPM_AddExternal name)
   # Attempt to find common directory for external project build recipes?
   # Or just download them to the cpm directory?
 endfunction()
-
-## 'name' - Name of the target that will be created.
-#function(CPM_AddModule name)
-#
-#  # Parse all function arguments into our namespace prepended with _CPM_.
-#  _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
-#
-#  # Determine base module directory and target directory for module.
-#  set(base_module_dir "${CPM_DIR_OF_CPM}/modules")
-#
-#  # Sane default for GIT_TAG if it is not specified
-#  if (DEFINED _CPM_GIT_TAG)
-#    set(git_tag ${_CPM_GIT_TAG})
-#  else()
-#    set(git_tag "origin/master")
-#  endif()
-#
-#  if ((NOT DEFINED _CPM_GIT_REPOSITORY) AND (NOT DEFINED _CPM_SOURCE_DIR))
-#    message(FATAL_ERROR "CPM: You must specify either a git repository or source directory.")
-#  endif()
-#
-#  # Check to see if we should use git to download the source.
-#  set(using_git FALSE)
-#  if (DEFINED _CPM_GIT_REPOSITORY)
-#    set(using_git TRUE)
-#    set(git_repo ${_CPM_GIT_REPOSITORY})
-#
-#    set(_ep_git_repo "GIT_REPOSITORY" "${git_repo}")
-#    set(_ep_git_tag "GIT_TAG" ${_SPM_GIT_TAG})
-#
-#    set(path_unid ${git_repo})
-#    string(REGEX REPLACE "https://github.com/" "github_" path_unid "${path_unid}")
-#    string(REGEX REPLACE "http://github.com/" "github_" path_unid "${path_unid}")
-#
-#    set(path_unid "${path_unid}_${git_tag}")
-#  endif()
-#
-#  # Check to see if the source is stored locally.
-#  if (DEFINED _CPM_SOURCE_DIR)
-#    set(path_unid ${_CPM_SOURCE_DIR})
-#    set(_ep_source_dir "SOURCE_DIR" "${_CPM_SOURCE_DIR}")
-#  endif()
-#
-#  # Get rid of any characters that would be offensive to paths.
-#  string(REGEX REPLACE "/" "_" path_unid "${path_unid}")
-#  # Ensure the 'hyphen (-)' is at the beginning or end of the [].
-#  string(REGEX REPLACE "[:/\\.?-]" "" path_unid "${path_unid}")
-#
-#  # Setup common directory names.
-#  set(this_module_dir "${base_module_dir}/${path_unid}")
-#  set(this_module_ep_dir "${base_module_dir}/${path_unid}/ep")
-#  set(this_module_bin_dir "${base_module_dir}/${path_unid}/bin")
-#
-#  # Build a set of target output directories based off of the configuration type
-#  _cpm_build_target_output_dirs(_ep_output_bin_dirs ${this_module_bin_dir})
-#
-#  # Setup the external project.
-#  set(module_lib_name ${path_unid})
-#  set(_ep_module_target "${path_unid}_ep")
-#  ExternalProject_Add(${_ep_module_target}
-#    "PREFIX;${this_module_ep_dir}"
-#    ${_ep_git_repo}
-#    ${_ep_git_tag}
-#    ${_ep_source_dir}
-#    INSTALL_COMMAND ""
-#    CMAKE_ARGS
-#      -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-#      -DCPM_OUTPUT_LIB_NAME:STRING=${module_lib_name}
-#      -DCPM_UNIQUE_ID:STRING=${path_unid}
-#      -DCPM_DIR:STRING=${CPM_DIR_OF_CPM}
-#      ${_ep_output_bin_dirs}
-#      ${_CPM_CMAKE_ARGS}
-#    )
-#
-#  if (DEFINED _CPM_SOURCE_DIR)
-#    # Forces a build even though we are source only.
-#    ExternalProject_Add_Step(${_ep_module_target} forcebuild
-#      COMMAND ${CMAKE_COMMAND} -E echo
-#      ALWAYS 1
-#      DEPENDERS build
-#      )
-#  endif()
-#
-#  # Append a definition to the cpm header file that must be included to
-#  # correct for the namespace modifications.
-#  file(APPEND ${CPM_USING_NS_HEADER_FILE} "using namespace ${path_unid};\n")
-#
-#  # Setup imported library.
-#  set(lib_suffix ${CMAKE_STATIC_LIBRARY_SUFFIX})
-#  set(lib_prefix ${CMAKE_STATIC_LIBRARY_SUFFIX})
-#  set(module_library_name ${module_lib_name})
-#  set(module_library_target_name ${path_unid}_primtgt)
-#  set(module_library_path "${this_module_bin_dir}")
-#  set(module_library_filename  "${lib_prefix}${module_lib_name}${lib_suffix}")
-#  add_library(${module_library_target_name} STATIC IMPORTED GLOBAL)
-#  add_dependencies(${module_library_target_name} ${_ep_module_target})
-#  set_property(TARGET ${module_library_target_name} PROPERTY IMPORTED_LOCATION
-#    "${module_library_path}/${module_library_filename}")
-#
-#  # Ensure all of the configuration locations are setup correctly.
-#  # Second, for multi-config builds (e.g. msvc)
-#  foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-#    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
-#    set_property(TARGET ${module_library_target_name} PROPERTY IMPORTED_LOCATION_${OUTPUTCONFIG_UPPER}
-#      "${module_library_path}/${OUTPUTCONFIG}/${module_library_filename}")
-#  endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
-#
-#  # Grab source directory
-#  ExternalProject_Get_Property(${_ep_module_target} SOURCE_DIR)
-#
-#  # Append to pre-existing libraries.
-#  set(CPM_LIBRARIES ${CPM_LIBRARIES} "${module_library_target_name}" PARENT_SCOPE)
-#
-#  # Note: This is where we should perform an additional external project step
-#  #       (ExternalProject_Add_Step) to copy the include files to the 
-#  #       appropriate directory if INCLUDE_PREFIX was specified. Then set
-#  #       CPM_INCLUDE_DIRS to the appropriate value.
-#  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${SOURCE_DIR}/include")
-#
-#endfunction()
-
 
