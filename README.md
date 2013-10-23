@@ -3,6 +3,12 @@ CPM
 
 CMake C++ Package Manager.
 
++---------------+--------------------------------------------------------------+
+|  **Warning**  |  CPM is alpha software. The module code is complete but CPM  |
+|               |  externals are missing. Feel free to evaluate CPM but please |
+|               |  wait until CPM leaves alpha before using it in projects.    |
++---------------+--------------------------------------------------------------+
+
 Using CPM
 =========
 
@@ -34,7 +40,7 @@ if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
 endif()
 include(${CPM_DIR}/CPM.cmake)
 
-# Include any modules here...
+# Include any modules and externals here...
 
 # Finalize CPM.
 CPM_Finish()
@@ -73,21 +79,25 @@ different versions of the same library.
 CPM Externals
 -------------
 
-If the library you are interested in using isn't a CPM module, no worries. You
-can use CPM externals. While you won't be able to link against multiple
-versions of the library, or use any of the package constraints, you can
-quickly include the library if there is a CPM formula for it.
+If the library you are interested in isn't a CPM module, try using CPM
+externals. While you won't be able to link against multiple versions of the
+library, you can quickly include the library if there is a CPM formula for it
+in the CPM externals repository. If the library is hosted in a public
+location, use the URL of the library in CMake:
 
-No formulas? Please contribute one to our externals repository. We are
-actively looking for contributions to CPM's externals repository.
+```
+CPM_AddExternal('http://my.repo.com')
+```
 
-A CPM external is any C or C++ library that does not use CPM and has a
-formula registered in CPM's externals registry. You can use externals to
-quickly build and link against various useful libraries. For example, to build
-and link the MongoDB C library into your project, simply add the following to
-your CMakeLists.txt file:
+otherwise you may attempt to reference the library by name directly:
 
+```
+CPM_AddExternal('mongdb-c')
+```
 
+If you don't find a formula, kindly consider contributing one to our externals
+repository. We're always looking to expand these formula to different
+libraries.
 
 Advantages of Using CPM
 -----------------------
