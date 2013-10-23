@@ -63,10 +63,17 @@ Building CPM Modules
 ====================
 
 When building CPM modules for others to use, there are some basic guidelines
-that you should follow.
+that you should follow. 
+
+The rest of the guidelines follow below.
 
 CMakeLists.txt Entry
 --------------------
+
+There must be a CMakeLists.txt at the root of your module project and this
+CMakeLists.txt file must contain all relevant CPM directives and code (see
+below). Do not use `add_subdirectory` to change to another directory and issue
+CPM_ calls.
 
 Add the following to the top of your CMakeLists.txt file for your module. It
 is only slightly larger than what is required if you were using CPM as an end
