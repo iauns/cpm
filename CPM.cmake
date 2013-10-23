@@ -405,6 +405,7 @@ macro(CPM_InitModule name)
   # Ensure the parent function knows what we decided to name ourselves.
   # This name will correspond to our module's namespace directives.
   set(CPM_LAST_MODULE_NAME ${name} PARENT_SCOPE)
+  message("Initializing macro: ${name}")
 
   # Build the appropriate definition for the module. We stored the unique ID
   _cpm_build_preproc_name(name __CPM_TMP_VAR)
