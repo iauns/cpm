@@ -90,6 +90,21 @@
 #  CPM_USING_NS_HEADER_FILE   - Header file containing using directives for all
 #                               automatically generated header files.
 #  CPM_PREPROC_NS_HEADER_FILE - Header which includes namespace directives.
+#  CPM_KV_MOD_VERSION_MAP_*   - A key/value module version mapping. 
+#                               Key: Unique path (no version)
+#                               Val: The most recently added module version.
+#                               This is used to enforce, if requested, that
+#                               only one version of a particular module exists
+#                               in the build chain.
+#  CPM_KV_PREPROC_NS_DEFS_*   - A key/value C preprocessor namespace mapping.
+#                               Key: C Preprocessor name.
+#                               Val: The *full* unique ID of the module.
+#                               This ensures that namespace definitions do not
+#                               overlap on one another. Either by accident by
+#                               naming different modules the same, or through
+#                               an imported modules interface (modules can
+#                               force you to import a particular version of
+#                               a module if they expose it in their interface).
 #
 #-------------------------------------------------------------------------------
 # Pre-compute a regex to match documented keywords for each command.
@@ -347,7 +362,37 @@ function(_cpm_set_target_output_dirs parent_var_to_update output_dir)
 
 endfunction()
 
-function(CPM_AddModule)
+# Exports the module with 'name'. This is necessary if you need to expose
+# other module interfaces through your interface. It is not necessary if you
+# are just using the module, but is necessary if you expose the module's 
+# interface in your CPM module's interface. CPM runs a check to see if you are
+# using non-exported modules in your interface code, and fails/warns if you are.
+# The check is not exhastive however.
+macro(CPM_ExportModuleInterface name)
+  
+endmacro()
+
+# This macro initializes a CPM module. We use a macro for this code so that
+# we can set variables in the parent namespace (if any).
+# name - Same as the name parameter in CPM_AddModule. A preprocessor definition
+#        using this name will be generated for namespaces.
+macro(CPM_InitModule name)
+  # Construct a preprocessor value using 'name'. We use add_definitions.
+  
+endmacro()
+
+# This macro forces one, and only one, version of a module to be linked into
+# a program. If any part of the build chain uses a different version of the
+# module, then the CMake configure step will fail with a verbose error.
+macro(CPM_ForceOnlyOneModuleVersion)
+  # Set a flag in the parent namespace to force a check against module name
+  # and version.
+  set(CPM_FORCE_ONLY_ONE_MODULE_VERSION TRUE)
+endmacro()
+
+# name - Required as this name determines what preprocessor definition will
+#        be generated for this module.
+function(CPM_AddModule name)
 
   # Parse all function arguments into our namespace prepended with _CPM_.
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
@@ -379,12 +424,13 @@ function(CPM_AddModule)
     string(REGEX REPLACE "https://github.com/" "github_" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
     string(REGEX REPLACE "http://github.com/" "github_" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
 
-    set(__CPM_PATH_UNID "${__CPM_PATH_UNID}_${_CPM_GIT_TAG}")
+    set(__CPM_PATH_UNID_VERSION "${_CPM_GIT_TAG}")
   endif()
 
   # Check to see if the source is stored locally.
   if (DEFINED _CPM_SOURCE_DIR)
     set(__CPM_PATH_UNID ${_CPM_SOURCE_DIR})
+    set(__CPM_PATH_UNID_VERSION "")
     set(__CPM_MODULE_SOURCE_DIR "${_CPM_SOURCE_DIR}")
   endif()
 
@@ -394,11 +440,18 @@ function(CPM_AddModule)
   # Ensure the 'hyphen (-)' is at the beginning or end of the [].
   string(REGEX REPLACE "[:/\\.?-]" "" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
 
+  # Do the same for the version ID.
+  string(REGEX REPLACE "/" "_" __CPM_PATH_UNID_VERSION "${__CPM_PATH_UNID_VERSION}")
+  string(REGEX REPLACE "[:/\\.?-]" "" __CPM_PATH_UNID_VERSION "${__CPM_PATH_UNID_VERSION}")
+
+  # Cunstruct full UNID
+  set(__CPM_FULL_UNID "${__CPM_PATH_UNID}_${__CPM_PATH_UNID_VERSION}")
+
   # Construct paths from UNID
-  set(__CPM_MODULE_BIN_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_PATH_UNID}/bin")
+  set(__CPM_MODULE_BIN_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_FULL_UNID}/bin")
 
   if (__CPM_USING_GIT)
-    set(__CPM_MODULE_SOURCE_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_PATH_UNID}/src")
+    set(__CPM_MODULE_SOURCE_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_FULL_UNID}/src")
     # Download the code if it doesn't already exist. Otherwise make sure
     # the code is updated (on the latest branch or tag).
     if (NOT EXISTS "${__CPM_MODULE_SOURCE_DIR}/")
@@ -535,9 +588,9 @@ function(CPM_AddModule)
   # the add subdirectory.
 
   # Set variables CPM will use inside of the library target.
-  set(CPM_UNIQUE_ID ${__CPM_PATH_UNID})
-  set(CPM_TARGET_NAME "${__CPM_PATH_UNID}_ep")
-  set(CPM_OUTPUT_LIB_NAME ${__CPM_PATH_UNID})
+  set(CPM_UNIQUE_ID ${__CPM_FULL_UNID})
+  set(CPM_TARGET_NAME "${__CPM_FULL_UNID}_ep")
+  set(CPM_OUTPUT_LIB_NAME ${__CPM_FULL_UNID})
   set(CPM_DIR ${CPM_DIR_OF_CPM})
 
   # Set target output directories.
@@ -552,9 +605,16 @@ function(CPM_AddModule)
   # with further calls to CPM.
   set(__CPM_USING_GIT)
   set(__CPM_BASE_MODULE_DIR)
+  set(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
 
   # Setup the project.
   add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
+
+  if (DEFINED CPM_FORCE_ONLY_ONE_MODULE_VERSION)
+    if(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
+      # Check version of __CPM_PATH_UNID in our pre-existing map key/value map.
+    endif()
+  endif()
 
   if (DEFINED CPM_LAST_MODULE_NAME)
     # Build the include header files for the module in the current autogen dir.
@@ -581,7 +641,7 @@ function(CPM_AddModule)
 
   # Append a definition to the cpm header file that must be included to
   # correct for the namespace modifications.
-  file(APPEND ${CPM_USING_NS_HEADER_FILE} "using namespace ${__CPM_PATH_UNID};\n")
+  file(APPEND ${CPM_USING_NS_HEADER_FILE} "using namespace ${__CPM_FULL_UNID};\n")
 
   # Append target to pre-existing libraries.
   set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
