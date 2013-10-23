@@ -459,10 +459,10 @@ function(_cpm_print_with_hierarchy_level msg)
   if (DEFINED CPM_HIERARCHY_LEVEL)
     set(number 0)
     set(spacing "  ")
-    WHILE( number GREATER 0 AND number LESS ${CPM_HIERARCHY_LEVEL} )
+    while( number GREATER 0 AND number LESS ${CPM_HIERARCHY_LEVEL} )
       set(spacing "${spacing}  ")
-      MATH( EXPR number "${number} - 1" ) # decrement number
-    ENDWHILE( number GREATER 0 AND number LESS 11 )
+      math( EXPR number "${number} - 1" ) # decrement number
+    endwhile()
     message("${spacing}| ${msg}")
   else()
     message(msg)
