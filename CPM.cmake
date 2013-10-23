@@ -471,7 +471,7 @@ endfunction()
 
 # name - Required as this name determines what preprocessor definition will
 #        be generated for this module.
-function(CPM_AddModule name)
+macro(CPM_AddModule name)
 
   # Parse all function arguments into our namespace prepended with _CPM_.
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
