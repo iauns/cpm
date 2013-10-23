@@ -1,7 +1,7 @@
 CPM
 ===
 
-CMake C/C++ Package Manager.
+CMake C++ Package Manager.
 
 Using CPM
 =========
