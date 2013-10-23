@@ -404,10 +404,7 @@ endmacro()
 macro(CPM_InitModule name)
   # Ensure the parent function knows what we decided to name ourselves.
   # This name will correspond to our module's namespace directives.
-  set(CPM_LAST_MODULE_NAME ${name})
   set(CPM_LAST_MODULE_NAME ${CPM_LAST_MODULE_NAME} PARENT_SCOPE)
-  message("Initializing macro: ${name}")
-  message("Initializing macro 2: ${CPM_LAST_MODULE_NAME}")
 
   # Build the appropriate definition for the module. We stored the unique ID
   _cpm_build_preproc_name(name __CPM_TMP_VAR)
@@ -419,6 +416,13 @@ macro(CPM_InitModule name)
   set(__CPM_TMP_VAR) # Clean up
 
   _cpm_propogate_version_map_up()
+
+  # Setup the module with appropriate definitions and includes.
+  # We can do this because we are not in a new scope; instead, we are in a macro
+  # which executes in the parent scope (since it is literally inserted into
+  # the parent scope).
+  add_definitions(${CPM_DEFINITIONS})
+  include_directories(${CPM_INCLUDE_DIRS})
 endmacro()
 
 # This macro forces one, and only one, version of a module to be linked into
