@@ -41,7 +41,6 @@ CPM_Finish()
 ```
 
 Then add the `${CPM_LIBRARIES}` variable to your `target_link_libraries`.
-
 That's it. You will be able to start using CPM modules right away by adding
 something like
 
@@ -51,10 +50,10 @@ CPM_AddModule("spire"
   GIT_TAG "v0.7.0")
 ```
 
-to the "# Include any modules here" section mentioned in the code snippet
-above. This will automatically download, build, and link version 0.7.0 of a
-thin OpenGL client named Spire. A new namespace is generated for 'spire' and
-a preprocessor definition for this namespace is automatically added to your 
+to the "# Include any modules here..." section mentioned in the first snippet.
+This will automatically download, build, and link version 0.7.0 of a thin
+OpenGL client named Spire. A new namespace is generated for 'spire' and a
+preprocessor definition for this namespace is automatically added to your
 project. This definition always follows the form "`CPM_<NAME>_NS`" where
 `<NAME>` is the first argument of your call to `CPM_AddModule`. The name is
 always capitalized before being added to your preprocessor definitions.
