@@ -747,7 +747,7 @@ macro(CPM_AddModule name)
   # Now propogate the version map upwards (we don't really *need* to do this).
   # But makes it clear what we are trying to do.
   #_cpm_propogate_version_map_up()
-endfunction()
+endmacro()
 
 function(CPM_AddExternal name)
   # Attempt to find common directory for external project build recipes?
