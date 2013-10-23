@@ -687,6 +687,8 @@ function(CPM_AddModule name)
   # Setup the project.
   add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
 
+  message("CPM module: ${CPM_LAST_MODULE_NAME}")
+
   # Parse the arguments once again after adding the subdirectory (since we
   # cleared them all).
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
