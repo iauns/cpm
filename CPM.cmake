@@ -186,14 +186,17 @@ set(CPM_DIR_OF_CPM ${CMAKE_CURRENT_LIST_DIR})
 # Clear out any definitions a parent_scope might have declared.
 set(CPM_DEFINITIONS)
 
+if (DEFINED CPM_HIERARCHY_LEVEL)
+  math(EXPR CPM_HIERARCHY_LEVEL "${CPM_HIERARCHY_LEVEL}+1")
+else()
+  set(CPM_HIERARCHY_LEVEL 0)
+endif()
+
 # Increment the module hierarchy level if it exists.
 if ((DEFINED CPM_SHOW_HIERARCHY) AND (CPM_SHOW_HIERARCHY))
-  if (DEFINED CPM_HIERARCHY_LEVEL)
-    math(EXPR CPM_HIERARCHY_LEVEL "${CPM_HIERARCHY_LEVEL}+1")
-  else()
-    set(CPM_HIERARCHY_LEVEL 0)
+  if (CPM_HIERARCHY_LEVEL EQUAL 0)
     message("CPM Module Dependency Hierarchy:")
-    message("Top")
+    message("Root")
   endif()
 endif()
 
