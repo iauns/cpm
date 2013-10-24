@@ -82,15 +82,15 @@ library, you can quickly include the library if there is a CPM formula for it
 in the CPM externals repository. If the library is hosted in a public
 location, use the URL of the library in CMake:
 
-```
+``
 CPM_AddExternal('http://my.repo.com')
-```
+``
 
 otherwise you may attempt to reference the library by name directly:
 
-```
+``
 CPM_AddExternal('mongdb-c')
-```
+``
 
 If you don't find a formula, kindly consider contributing one to our externals
 repository. We're always looking to expand these formula to different
@@ -125,21 +125,21 @@ Add the following to the top of your CMakeLists.txt file for your module. It
 is only slightly larger than what is required if you were using CPM as an end
 user:
 
-```
-```
+``
+``
 
 Alternatively, if you are not using CPM dependencies in your module, you can
 include this minimal CMakeLists.txt entry:
 
-```
+``
 
-```
+``
 
 A file with the following in it is also required:
 
-```
+``
 
-```
+``
 
 Include this file everywhere you use the CPM namespace.
 
@@ -164,15 +164,13 @@ Wrapping Namespace
 CPM allows multiple different versions of the same module to be used in the
 same static linkage unit. As such, when you are building a module for CPM (not
 when you are using CPM modules!), you should surround your top-level namespace
-directive in CPM_NAMESPACE tags like so:
+directive in CPM_NAMESPACE tags like so::
 
-```
-CPM_NAMESPACE
-namespace Spire {
-
-} // namespace Spire
-CPM_NAMESPACE
-```
+  CPM_NAMESPACE
+  namespace Spire {
+  
+  } // namespace Spire
+  CPM_NAMESPACE
 
 This is *not* required, but it is *heavily* recommended when you are building
 CPM modules. If you want your users to be able to use multiple versions of
@@ -250,7 +248,7 @@ How do I see the module hierarchy?
 
 When building your project define: `CPM_SHOW_HIERARCHY=TRUE`.
 
-On the command line this would look something like:
+On the command line this would look something like
 
-```cmake -DCPM_SHOW_HIERARCHY=TRUE ...```
+``cmake -DCPM_SHOW_HIERARCHY=TRUE ...``
 
