@@ -82,11 +82,11 @@ library, you can quickly include the library if there is a CPM formula for it
 in the CPM externals repository. If the library is hosted in a public
 location, use the URL of the library in CMake:
 
-  CPM_AddExternal('http://my.repo.com')
+  CPM_AddExternal("http://my.repo.com")
 
 otherwise you may attempt to reference the library by name directly:
 
-  CPM_AddExternal('mongdb-c')
+  CPM_AddExternal("mongodb-c")
 
 If you don't find a formula, kindly consider contributing one to our externals
 repository. We're always looking to expand these formula to different
