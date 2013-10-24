@@ -40,4 +40,3 @@ CPM_AddModule("spire"
 # do this AFTER we have included all other modules.
 CPM_Finish()
 
-
