@@ -13,7 +13,7 @@ CMake C++ Package Manager.
 Using CPM
 =========
 
-To use CPM in your C++ project, include the following at the top of your
+To use CPM in your C++ project include the following at the top of your
 CMakeLists.txt::
 
   #------------------------------------------------------------------------------
@@ -57,15 +57,15 @@ to the "# Include any modules here..." section mentioned in the first snippet.
 This will automatically download, build, and link version 0.7.0 of a thin
 OpenGL client named Spire. A new namespace is generated for 'spire' and a
 preprocessor definition for this namespace is automatically added to your
-project. This definition always follows the form "`CPM_<NAME>_NS`" where
-`<NAME>` is the first argument of your call to `CPM_AddModule`. The name is
+project. This definition always follows the form "``CPM_<NAME>_NS``" where
+``<NAME>`` is the first argument of your call to ``CPM_AddModule``. The name is
 always capitalized before being added to your preprocessor definitions.
 
 So, in the 'spire' example above we would have a new preprocessor definition
-`CPM_SPIRE_NS` added to our project. This declares the namepsace under which
+``CPM_SPIRE_NS`` added to our project. This declares the namepsace under which
 we have bound Spire and you can access spire through this namespace:
-`CPM_SPIRE_NS::Interface`. In general you will want to rename the namespace
-to something more appropriate: `namespace Spire = CPM_SPIRE_NS`.
+``CPM_SPIRE_NS::Interface``. In general you will want to rename the namespace
+to something more appropriate: ``namespace Spire = CPM_SPIRE_NS``.
 
 Using this approach, we can *statically* link against multiple different
 versions of the spire library and control a number of settings regarding how
