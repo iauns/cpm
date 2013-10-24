@@ -82,15 +82,11 @@ library, you can quickly include the library if there is a CPM formula for it
 in the CPM externals repository. If the library is hosted in a public
 location, use the URL of the library in CMake:
 
-``
-CPM_AddExternal('http://my.repo.com')
-``
+  CPM_AddExternal('http://my.repo.com')
 
 otherwise you may attempt to reference the library by name directly:
 
-``
-CPM_AddExternal('mongdb-c')
-``
+  CPM_AddExternal('mongdb-c')
 
 If you don't find a formula, kindly consider contributing one to our externals
 repository. We're always looking to expand these formula to different
@@ -125,21 +121,19 @@ Add the following to the top of your CMakeLists.txt file for your module. It
 is only slightly larger than what is required if you were using CPM as an end
 user:
 
-``
-``
+  
+  
 
 Alternatively, if you are not using CPM dependencies in your module, you can
 include this minimal CMakeLists.txt entry:
 
-``
-
-``
+  
+  
 
 A file with the following in it is also required:
 
-``
-
-``
+  
+  
 
 Include this file everywhere you use the CPM namespace.
 
@@ -250,5 +244,5 @@ When building your project define: `CPM_SHOW_HIERARCHY=TRUE`.
 
 On the command line this would look something like
 
-``cmake -DCPM_SHOW_HIERARCHY=TRUE ...``
+  cmake -DCPM_SHOW_HIERARCHY=TRUE ...
 
