@@ -42,7 +42,6 @@ CMakeLists.txt::
   
   # Include any modules and externals here...
   
-  # Finalize CPM.
   CPM_Finish()
 
 Then add the ``${CPM_LIBRARIES}`` variable to your `target_link_libraries`.
@@ -140,41 +139,65 @@ Include this file everywhere you use the CPM namespace.
 Library target name
 -------------------
 
-Ensure that your generated library target name is ``. This will match up with
-what CPM is expecting and allow your module to function properly with other
-users' code.
-
-Includes & Include Directories
-------------------------------
-
-All of your module's public interface headers should be in the 'include'
-subdirectory. Additionally, you should include cpm/cpm.h. This header will
-include your unique namespace definitions and any additional using directives
-for CPM modules that you are using.
+If you used the code snippet above, ensure that your generated library target
+name is `${CPM_LIB_TARGET_NAME}`. This will match up with what CPM is
+expecting and allow your module to function properly with other users' code.
 
 Wrapping Namespace
 ------------------
 
 CPM allows multiple different versions of the same module to be used in the
 same static linkage unit. As such, when you are building a module for CPM (not
-when you are using CPM modules!), you should surround your top-level namespace
-directive in CPM_NAMESPACE tags like so::
+when you are using CPM modules!), you should surround your top-level namespaces
+in CPM_[module name]_NS tags like so::
 
-  CPM_NAMESPACE
+  namespace CPM_[module name]_NS {
   namespace Spire {
-  
-  } // namespace Spire
-  CPM_NAMESPACE
 
-This is *not* required, but it is *heavily* recommended when you are building
-CPM modules. If you want your users to be able to use multiple versions of
-your module within the same static linkage unit, you must include this.
+    ...  
+
+  } // namespace Spire
+  } // namespace CPM_[module name]_NS
+
+The [module name] part of the definition's name comes directly from your call
+to CPM_AddModule. The first argument given to CPM_AddModule becomes [module
+name] in your application.
+
+Note that this is *not* required but it is *heavily* recommended when you are
+building CPM modules. If you want your users to be able to use multiple
+versions of your module within the same static linkage unit you must include
+this.
 
 Why would you want to let users utilize multiple versions of your module?
-Most of the time users don't know that they are actually using multiple
-different versions of your module. A more recent version of your module may be
-included directly by the user then an older version of your module may be
-pulled in as a dependency of another module the user is relying on.
+Users won't know that they are actually using multiple different versions of
+your module. A more recent version of your module may be included by the user
+and an older version of your module may be pulled in as a dependency of
+another module the user is relying on.
+
+Common Directory Structure
+--------------------------
+
+In order to avoid header name conflicts without contacting upstream, CPM
+modules follow this directory structure::
+
+  Root of [module name]
+    |-> CMakeLists.txt
+    |-> tests
+    |-> ...
+    |-> [module name]
+      |-> [public headers go here]  
+      |-> src
+        |-> [private headers and source code]
+
+Using this structure users would include your public headers using::
+
+  #include <[module name]/interface.h>
+
+Also, CPM allows users to add a custom prefix onto the beginning of your
+path. This allows them to fix naming conflicts without having to patch or
+contact upstream. To include a public header file with a modified prefix use::
+
+  #include <[prefix]/[module name]/interface.h>
 
 Common Issues
 =============

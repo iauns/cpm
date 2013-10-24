@@ -23,6 +23,9 @@
 # TODO: Add externals. CPM could check the user's home directory for the
 #       existance of recipes to make external projects. If that is not found,
 #       it can manually download all of the recipes.
+# TODO: Allow copying of source directories into prefixed directories. This
+#       will allow us to change the include prefix on a per-module basis.
+#       this would allow us to avoid namespace conflicts.
 #
 # A CMake module for managing external dependencies.
 # CPM can be used to build traditional C/C++ libraries and CPM modules.
@@ -426,6 +429,20 @@ macro(CPM_InitModule name)
   # We can do this because we are not in a new scope; instead, we are in a macro
   # which executes in the parent scope (since it is literally inserted into
   # the parent scope).
+  add_definitions(${CPM_DEFINITIONS})
+  include_directories(${CPM_INCLUDE_DIRS})
+endmacro()
+
+# This macro is meant to be used only by the root of the CPM dependency
+# hierarchy (C++ code that uses modules, but is not a module itself).
+macro(CPM_Finish)
+  # Ensure the parent function knows what we decided to name ourselves.
+  # This name will correspond to our module's namespace directives.
+  if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    message(FATAL_ERROR "You can only call CPM_Finish from the top level of the dependency hierarchy.")
+  endif()
+
+  # Setup appropriate definitions and include directories.
   add_definitions(${CPM_DEFINITIONS})
   include_directories(${CPM_INCLUDE_DIRS})
 endmacro()
