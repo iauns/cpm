@@ -86,7 +86,7 @@ CPM_SPIRE_NS::spire``.
 Be sure to place your calls to CPM_AddModule before your call to CPM_Finish.
 The ``# Include any modules here...`` section mentioned in the first snippet
 indicates where you should place calls to ``CPM_AddModule`` and
-``CPM_AddExternal``. 
+``CPM_AddExternal``.
 
 CPM Externals
 -------------

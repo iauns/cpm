@@ -422,8 +422,10 @@ macro(CPM_InitModule name)
   # Ensure the parent function knows what we decided to name ourselves.
   # This name will correspond to our module's namespace directives.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
-    message("Setting HIERARCHY level")
+    message("${name} setting HIERARCHY level (${CPM_HIERARCHY_LEVEL})")
     set(CPM_LAST_MODULE_NAME ${name} PARENT_SCOPE)
+  else()
+    message("${name} not setting HIERARCHY level (${CPM_HIERARCHY_LEVEL})")
   endif()
 
   # Build the appropriate definition for the module. We stored the unique ID
@@ -443,6 +445,7 @@ macro(CPM_InitModule name)
   # the parent scope).
   add_definitions(${CPM_DEFINITIONS})
   include_directories(${CPM_INCLUDE_DIRS})
+
 endmacro()
 
 # This macro is meant to be used only by the root of the CPM dependency
