@@ -35,6 +35,9 @@ CMakeLists.txt::
   set (CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
   if (${CPM_DIR} MATCHES "${CMAKE_CURRENT_BINARY_DIR}")
     message("NOTE: Placing CPM in the binary directory is not recommended.")
+    message("      Place CPM alongside the binary directory so that you don't need to")
+    message("      recompile your modules everytime you clean your project.")
+    message("      Use the CPM_DIR variable to set the CPM directory.")
   endif ()
   
   find_package(Git)

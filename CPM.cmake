@@ -48,7 +48,6 @@
 #    [GIT_REPOSITORY repo]        # Same as ExternalProject_Add's GIT_REPOSITORY.
 #    [USE_EXISTING_VER truth]     # If set to true then the module will attempt to use a pre-existing version of the module.
 #    [PREPROCESSOR_POSTFIX post]  # Adds "_${PREPROCESSOR_POSTFIX}" onto all C preprocessor definitions.
-#    [CMAKE_ARGS args...]         # Additional CMake arguments to set for only for this module.
 #    )
 #
 # Define CPM_SHOW_HIERARCHY to see all modules and their dependencies in
