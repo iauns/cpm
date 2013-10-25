@@ -172,7 +172,7 @@ Add the following to the top of the CMakeLists.txt for your module::
     include(${CPM_DIR}/CPM.cmake)
   endif()
   
-  # Include CPM modules here. Must come before CPM_InitModule.
+  # Include CPM modules or externals here (with CPM_AddModule / CPM_AddExternal).
   
   # This call will ensure all include directories and definitions are present
   # in the target. These correspond to the modules that we added above.
