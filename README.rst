@@ -9,13 +9,13 @@ C++ modules. It allows you to link against multiple different versions of the
 same static library so that you can include other C++ modules that may depend
 on older or newer versions of the same modules you are using. To this end, the
 goal is to allow the growth of a module eco-system similar to Node.js'. CPM
-will automatically download C++ modules.
+will automatically download and build C++ modules for you.
 
 You can also manage external C or C++ libraries that do not use CPM. Using CPM
-externals is akin to using CMake's external project mechanism, but covers up
-the details of creating an external project for dependencies.
+externals is akin to using CMake's external project mechanism but with some of
+the external project details covered up.
 
-  Note: Modules are fully implemented, but external libraries are not.
+  Note: Modules are fully implemented but external libraries are not.
 
 +---------------+--------------------------------------------------------------+
 |  **Warning**  |  CPM is alpha software. The module code is complete but CPM  |
