@@ -746,6 +746,7 @@ function(CPM_AddModule name)
   set(__CPM_NEW_GIT_TAG)
 
   # Setup the project.
+  message("Adding subdir: ${__CPM_MODULE_SOURCE_DIR} -- ${__CPM_MODULE_BIN_DIR}")
   add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
 
   # Parse the arguments once again after adding the subdirectory (since we
