@@ -1,12 +1,5 @@
 # CPM - CMake Package Manager
 #
-# I fully implemented the external project approach, see commit SHA:
-# 107d0952bd3a64c371d1d3224271bdcca915b2fa . I also tagged it as 
-# "External_Project_Approach". The biggest issue that I ran acrossed was lack 
-# of support for static library linkage (which makes sense). I thought about
-# building the linkages as you go, but that would require two runs of cmake,
-# which I feel is not acceptable.
-#
 # TODO: Implement 'export module interface'.
 # TODO: Add source prefixes. We can take advantage of the standard directory
 #       layout of CPM modules and prefix the cloned source directories. These
@@ -121,7 +114,7 @@
 # lifted directly from KitWare's ExternalProject.cmake, but then I documented
 # what it's doing. It's not exactly straight forward.
 
-# Based on the current line in *this* file (SpirePM.cmake), we calc the number
+# Based on the current line in *this* file (CPM.cmake), we calc the number
 # of lines the documentation header consumes. Including this comment, that is
 # 12 lines upwards.
 math(EXPR _cpm_documentation_line_count "${CMAKE_CURRENT_LIST_LINE} - 13")
@@ -811,3 +804,7 @@ function(CPM_AddExternal name)
   # Or just download them to the cpm directory?
 endfunction()
 
+# I fully implemented the external project approach, see commit SHA:
+# 107d0952bd3a64c371d1d3224271bdcca915b2fa . I also tagged it as 
+# "External_Project_Approach".
+#

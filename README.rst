@@ -8,12 +8,12 @@ CPM is designed to save you time and promote small, well-tested, and composable
 C++ modules. It allows you to link against multiple different versions of the
 same static library so that you can include other C++ modules that may depend
 on older or newer versions of the same modules you are using. To this end, the
-goal is to allow the growth of a module eco-system similar to Node.js'. CPM
-will automatically download and build C++ modules for you.
+goal is to allow the growth of a module eco-system similar to Node.js'. Similar
+to Node.js' NPM, CPM will automatically download and build C++ modules for you.
 
 You can also manage external C or C++ libraries that do not use CPM. Using CPM
-externals is akin to using CMake's external project mechanism but with some of
-the external project details covered up.
+externals is akin to using CMake's external project mechanism with the external
+project details hidden.
 
   Note: Modules are fully implemented but external libraries are not.
 
