@@ -65,13 +65,11 @@ something like::
     GIT_REPOSITORY "https://github.com/SCIInstitute/spire"
     GIT_TAG "v0.7.0")
 
-Be sure to include these directives before calling CPM_Finish() (the "# Include
-any modules here..." section mentioned in the first snippet). This will
-automatically download, build, and link version 0.7.0 of a thin OpenGL client
-named Spire. A new namespace is generated for 'spire' and a preprocessor
-definition for this namespace is automatically added to your project. The
-namespace preprocessor definition for projects definition always follows the
-form "``CPM_<NAME>_NS``" where ``<NAME>`` is the first argument of your call to
+This snippet will automatically download, build, and link version 0.7.0 of a
+thin OpenGL client named Spire. A new namespace is generated for 'spire' and a
+preprocessor definition for this namespace is automatically added to your
+project. The namespace preprocessor definition always follows the form
+"``CPM_<NAME>_NS``" where ``<NAME>`` is the first argument of your call to
 ``CPM_AddModule``. The name is always capitalized before being added to your
 preprocessor definitions.
 
@@ -81,6 +79,11 @@ under which CPM has bound the 'Spire' module. You can access spire through this
 namespace like so: ``CPM_SPIRE_NS::spire::Interface``. In general you will want
 to rename the namespace to something more appropriate: ``namespace spire =
 CPM_SPIRE_NS::spire``.
+
+Be sure to place your calls to CPM_AddModule before your call to CPM_Finish.
+The `# Include any modules here...` section mentioned in the first snippet
+indicates where you should place calls to `CPM_AddModule` and
+`CPM_AddExternal`. 
 
 CPM Externals
 -------------
