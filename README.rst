@@ -148,12 +148,9 @@ Add the following to the top of the CMakeLists.txt for your module::
   if ((DEFINED CPM_DIR) AND (DEFINED CPM_UNIQUE_ID) AND (DEFINED CPM_OUTPUT_LIB_NAME))
     set(CPM_LIB_TARGET_NAME ${CPM_OUTPUT_LIB_NAME})
   
-    # We are being built as a sub project. Use the primary project's CPM
-    # so that we can take advantage of possible duplicate module versions.
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CPM_DIR})
     include(CPM)
   else()
-    # Clone CPM.
     set (CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
     find_package(Git)
     if(NOT GIT_FOUND)
@@ -174,8 +171,6 @@ Add the following to the top of the CMakeLists.txt for your module::
   
   # Include CPM modules or externals here (with CPM_AddModule / CPM_AddExternal).
   
-  # This call will ensure all include directories and definitions are present
-  # in the target. These correspond to the modules that we added above.
   CPM_InitModule(${CPM_MODULE_NAME})
 
 Be sure to update the ``<name>`` at the beginning of the snippet. ``<name>`` 
