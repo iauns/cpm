@@ -110,9 +110,11 @@ Advantages
 * Automatically manages code retrieval and the building of CPM modules and externals.
 * Allows the use of multiple different versions of the same statically linked
   module in the same build.
-* All CPM module code will be included in any generated project solution.
-* Encourages small well-tested and composable code modules. Similar to NPM.
 * Built entirely in CMake. Nothing else is required.
+* Encourages small well-tested and composable code modules. Similar to NPM.
+* All CPM module code will be included in any generated project solution.
+* Will automatically detect naming conflicts based on the names you assign 
+  modules. A failure will occur at CMake configuration if there is conflict.
 
 Limitations
 -----------
@@ -132,35 +134,72 @@ CMakeLists.txt Entry
 
 There must be a CMakeLists.txt at the root of your module project and this
 CMakeLists.txt file must contain all relevant CPM directives and code (see
-below). Do not use ``add_subdirectory`` to change to another directory and
-issue ``CPM_*`` calls.
+below). Do not use issue calls to CPM (``CPM_*``) in a subdirectory
+(``add_subdirectory``).
 
-Add the following to the top of your CMakeLists.txt file for your module. It
-is only slightly larger than what is required if you were using CPM as an end
-user:
+Add the following to the top of the CMakeLists.txt for your module:: 
 
+  #-----------------------------------------------------------------------
+  # CPM configuration
+  #-----------------------------------------------------------------------
+  set(CPM_MODULE_NAME <name>)
+  set(CPM_LIB_TARGET_NAME ${CPM_MODULE_NAME})
   
+  if ((DEFINED CPM_DIR) AND (DEFINED CPM_UNIQUE_ID) AND (DEFINED CPM_OUTPUT_LIB_NAME))
+    set(CPM_LIB_TARGET_NAME ${CPM_OUTPUT_LIB_NAME})
   
-
-Alternatively, if you are not using CPM dependencies in your module, you can
-include this minimal CMakeLists.txt entry:
-
+    # We are being built as a sub project. Use the primary project's CPM
+    # so that we can take advantage of possible duplicate module versions.
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CPM_DIR})
+    include(CPM)
+  else()
+    # Clone CPM.
+    set (CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
+    find_package(Git)
+    if(NOT GIT_FOUND)
+      message(FATAL_ERROR "CPM requires Git.")
+    endif()
+    if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" clone https://github.com/iauns/cpm ${CPM_DIR}
+        RESULT_VARIABLE error_code
+        OUTPUT_VARIABLE head_sha
+        )
+      if(error_code)
+        message(FATAL_ERROR "CPM failed to get the hash for HEAD")
+      endif()
+    endif()
+    include(${CPM_DIR}/CPM.cmake)
+  endif()
   
+  # Include CPM modules here. Must come before CPM_InitModule.
   
+  # This call will ensure all include directories and definitions are present
+  # in the target. These correspond to the modules that we added above.
+  CPM_InitModule(${CPM_MODULE_NAME})
 
-A file with the following in it is also required:
+Be sure to update the ``<name>`` at the beginning of the snippet. ``<name>`` 
+is placed in the namespace preprocessor definition for your module. For example,
+if ``<name>`` is 'spire', then the preprocessor definition that will be added
+to your project will be ``CPM_SPIRE_NS``. Use this definition as a wrapper
+around your namespaces.
 
-  
-  
+Here is an example class that demonstrates the namespace wrapping::
 
-Include this file everywhere you use the CPM namespace.
+  namespace CPM_SPIRE_NS {
+  namespace spire {
+
+  ... code here ...
+
+  } // namespace spire
+  } // namespace CPM_SPIRE_NS
 
 Library target name
 -------------------
 
-If you used the code snippet above, ensure that your generated library target
-name is `${CPM_LIB_TARGET_NAME}`. This will match up with what CPM is
-expecting and allow your module to function properly with other users' code.
+If you used the code snippet above be sure that your generated library target
+name is `${CPM_LIB_TARGET_NAME}`. This will ensure your library target name 
+matches with what CPM is expecting.
 
 Wrapping Namespace
 ------------------
@@ -193,8 +232,8 @@ your module. A more recent version of your module may be included by the user
 and an older version of your module may be pulled in as a dependency of
 another module the user is relying on.
 
-Common Directory Structure
---------------------------
+Directory Structure
+-------------------
 
 In order to avoid header name conflicts without contacting upstream, CPM
 modules follow this directory structure::
@@ -279,8 +318,8 @@ Another advantage of ``add_subdirectory`` is that it include's the module's
 source code as part of any project solution that is generated from CMake. See
 the ``CPM Advantages`` section.
 
-How do I see the module hierarchy?
-----------------------------------
+How do I see the module dependency hierarchy?
+---------------------------------------------
 
 When building your project define: ``CPM_SHOW_HIERARCHY=TRUE``.
 
