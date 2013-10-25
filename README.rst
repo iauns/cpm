@@ -89,28 +89,28 @@ CPM Externals
 -------------
 
 If the library you are interested in isn't a CPM module, try using CPM
-externals. While you won't be able to link against multiple versions of the
-library, you can quickly include the library if there is a CPM formula for it
-in the CPM externals repository. If the library is hosted in a public
-location, use the URL of the library in CMake::
+externals. While you won't be able to statically link against multiple versions
+of the library you can quickly include it if there is a CPM external formula
+for it. If the library is hosted in a public location, use the URL of the
+library::
 
   CPM_AddExternal("Full URL goes here")
 
-otherwise you may attempt to reference the library by name directly::
+Otherwise you may attempt to reference the library by name directly::
 
   CPM_AddExternal("mongodb-c")
 
-If you don't find a formula, kindly consider contributing one to our externals
-repository. We're always looking to expand these formula to different
-libraries.
+If you don't find a formula for a library that you would like to use, kindly
+consider contributing one to our CPM externals repository. We're always looking
+to expand these formula.
 
 Advantages
 ----------
 
 * Automatically manages code retrieval and the building of CPM modules and externals.
-* Use multiple different versions of the same statically linked module in the
-  same build without shared libraries.
-* All module code will be included in any generated project solution.
+* Allows the use of multiple different versions of the same statically linked
+  module in the same build.
+* All CPM module code will be included in any generated project solution.
 * Encourages small well-tested and composable code modules. Similar to NPM.
 * Built entirely in CMake. Nothing else is required.
 
@@ -122,10 +122,11 @@ Limitations
 Building CPM Modules
 ====================
 
-When building CPM modules for others to use, there are some basic guidelines
-that you should follow. 
-
-The rest of the guidelines follow below.
+If you are just using pre-existing CPM modules and aren't interested in
+building modules feel free to skip this section. But, if you are interested in
+building CPM modules then please read on. When building modules for others
+to use there are some basic guidelines that you should follow. Most are listed
+below.
 
 CMakeLists.txt Entry
 --------------------
