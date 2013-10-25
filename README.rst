@@ -65,25 +65,22 @@ something like::
     GIT_REPOSITORY "https://github.com/SCIInstitute/spire"
     GIT_TAG "v0.7.0")
 
-to the "# Include any modules here..." section mentioned in the first snippet.
-This will automatically download, build, and link version 0.7.0 of a thin
-OpenGL client named Spire. A new namespace is generated for 'spire' and a
-preprocessor definition for this namespace is automatically added to your
-project. This definition always follows the form "``CPM_<NAME>_NS``" where
-``<NAME>`` is the first argument of your call to ``CPM_AddModule``. The name is
-always capitalized before being added to your preprocessor definitions.
+Be sure to include these directives before calling CPM_Finish() (the "# Include
+any modules here..." section mentioned in the first snippet). This will
+automatically download, build, and link version 0.7.0 of a thin OpenGL client
+named Spire. A new namespace is generated for 'spire' and a preprocessor
+definition for this namespace is automatically added to your project. The
+namespace preprocessor definition for projects definition always follows the
+form "``CPM_<NAME>_NS``" where ``<NAME>`` is the first argument of your call to
+``CPM_AddModule``. The name is always capitalized before being added to your
+preprocessor definitions.
 
-So, in the 'spire' example above we would have a new preprocessor definition
-``CPM_SPIRE_NS`` added to our project. This declares the namepsace under which
-we have bound Spire and you can access spire through this namespace:
-``CPM_SPIRE_NS::Interface``. In general you will want to rename the namespace
-to something more appropriate: ``namespace Spire = CPM_SPIRE_NS``.
-
-Using this approach, we can *statically* link against multiple different
-versions of the spire library and control a number of settings regarding how
-these libraries are linked into your program.  Linking against different
-versions of a library becomes very useful if multiple modules depend on
-different versions of the same library.
+For example, in the 'spire' example above we would have the preprocessor
+definition ``CPM_SPIRE_NS`` added to our project. This declares the namepsace
+under which CPM has bound the 'Spire' module. You can access spire through this
+namespace like so: ``CPM_SPIRE_NS::spire::Interface``. In general you will want
+to rename the namespace to something more appropriate: ``namespace spire =
+CPM_SPIRE_NS::spire``.
 
 CPM Externals
 -------------
