@@ -57,7 +57,7 @@ CMakeLists.txt::
   
   CPM_Finish()
 
-Then add the ``${CPM_LIBRARIES}`` variable to your `target_link_libraries`.
+Then add the ``${CPM_LIBRARIES}`` variable to your ``target_link_libraries``.
 That's it. You will be able to start using CPM modules right away by adding
 something like::
 
@@ -81,9 +81,9 @@ to rename the namespace to something more appropriate: ``namespace spire =
 CPM_SPIRE_NS::spire``.
 
 Be sure to place your calls to CPM_AddModule before your call to CPM_Finish.
-The `# Include any modules here...` section mentioned in the first snippet
-indicates where you should place calls to `CPM_AddModule` and
-`CPM_AddExternal`. 
+The ``# Include any modules here...`` section mentioned in the first snippet
+indicates where you should place calls to ``CPM_AddModule`` and
+``CPM_AddExternal``. 
 
 CPM Externals
 -------------
@@ -132,8 +132,8 @@ CMakeLists.txt Entry
 
 There must be a CMakeLists.txt at the root of your module project and this
 CMakeLists.txt file must contain all relevant CPM directives and code (see
-below). Do not use `add_subdirectory` to change to another directory and issue
-CPM_ calls.
+below). Do not use ``add_subdirectory`` to change to another directory and
+issue ``CPM_*`` calls.
 
 Add the following to the top of your CMakeLists.txt file for your module. It
 is only slightly larger than what is required if you were using CPM as an end
@@ -235,9 +235,9 @@ reference CPM's automatically generated unique ID namespace name
 
 An example may help illustrate this better:
 
-Sally codes CPM module `A` in which she wants to expose a class from Bob's CPM
-module `B`. Sally currently has version 0.11 of Bob's module `B`. A new
-programmer, James, wants to use Sally's module `A` module.
+Sally codes CPM module ``A`` in which she wants to expose a class from Bob's CPM
+module ``B``. Sally currently has version 0.11 of Bob's module ``B``. A new
+programmer, James, wants to use Sally's module ``A`` module.
 
 Force only one module version
 -----------------------------
@@ -250,8 +250,8 @@ about this corner case. This is a particular affectation of OpenGL's context
 handling and Extension Wrangler's binding of function pointers.
 
 To enforce this during the CMake configure step, include a call to
-`CPM_ForceOnlyOneModuleVersion` anywhere in your module's CMakeLists.txt file.
-Usually this call is made directly after calling `CPM_InitModule`.
+``CPM_ForceOnlyOneModuleVersion`` anywhere in your module's CMakeLists.txt file.
+Usually this call is made directly after calling ``CPM_InitModule``.
 
 Building CPM Externals
 ======================
@@ -269,20 +269,20 @@ cmake+build+cmake+build cycle was required to detect all static dependencies.
 One of CPM's tenets is to never require a departure from the standard cmake +
 build sequence, so we couldn't use external projects as-is.
 
-After working on CPM it became clear that `add_subdirectory` was the right
-choice. `add_subdirectory` allows us to easily enforce configuration
+After working on CPM it became clear that ``add_subdirectory`` was the right
+choice. ``add_subdirectory`` allows us to easily enforce configuration
 constraints, such as only allowing one version of a library to be statically
 linked, without needing to read/write to files and use the akward double
 configure and build cycle.
 
-Another advantage of `add_subdirectory` is that it include's the module's
+Another advantage of ``add_subdirectory`` is that it include's the module's
 source code as part of any project solution that is generated from CMake. See
-the `CPM Advantages` section.
+the ``CPM Advantages`` section.
 
 How do I see the module hierarchy?
 ----------------------------------
 
-When building your project define: `CPM_SHOW_HIERARCHY=TRUE`.
+When building your project define: ``CPM_SHOW_HIERARCHY=TRUE``.
 
 On the command line this would look something like
 
