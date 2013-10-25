@@ -422,6 +422,7 @@ macro(CPM_InitModule name)
   # Ensure the parent function knows what we decided to name ourselves.
   # This name will correspond to our module's namespace directives.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    message("Setting HIERARCHY level")
     set(CPM_LAST_MODULE_NAME ${name} PARENT_SCOPE)
   endif()
 
@@ -774,7 +775,7 @@ function(CPM_AddModule name)
   if (DEFINED CPM_LAST_MODULE_NAME)
     _cpm_check_and_add_preproc(${name} ${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
   else()
-    message(FATAL_ERROR "A ${CPM_LAST_MODULE_NAME} module (${__CPM_MODULE_SOURCE_DIR}) failed to define its name!")
+    message(FATAL_ERROR "A module (${name}) failed to define its name!")
   endif()
 
   # Set the appropriate preprocessor definition for this module and populate 
