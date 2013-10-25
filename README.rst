@@ -117,6 +117,7 @@ Advantages
 Limitations
 -----------
 
+* Only supports git.
 
 Building CPM Modules
 ====================
