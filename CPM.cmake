@@ -7,17 +7,14 @@
 # building the linkages as you go, but that would require two runs of cmake,
 # which I feel is not acceptable.
 #
-# TODO: Add a recursive display of all modules and versions and their
-#       dependencies. Similar to npm's display.
 # TODO: Implement 'export module interface'.
-# TODO: Add include prefixes. Since we know that all public includes will be
-#       located in ./include, we can copy the contents of that directory to a
-#       new location and prefix it with something. This is so we can fix
-#       include issues at the local CMake level instead of having to go
-#       upstream with requests or patch the project.
+# TODO: Add source prefixes. We can take advantage of the standard directory
+#       layout of CPM modules and prefix the cloned source directories. These
+#       prefixes will allow us to bypass, however unlikely, header naming
+#       conflicts.
 #       Name: INCLUDE_PREFIX.
-# TODO: Add library constraints. Some modules may require the user to use
-#       the same version of GLM it uses, for instance. This is to avoid
+# TODO: Add exetrnal library constraints. Some modules may require the user to
+#       use the same version of GLM it uses, for instance. This is to avoid
 #       conflicts regarding what headers are used. This shouldn't be hard
 #       to do as long as all externals and modules are run through CPM.
 # TODO: Add externals. CPM could check the user's home directory for the
