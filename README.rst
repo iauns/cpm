@@ -4,6 +4,19 @@ CPM
 
 CMake C++ Package Manager.
 
+CPM is designed to save you time and promote small, well-tested, and composable
+C++ modules. It allows you to link against multiple different versions of the
+same static library so that you can include other C++ modules that may depend
+on older or newer versions of the same modules you are using. To this end, the
+goal is to allow the growth of a module eco-system similar to Node.js'. CPM
+will automatically download C++ modules.
+
+You can also manage external C or C++ libraries that do not use CPM. Using CPM
+externals is akin to using CMake's external project mechanism, but covers up
+the details of creating an external project for dependencies.
+
+  Note: Modules are fully implemented, but external libraries are not.
+
 +---------------+--------------------------------------------------------------+
 |  **Warning**  |  CPM is alpha software. The module code is complete but CPM  |
 |               |  externals are missing. Feel free to evaluate CPM but please |
@@ -79,11 +92,11 @@ If the library you are interested in isn't a CPM module, try using CPM
 externals. While you won't be able to link against multiple versions of the
 library, you can quickly include the library if there is a CPM formula for it
 in the CPM externals repository. If the library is hosted in a public
-location, use the URL of the library in CMake:
+location, use the URL of the library in CMake::
 
   CPM_AddExternal("Full URL goes here")
 
-otherwise you may attempt to reference the library by name directly:
+otherwise you may attempt to reference the library by name directly::
 
   CPM_AddExternal("mongodb-c")
 
@@ -91,14 +104,19 @@ If you don't find a formula, kindly consider contributing one to our externals
 repository. We're always looking to expand these formula to different
 libraries.
 
-Advantages of Using CPM
------------------------
+Advantages
+----------
 
-* Automatically manages code retrieval and the build.
-* You can use multiple different versions of the same statically linked module
-  in the same build without shared libraries.
+* Automatically manages code retrieval and the building of CPM modules and externals.
+* Use multiple different versions of the same statically linked module in the
+  same build without shared libraries.
 * All module code will be included in any generated project solution.
-* Encourages small, well-tested and composable code modules. Similar to NPM.
+* Encourages small well-tested and composable code modules. Similar to NPM.
+* Built entirely in CMake. Nothing else is required.
+
+Limitations
+-----------
+
 
 Building CPM Modules
 ====================
