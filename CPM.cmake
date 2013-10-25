@@ -49,6 +49,7 @@
 #    [SOURCE_DIR dir]             # Uses 'dir' as the source directory as opposed to downloading.
 #    [GIT_TAG tag]                # Same as ExternalProject_Add's GIT_TAG
 #    [GIT_REPOSITORY repo]        # Same as ExternalProject_Add's GIT_REPOSITORY.
+#    [USE_EXISTING_VER truth]     # If set to true then the module will attempt to use a pre-existing version of the module.
 #    [PREPROCESSOR_POSTFIX post]  # Adds "_${PREPROCESSOR_POSTFIX}" onto all C preprocessor definitions.
 #    [CMAKE_ARGS args...]         # Additional CMake arguments to set for only for this module.
 #    )
@@ -82,24 +83,34 @@
 # purposes only. These variables are unlikely to be useful to you.
 #
 #  CPM_DIR_OF_CPM               - Variable that stores the location of *this*
-#  file.  CPM_USING_NS_HEADER_FILE     - Header file containing using
-#  directives for all automatically generated header files.
-#  CPM_KV_MOD_VERSION_MAP_*     - A key/value module version mapping.  Key:
-#  Unique path (no version) Val: The most recently added module version.  This
-#  is used to enforce, if requested, that only one version of a particular
-#  module exists in the build chain.  CPM_KV_LIST_MOD_VERSION_MAP  - A list of
-#  entries in CPM_KV_MOD_VERSION_MAP.  This list is used to propagate
-#  information to the parent_scope when CPM_INIT_MODULE is called and at the
-#  end of the AddModule function.  CPM_KV_PREPROC_NS_MAP_*      - A key/value C
-#  preprocessor namespace mapping.  Key: C Preprocessor name.  Val: The *full*
-#  unique ID of the module.  This ensures that namespace definitions do not
-#  overlap on one another. Either by accident by naming different modules the
-#  same, or through an imported modules interface (modules can force you to
-#  import a particular version of a module if they expose it in their
-#  interface).  CPM_KV_LIST_PREPROC_NS_MAP   - A list of entries in
-#  CPM_KV_PREPROC_NS_MAP.  This list is used to clear the map when descending
-#  the build hierarchy using add_subdirectory.  CPM_HIERARCHY_LEVEL          -
-#  Variable only useful when displaying the module hierarchy. 
+#                                 file.
+#  CPM_USING_NS_HEADER_FILE     - Header file containing using directives for 
+#                                 all automatically generated header files.
+#  CPM_KV_MOD_VERSION_MAP_*     - A key/value module version mapping.
+#                                 Key: Unique path (no version)
+#                                 Val: The most recently added module version.
+#                                 This is used to enforce, if requested, that 
+#                                 only one version of a particular module exists
+#                                 in the build.
+#  CPM_KV_LIST_MOD_VERSION_MAP  - A list of entries in CPM_KV_MOD_VERSION_MAP. 
+#                                 This list is used to propagate information to
+#                                 the parent_scope when CPM_INIT_MODULE is
+#                                 called and at the end of the AddModule
+#                                 function.
+#  CPM_KV_PREPROC_NS_MAP_*      - A key/value C preprocessor namespace mapping.
+#                                 Key: C Preprocessor name.
+#                                 Val: The *full* unique ID of the module. 
+#                                 This ensures that namespace definitions do not
+#                                 overlap on one another. Either by accident by
+#                                 naming different modules the same, or through
+#                                 an imported modules interface (modules can 
+#                                 force you to import a particular version of a
+#                                 module if they expose it in their interface).
+#  CPM_KV_LIST_PREPROC_NS_MAP   - A list of entries in CPM_KV_PREPROC_NS_MAP.
+#                                 This list is used to clear the map when
+#                                 descending the build hierarchy using 
+#                                 add_subdirectory.
+#  CPM_HIERARCHY_LEVEL          - Contains current CPM hierarchy level.
 #
 # NOTE: End users aren't required to finalize their modules after they add them
 # because all appropriate constraints do not need to be propogated further then
@@ -499,6 +510,40 @@ function(_cpm_print_with_hierarchy_level msg)
   endif()
 endfunction()
 
+macro(_cpm_make_valid_unid_or_path variable)
+  string(REGEX REPLACE "https://github.com/" "github_" ${variable} ${${variable}})
+  string(REGEX REPLACE "http://github.com/" "github_" ${variable} ${${variable}})
+
+  string(REGEX REPLACE "/" "_" ${variable} ${${variable}})
+  string(REGEX REPLACE "[:/\\.?-]" "" ${variable} ${${variable}})
+endmacro()
+
+macro(_cpm_obtain_version_from_params parentVar)
+  if ((DEFINED _CPM_USE_EXISTING_VER) && (_CPM_USE_EXISTING_VER))
+    # Attempt to pull existing version from module hierarchy. If we don't
+    # find any, and the user has defined a version, then use that version
+    # (this constitutes falling through without setting parentVar).
+    if (DEFINED _CPM_GIT_REPOSITORY)
+      # Modify the git repository.
+      set(__CPM_TMP_VAR ${_CPM_GIT_REPOSITORY})
+      _cpm_make_valid_unid_or_path(__CPM_TMP_VAR)
+      if (DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_TMP_VAR})
+        set(${parentVar} ${CPM_KV_MOD_VERSION_MAP_${__CPM_TMP_VAR}})
+      endif()
+      set(__CPM_TMP_VAR)
+    endif()
+  endif()
+
+  # Sane default for GIT_TAG if it is not specified
+  if (NOT DEFINED ${parentVar})
+    if (DEFINED _CPM_GIT_TAG)
+      set(${parentVar} ${_CPM_GIT_TAG})
+    else()
+      set(${parentVar} "origin/master")
+    endif()
+  endif()
+endmacro()
+
 # name - Required as this name determines what preprocessor definition will
 #        be generated for this module.
 function(CPM_AddModule name)
@@ -509,13 +554,6 @@ function(CPM_AddModule name)
   # Determine base module directory and target directory for module.
   set(__CPM_BASE_MODULE_DIR "${CPM_DIR_OF_CPM}/modules")
 
-  # Sane default for GIT_TAG if it is not specified
-  if (DEFINED _CPM_GIT_TAG)
-    set(git_tag ${_CPM_GIT_TAG})
-  else()
-    set(git_tag "origin/master")
-  endif()
-
   if ((NOT DEFINED _CPM_GIT_REPOSITORY) AND (NOT DEFINED _CPM_SOURCE_DIR))
     message(FATAL_ERROR "CPM: You must specify either a git repository or source directory.")
   endif()
@@ -524,16 +562,14 @@ function(CPM_AddModule name)
     message(FATAL_ERROR "CPM: You cannot specify both a git repository and a source directory.")
   endif()
 
+  _cpm_obtain_version_from_params(__CPM_NEW_GIT_TAG)
+
   # Check to see if we should use git to download the source.
   set(__CPM_USING_GIT FALSE)
   if (DEFINED _CPM_GIT_REPOSITORY)
     set(__CPM_USING_GIT TRUE)
-
     set(__CPM_PATH_UNID ${_CPM_GIT_REPOSITORY})
-    string(REGEX REPLACE "https://github.com/" "github_" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
-    string(REGEX REPLACE "http://github.com/" "github_" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
-
-    set(__CPM_PATH_UNID_VERSION "${_CPM_GIT_TAG}")
+    set(__CPM_PATH_UNID_VERSION "${__CPM_NEW_GIT_TAG}")
   endif()
 
   # Check to see if the source is stored locally.
@@ -543,17 +579,9 @@ function(CPM_AddModule name)
     set(__CPM_MODULE_SOURCE_DIR "${_CPM_SOURCE_DIR}")
   endif()
 
-  # Build UNID
-  # Get rid of any characters that would be offensive to paths.
-  string(REGEX REPLACE "/" "_" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
-  # Ensure the 'hyphen (-)' is at the beginning or end of the [].
-  string(REGEX REPLACE "[:/\\.?-]" "" __CPM_PATH_UNID "${__CPM_PATH_UNID}")
-
-  # Do the same for the version ID.
-  string(REGEX REPLACE "/" "_" __CPM_PATH_UNID_VERSION "${__CPM_PATH_UNID_VERSION}")
-  string(REGEX REPLACE "[:/\\.?-]" "" __CPM_PATH_UNID_VERSION "${__CPM_PATH_UNID_VERSION}")
-
   # Cunstruct full UNID
+  _cpm_make_valid_unid_or_path(__CPM_PATH_UNID)
+  _cpm_make_valid_unid_or_path(__CPM_PATH_UNID_VERSION)
   set(__CPM_FULL_UNID "${__CPM_PATH_UNID}_${__CPM_PATH_UNID_VERSION}")
 
   # Construct paths from UNID
@@ -587,19 +615,19 @@ function(CPM_AddModule name)
         ${number_of_tries} times.")
       endif()
       if(error_code)
-        message(FATAL_ERROR "Failed to clone repository: 'https://github.com/SCIInstitute/spire'")
+        message(FATAL_ERROR "Failed to clone repository: '${_CPM_GIT_REPOSITORY}'")
       endif()
 
       # Checkout the appropriate tag.
       execute_process(
-        COMMAND "${GIT_EXECUTABLE}" checkout ${_CPM_GIT_TAG}
+        COMMAND "${GIT_EXECUTABLE}" checkout ${__CPM_NEW_GIT_TAG}
         WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
         RESULT_VARIABLE error_code
         OUTPUT_QUIET
         ERROR_QUIET
         )
       if(error_code)
-        message(FATAL_ERROR "Failed to checkout tag: '${_CPM_GIT_TAG}'")
+        message(FATAL_ERROR "Failed to checkout tag: '${__CPM_NEW_GIT_TAG}'")
       endif()
 
       # Initialize and update any submodules that may be present in the repo.
@@ -669,14 +697,14 @@ function(CPM_AddModule name)
       endif()
 
       execute_process(
-        COMMAND "${GIT_EXECUTABLE}" checkout ${_CPM_GIT_TAG}
+        COMMAND "${GIT_EXECUTABLE}" checkout ${__CPM_NEW_GIT_TAG}
         WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
         RESULT_VARIABLE error_code
         OUTPUT_QUIET
         ERROR_QUIET
         )
       if(error_code)
-        message(FATAL_ERROR "Failed to checkout tag: '${_CPM_GIT_TAG}'")
+        message(FATAL_ERROR "Failed to checkout tag: '${__CPM_NEW_GIT_TAG}'")
       endif()
 
       execute_process(
@@ -715,6 +743,7 @@ function(CPM_AddModule name)
   #set(__CPM_USING_GIT)
   set(__CPM_BASE_MODULE_DIR)
   set(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
+  set(__CPM_NEW_GIT_TAG)
 
   # Setup the project.
   add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
@@ -722,13 +751,14 @@ function(CPM_AddModule name)
   # Parse the arguments once again after adding the subdirectory (since we
   # cleared them all).
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
+  _cpm_obtain_version_from_params(__CPM_NEW_GIT_TAG)
 
   # Enforce one module version if the module has requested it.
   if (DEFINED CPM_FORCE_ONLY_ONE_MODULE_VERSION)
     if(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
       # Check version of __CPM_PATH_UNID in our pre-existing map key/value map.
       if (DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID})
-        if (NOT "${CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID}}" STREQUAL "${__CPM_PATH_UNID_VERSION}")
+        if (NOT "${CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID}}" STREQUAL "${__CPM_NEW_GIT_TAG}")
           message(FATAL_ERROR "Module '${name}' was declared as only allowing one version of its module. Another version of the module was found: ${CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID}}.")
         endif()
       endif()
@@ -741,7 +771,7 @@ function(CPM_AddModule name)
     # Add this entry to the map list.
     set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} ${__CPM_PATH_UNID} PARENT_SCOPE)
   endif()
-  set(CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID} ${__CPM_PATH_UNID_VERSION} PARENT_SCOPE)
+  set(CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID} ${__CPM_NEW_GIT_TAG} PARENT_SCOPE)
 
   # Setup module interface definition. This is the name the module is using
   # to identify itself in it's headers.
@@ -764,7 +794,7 @@ function(CPM_AddModule name)
 
   if ((DEFINED CPM_SHOW_HIERARCHY) AND (CPM_SHOW_HIERARCHY))
     if(__CPM_USING_GIT)
-      _cpm_print_with_hierarchy_level("${name} - GIT - Tag: ${_CPM_GIT_TAG} - Unid: ${__CPM_FULL_UNID}")
+      _cpm_print_with_hierarchy_level("${name} - GIT - Tag: ${__CPM_NEW_GIT_TAG} - Unid: ${__CPM_FULL_UNID}")
     else()
       _cpm_print_with_hierarchy_level("${name} - Source - Unid: ${__CPM_FULL_UNID}")
     endif()
