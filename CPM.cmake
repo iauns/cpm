@@ -515,7 +515,7 @@ macro(_cpm_make_valid_unid_or_path variable)
 endmacro()
 
 macro(_cpm_obtain_version_from_params parentVar)
-  if ((DEFINED _CPM_USE_EXISTING_VER) && (_CPM_USE_EXISTING_VER))
+  if ((DEFINED _CPM_USE_EXISTING_VER) AND (_CPM_USE_EXISTING_VER))
     # Attempt to pull existing version from module hierarchy. If we don't
     # find any, and the user has defined a version, then use that version
     # (this constitutes falling through without setting parentVar).
