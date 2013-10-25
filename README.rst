@@ -124,9 +124,8 @@ Building CPM Modules
 
 If you are just using pre-existing CPM modules and aren't interested in
 building modules feel free to skip this section. But, if you are interested in
-building CPM modules then please read on. When building modules for others
-to use there are some basic guidelines that you should follow. Most are listed
-below.
+building CPM modules then please read on as some guidelines and requirements
+are listed below.
 
 CMakeLists.txt Entry
 --------------------
