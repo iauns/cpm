@@ -406,7 +406,6 @@ macro(_cpm_propogate_version_map_up)
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_MOD_VERSION_MAP)
       set(CPM_KV_MOD_VERSION_MAP_${_cpm_kvName} ${CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}} PARENT_SCOPE)
-      message("Propogating Version: CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}: ${CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}}")
     endforeach()
     set(_cpm_kvName) # Clear kvName
 
@@ -420,17 +419,14 @@ macro(_cpm_propogate_source_added_map_up)
   # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
   # parent CPM_AddModule function's namespace. CPM_AddModule will
   # propogate the versioning information up again to it's parent's namespace.
-  message("PROPOGATING")
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_SOURCE_ADDED_MAP)
       set(${_cpm_kvName} ${CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName}} PARENT_SCOPE)
-      message("Propogating: ${_cpm_kvName}: ${${_cpm_kvName}}")
     endforeach()
     set(_cpm_kvName) # Clear kvName
 
     # Now propogate the list itself upwards.
     set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} PARENT_SCOPE)
-    message("List: ${CPM_KV_LIST_SOURCE_ADDED_MAP}")
   endif()
 endmacro()
 
@@ -442,10 +438,7 @@ macro(CPM_InitModule name)
   # Ensure the parent function knows what we decided to name ourselves.
   # This name will correspond to our module's namespace directives.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
-    message("${name} setting HIERARCHY level (${CPM_HIERARCHY_LEVEL})")
     set(CPM_LAST_MODULE_NAME ${name} PARENT_SCOPE)
-  else()
-    message("${name} not setting HIERARCHY level (${CPM_HIERARCHY_LEVEL})")
   endif()
 
   # Build the appropriate definition for the module. We stored the unique ID
@@ -806,7 +799,6 @@ function(CPM_AddModule name)
     # Setup module interface definition. This is the name the module is using
     # to identify itself in it's headers.
     if (DEFINED CPM_LAST_MODULE_NAME)
-      message("Module's name: ${CPM_LAST_MODULE_NAME}")
       _cpm_check_and_add_preproc(${name} ${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
     else()
       message(FATAL_ERROR "A module (${name}) failed to define its name!")
@@ -823,7 +815,6 @@ function(CPM_AddModule name)
     set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include" PARENT_SCOPE)
 
   else()
-    message("SKIPPING DIRECTORY")
     _cpm_check_and_add_preproc(${name} ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}} ${__CPM_FULL_UNID})
   endif()
 
