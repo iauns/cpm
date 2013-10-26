@@ -242,8 +242,7 @@ modules follow this directory structure::
   Root of [module name]
     |-> CMakeLists.txt
     |-> 3rdParty
-    |-> tests
-    |-> ...
+    |-> test
     |-> [module name]
       |-> [public headers go here]  
       |-> src
