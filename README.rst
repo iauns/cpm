@@ -264,6 +264,9 @@ the 3rdParty directory. Note that the 3rdParty directory is added as a SYSTEM
 include directory. This is to ignore warnings coming from headers which you do
 not have control over.
 
+Please use the 3rdParty directory at the root of your project sparingly. The
+includes in this directory will be exposed to all of the users of your module.
+
 Common Issues
 =============
 
