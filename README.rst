@@ -237,7 +237,7 @@ Directory Structure
 -------------------
 
 In order to avoid header name conflicts CPM modules adhere to the directory
-structure::
+following structure::
 
   Root of [module name]
     |-> CMakeLists.txt
