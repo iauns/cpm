@@ -419,6 +419,7 @@ macro(_cpm_propogate_source_added_map_up)
   # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
   # parent CPM_AddModule function's namespace. CPM_AddModule will
   # propogate the versioning information up again to it's parent's namespace.
+  message("PROPOGATING")
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_SOURCE_ADDED_MAP)
       set(CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName} ${CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName}} PARENT_SCOPE)
