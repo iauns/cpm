@@ -76,17 +76,37 @@ project. The namespace preprocessor definition always follows the form
 ``CPM_AddModule``. The name is always capitalized before being added to your
 preprocessor definitions.
 
-For example, in the 'spire' example above we would have the preprocessor
-definition ``CPM_SPIRE_NS`` added to our project. This declares the namepsace
-under which CPM has bound the 'Spire' module. You can access spire through this
-namespace like so: ``CPM_SPIRE_NS::spire::Interface``. In general you will want
-to rename the namespace to something more appropriate: ``namespace spire =
-CPM_SPIRE_NS::spire``.
+For example, in the 'spire' snippet above, the preprocessor definition
+``CPM_SPIRE_NS`` would be added to our project. This declares the namepsace
+under which CPM has bound the 'Spire' module. You can access spire's interface
+class through this namespace like so: ``CPM_SPIRE_NS::Interface``. In general
+you will want to rename the namespace to something more appropriate:
+``namespace spire = CPM_SPIRE_NS;``. It has been my experience that building a
+header containing all of your module namespaces is quite useful. Something like
+the following::
 
-Be sure to place your calls to CPM_AddModule before your call to CPM_Finish.
-The ``# Include any modules here...`` section mentioned in the first snippet
-indicates where you should place calls to ``CPM_AddModule`` and
-``CPM_AddExternal``.
+  #ifndef NAMESPACES_H
+  #define NAMESPACES_H
+
+  // 'Forward declaration' of CPM module namespaces.
+  namespace CPM_SPIRE_NS {}
+  namespace CPM_SPIRE_SCIRUN_NS {}
+  ... (more forward declarations) ...
+  
+  // Renaming the namespaces in our top level namespace.
+  namespace my_namespace {
+    namespace spire     = CPM_SPIRE_NS;
+    namespace spire_sr  = CPM_SPIRE_SCIRUN_NS;
+  }
+
+  #endif
+
+Remember that you are in charge of naming these module's preprocessor namespace
+definitions. It is all based on the first argument in your call to
+CPM_AddModule. Also be sure to place your calls to CPM_AddModule before your
+call to CPM_Finish. The ``# Include any modules here...`` section mentioned in
+the first snippet indicates where you should place calls to ``CPM_AddModule``
+and ``CPM_AddExternal``.
 
 CPM Externals
 -------------
