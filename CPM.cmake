@@ -805,6 +805,7 @@ function(CPM_AddModule name)
     # Setup module interface definition. This is the name the module is using
     # to identify itself in it's headers.
     if (DEFINED CPM_LAST_MODULE_NAME)
+      message("Module's name: ${CPM_LAST_MODULE_NAME}")
       _cpm_check_and_add_preproc(${name} ${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
     else()
       message(FATAL_ERROR "A module (${name}) failed to define its name!")
