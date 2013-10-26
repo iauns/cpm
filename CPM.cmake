@@ -421,7 +421,7 @@ macro(CPM_InitModule name)
   endif()
 
   # Build the appropriate definition for the module. We stored the unique ID
-  _cpm_build_preproc_name(name __CPM_TMP_VAR)
+  _cpm_build_preproc_name(${name} __CPM_TMP_VAR)
   if (DEFINED CPM_UNIQUE_ID)
     add_definitions("-D${__CPM_TMP_VAR}=${CPM_UNIQUE_ID}")
   else()
