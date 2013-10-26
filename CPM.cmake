@@ -458,6 +458,7 @@ macro(CPM_InitModule name)
   # the parent scope).
   add_definitions(${CPM_DEFINITIONS})
   include_directories(${CPM_INCLUDE_DIRS})
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 endmacro()
 
