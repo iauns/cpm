@@ -147,10 +147,10 @@ Limitations
 Building CPM Modules
 ====================
 
-If you are just using pre-existing CPM modules and aren't interested in
-building modules feel free to skip this section. But, if you are interested in
-building CPM modules then please read on as some guidelines and requirements
-are listed below.
+If you are using pre-existing CPM modules and aren't interested in building
+modules feel free to skip this section. But, if you are interested in building
+CPM modules then please read on as some guidelines and requirements are listed
+below.
 
 CMakeLists.txt Entry
 --------------------
