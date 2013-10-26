@@ -242,9 +242,7 @@ structure::
   Root of [module name]
     |-> CMakeLists.txt
     |-> 3rdParty
-      |-> ...
     |-> test
-      |-> ...
     |-> [module name]
       |-> [public headers go here]  
       |-> src
