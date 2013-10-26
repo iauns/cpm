@@ -457,8 +457,10 @@ macro(CPM_InitModule name)
   # which executes in the parent scope (since it is literally inserted into
   # the parent scope).
   add_definitions(${CPM_DEFINITIONS})
-  include_directories(${CPM_INCLUDE_DIRS})
+  include_directories(SYSTEM ${CPM_INCLUDE_DIRS})
+
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty)
 
 endmacro()
 
@@ -817,7 +819,7 @@ function(CPM_AddModule name)
   # Append target to pre-existing libraries.
   set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}" PARENT_SCOPE)
-
+  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/3rdParty" PARENT_SCOPE)
 
   # Set the appropriate preprocessor definition for this module and populate 
   # our namespace header file.

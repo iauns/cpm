@@ -238,6 +238,7 @@ modules follow this directory structure::
 
   Root of [module name]
     |-> CMakeLists.txt
+    |-> 3rdParty
     |-> tests
     |-> ...
     |-> [module name]
@@ -254,6 +255,14 @@ path. This allows them to fix naming conflicts without having to patch or
 contact upstream. To include a public header file with a modified prefix use::
 
   #include <[prefix]/[module name]/interface.h>
+
+Include Path
+------------
+
+By default, the root of your project is added to the include path along with
+the 3rdParty directory. Note that the 3rdParty directory is added as a SYSTEM
+include directory. This is to ignore warnings coming from headers which you do
+not have control over.
 
 Common Issues
 =============
