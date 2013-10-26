@@ -809,17 +809,14 @@ function(CPM_AddModule name)
     set(CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID} ${CPM_LAST_MODULE_NAME} PARENT_SCOPE)
     set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} "CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}" PARENT_SCOPE)
 
-    # Append target to pre-existing libraries.
-    set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
-    set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}" PARENT_SCOPE)
-
   else()
     _cpm_check_and_add_preproc(${name} ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}} ${__CPM_FULL_UNID})
-
-    # Be sure to set appropriate library and include directory.
-    set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
-    set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}" PARENT_SCOPE)
   endif()
+
+  # Append target to pre-existing libraries.
+  set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
+  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}" PARENT_SCOPE)
+
 
   # Set the appropriate preprocessor definition for this module and populate 
   # our namespace header file.
