@@ -168,7 +168,6 @@ Add the following to the top of the CMakeLists.txt for your module::
   
   if ((DEFINED CPM_DIR) AND (DEFINED CPM_UNIQUE_ID) AND (DEFINED CPM_TARGET_NAME))
     set(CPM_LIB_TARGET_NAME ${CPM_TARGET_NAME})
-  
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CPM_DIR})
     include(CPM)
   else()
