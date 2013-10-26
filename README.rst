@@ -32,13 +32,13 @@ CMakeLists.txt::
   #------------------------------------------------------------------------------
   # Required CPM Setup - See: http://github.com/iauns/cpm
   #------------------------------------------------------------------------------
-  set (CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
-  if (${CPM_DIR} MATCHES "${CMAKE_CURRENT_BINARY_DIR}")
+  set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
+  if(${CPM_DIR} MATCHES "${CMAKE_CURRENT_BINARY_DIR}")
     message("NOTE: Placing CPM in the binary directory is not recommended.")
     message("      Place CPM alongside the binary directory so that you don't need to")
     message("      recompile your modules everytime you clean your project.")
     message("      Use the CPM_DIR variable to set the CPM directory.")
-  endif ()
+  endif()
   
   find_package(Git)
   if(NOT GIT_FOUND)
@@ -148,13 +148,13 @@ Add the following to the top of the CMakeLists.txt for your module::
   set(CPM_MODULE_NAME <name>)
   set(CPM_LIB_TARGET_NAME ${CPM_MODULE_NAME})
   
-  if ((DEFINED CPM_DIR) AND (DEFINED CPM_UNIQUE_ID) AND (DEFINED CPM_OUTPUT_LIB_NAME))
-    set(CPM_LIB_TARGET_NAME ${CPM_OUTPUT_LIB_NAME})
+  if ((DEFINED CPM_DIR) AND (DEFINED CPM_UNIQUE_ID) AND (DEFINED CPM_TARGET_NAME))
+    set(CPM_LIB_TARGET_NAME ${CPM_TARGET_NAME})
   
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CPM_DIR})
     include(CPM)
   else()
-    set (CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
+    set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
     find_package(Git)
     if(NOT GIT_FOUND)
       message(FATAL_ERROR "CPM requires Git.")
@@ -180,16 +180,20 @@ Be sure to update the ``<name>`` at the beginning of the snippet. ``<name>``
 is placed in the namespace preprocessor definition for your module. For example,
 if ``<name>`` is 'spire', then the preprocessor definition that will be added
 to your project will be ``CPM_SPIRE_NS``. Use this definition as a wrapper
-around your namespaces.
+around your namespaces. Also use ``CPM_LIB_TARGET_NAME`` as the name of your
+library in add_library and include ``CPM_LIBRARIES`` in target_link_libraries
+for your static library. Example:
+
+  # Our CPM module library
+  add_library(${CPM_LIB_TARGET_NAME} ${Source})
+  target_link_libraries(${CPM_LIB_TARGET_NAME} ${CPM_LIBRARIES})
 
 Here is an example class that demonstrates the namespace wrapping::
 
   namespace CPM_SPIRE_NS {
-  namespace spire {
 
   ... code here ...
 
-  } // namespace spire
   } // namespace CPM_SPIRE_NS
 
 Library target name
