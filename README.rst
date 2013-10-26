@@ -237,7 +237,7 @@ level namespace, like so::
   } // namespace CPM_[module name]_NS
 
 The [module name] part of the definition's name comes directly from your call
-to CPM_AddModule. The first argument given to CPM_AddModule becomes [module
+to CPM_AddModule. The first argument given to CPM_InitModule becomes [module
 name] in your application.
 
 Note that this is *not* required but it is *heavily* recommended when you are
