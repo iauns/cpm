@@ -86,6 +86,13 @@
 #                                 the parent_scope when CPM_INIT_MODULE is
 #                                 called and at the end of the AddModule
 #                                 function.
+#  CPM_KV_SOURCE_ADDED_MAP_*    - Key/value added source map. Ensures we don't
+#                                 add the same module twice.
+#                                 Key: Full unique path.
+#                                 Value: Always TRUE.
+#  CPM_KV_LIST_SOURCE_ADDED_MAP - A list of entries in CPM_KV_SOURCE_ADDED_MAP.
+#                                 Used to ensure we don't issue duplicate
+#                                 add_subdirectory calls.
 #  CPM_KV_PREPROC_NS_MAP_*      - A key/value C preprocessor namespace mapping.
 #                                 Key: C Preprocessor name.
 #                                 Val: The *full* unique ID of the module. 
@@ -399,6 +406,21 @@ macro(_cpm_propogate_version_map_up)
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_MOD_VERSION_MAP)
       set(CPM_KV_MOD_VERSION_MAP_${_cpm_kvName} ${CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}} PARENT_SCOPE)
+    endforeach()
+    set(_cpm_kvName) # Clear kvName
+
+    # Now propogate the list itself upwards.
+    set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} PARENT_SCOPE)
+  endif()
+endmacro()
+
+macro(_cpm_propogate_source_added_map_up)
+  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
+  # parent CPM_AddModule function's namespace. CPM_AddModule will
+  # propogate the versioning information up again to it's parent's namespace.
+  if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    foreach(_cpm_kvName IN LISTS CPM_KV_LIST_SOURCE_ADDED_MAP)
+      set(CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName} ${CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}} PARENT_SCOPE)
     endforeach()
     set(_cpm_kvName) # Clear kvName
 
@@ -737,6 +759,7 @@ function(CPM_AddModule name)
   set(__CPM_BASE_MODULE_DIR)
   set(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
   set(__CPM_NEW_GIT_TAG)
+
 
   # Setup the project.
   message("Adding subdir: ${__CPM_MODULE_SOURCE_DIR} -- ${__CPM_MODULE_BIN_DIR}")
