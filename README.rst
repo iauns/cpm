@@ -112,7 +112,7 @@ Advantages
 
 * Automatically manages code retrieval and the building of CPM modules and externals.
 * Allows the use of multiple different versions of the same statically linked
-  module in the same build.
+  module in the same executable.
 * Built entirely in CMake. Nothing else is required.
 * Encourages small well-tested and composable code modules. Similar to NPM.
 * All CPM module code will be included in any generated project solution.
