@@ -740,8 +740,7 @@ function(CPM_AddModule name)
 
   # Set variables CPM will use inside of the library target.
   set(CPM_UNIQUE_ID ${__CPM_FULL_UNID})
-  set(CPM_TARGET_NAME "${__CPM_FULL_UNID}_ep")
-  set(CPM_OUTPUT_LIB_NAME ${__CPM_FULL_UNID})
+  set(CPM_TARGET_NAME "${__CPM_FULL_UNID}")
   set(CPM_DIR ${CPM_DIR_OF_CPM})
 
   # Set target output directories.
