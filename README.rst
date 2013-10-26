@@ -101,12 +101,12 @@ the following::
 
   #endif
 
-Remember that you are in charge of naming these module's namespace definitions
-since the defintion's name is based on the first argument in your call to
-CPM_AddModule. Also be sure to place your calls to CPM_AddModule before your
-call to CPM_Finish.  The ``# Include any modules here...`` section mentioned in
-the first snippet indicates where you should place calls to ``CPM_AddModule``
-and ``CPM_AddExternal``.
+Remember that you are in charge of the name of each module's namespace
+definition since the defintion's name is based on the first argument in your
+call to CPM_AddModule. Also be sure to place your calls to CPM_AddModule before
+your call to CPM_Finish.  The ``# Include any modules here...`` section
+mentioned in the first snippet indicates where you should place calls to
+``CPM_AddModule`` and ``CPM_AddExternal``.
 
 CPM Externals
 -------------
