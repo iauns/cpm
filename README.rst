@@ -180,8 +180,7 @@ Add the following to the top of the CMakeLists.txt for your module::
       execute_process(
         COMMAND "${GIT_EXECUTABLE}" clone https://github.com/iauns/cpm ${CPM_DIR}
         RESULT_VARIABLE error_code
-        OUTPUT_VARIABLE head_sha
-        )
+        OUTPUT_VARIABLE head_sha)
       if(error_code)
         message(FATAL_ERROR "CPM failed to get the hash for HEAD")
       endif()
