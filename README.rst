@@ -81,7 +81,7 @@ For example, in the 'spire' snippet above, the preprocessor definition
 under which CPM has bound the 'Spire' module. You can access spire's interface
 class through this namespace like so: ``CPM_SPIRE_NS::Interface``. In general
 you will want to rename the namespace to something more appropriate:
-``namespace spire = CPM_SPIRE_NS;``. It has been my experience that building a
+``namespace spire = CPM_SPIRE_NS;``. It has been our experience that building a
 header containing all of your module namespaces is quite useful. Something like
 the following::
 
