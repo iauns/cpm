@@ -236,13 +236,15 @@ another module the user is relying on.
 Directory Structure
 -------------------
 
-In order to avoid header name conflicts without contacting upstream, CPM
-modules follow this directory structure::
+In order to avoid header name conflicts CPM modules adhere to the directory
+structure::
 
   Root of [module name]
     |-> CMakeLists.txt
     |-> 3rdParty
+      |-> ...
     |-> test
+      |-> ...
     |-> [module name]
       |-> [public headers go here]  
       |-> src
