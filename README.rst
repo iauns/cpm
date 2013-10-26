@@ -7,9 +7,9 @@ CMake C++ Package Manager.
 CPM is designed to save you time and promote small, well-tested, and composable
 C++ modules. It allows you to link against multiple different versions of the
 same static library so that you can include other C++ modules that may depend
-on older or newer versions of the same modules you are using. To this end, the
-goal is to allow the growth of a module eco-system similar to Node.js'. Similar
-to Node.js' NPM, CPM will automatically download and build C++ modules for you.
+on older or newer versions of the same modules you are using. CPM will also
+automatically download and build these C++ modules for you. CPM's goal is to
+help support the growth of a module eco-system similar to that of Node.js'.
 
 You can also manage external C or C++ libraries that do not use CPM. Using CPM
 externals is akin to using CMake's external project mechanism with the external
