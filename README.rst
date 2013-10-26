@@ -114,7 +114,7 @@ Advantages
 * Allows the use of multiple different versions of the same statically linked
   module in the same executable.
 * Built entirely in CMake. Nothing else is required.
-* Encourages small well-tested and composable code modules. Similar to NPM.
+* Encourages small well-tested and composable code modules.
 * All CPM module code will be included in any generated project solution.
 * Will automatically detect naming conflicts based on the names you assign 
   modules. A failure will occur at CMake configuration if there is conflict.
