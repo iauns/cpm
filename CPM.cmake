@@ -811,7 +811,7 @@ function(CPM_AddModule name)
 
     # Append target to pre-existing libraries.
     set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
-    set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include" PARENT_SCOPE)
+    set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}" PARENT_SCOPE)
 
   else()
     _cpm_check_and_add_preproc(${name} ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}} ${__CPM_FULL_UNID})
