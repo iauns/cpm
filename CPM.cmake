@@ -822,6 +822,7 @@ function(CPM_AddModule name)
 
   else()
     message("SKIPPING DIRECTORY")
+    _cpm_check_and_add_preproc(${name} ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}} ${__CPM_FULL_UNID})
   endif()
 
   # Set the appropriate preprocessor definition for this module and populate 
