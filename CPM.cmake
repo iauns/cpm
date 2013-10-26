@@ -406,6 +406,7 @@ macro(_cpm_propogate_version_map_up)
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_MOD_VERSION_MAP)
       set(CPM_KV_MOD_VERSION_MAP_${_cpm_kvName} ${CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}} PARENT_SCOPE)
+      message("Propogating Version: CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}: ${CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}}")
     endforeach()
     set(_cpm_kvName) # Clear kvName
 
@@ -422,8 +423,8 @@ macro(_cpm_propogate_source_added_map_up)
   message("PROPOGATING")
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_SOURCE_ADDED_MAP)
-      set(CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName} ${CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName}} PARENT_SCOPE)
-      message("Propogating: CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName}: ${CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName}}")
+      set(${_cpm_kvName} ${CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName}} PARENT_SCOPE)
+      message("Propogating: ${_cpm_kvName}: ${${_cpm_kvName}}")
     endforeach()
     set(_cpm_kvName) # Clear kvName
 
