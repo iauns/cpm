@@ -194,11 +194,13 @@ Add the following to the top of the CMakeLists.txt for your module::
 
 Be sure to update the ``<name>`` at the beginning of the snippet. ``<name>`` 
 is placed in the namespace preprocessor definition for your module. For example,
-if ``<name>`` is 'spire', then the preprocessor definition that will be added
+if ``<name>`` is 'spire' then the preprocessor definition that will be added
 to your project will be ``CPM_SPIRE_NS``. Use this definition as a wrapper
-around your namespaces. Also use ``CPM_LIB_TARGET_NAME`` as the name of your
-library in add_library and include ``CPM_LIBRARIES`` in target_link_libraries
-for your static library. Example::
+around your code and namespaces. Don't worry about users using the same name in
+their call to CPM_AddModule as the name you choose in your call to
+CPM_InitModule. CPM will automatically handle this for you. Also use
+``CPM_LIB_TARGET_NAME`` as the name of your library in add_library and include
+``CPM_LIBRARIES`` in target_link_libraries for your static library. Example::
 
   # Our CPM module library
   add_library(${CPM_LIB_TARGET_NAME} ${Source})
