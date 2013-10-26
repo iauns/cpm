@@ -204,15 +204,14 @@ Wrapping Namespace
 
 CPM allows multiple different versions of the same module to be used in the
 same static linkage unit. As such, when you are building a module for CPM (not
-when you are using CPM modules!), you should surround your top-level namespaces
-in CPM_[module name]_NS tags like so::
+when you are using CPM modules!), you should either surround your top-level
+namespaces in CPM_[module name]_NS tags or use CPM_[module name]_NS as your top
+level namespace, like so::
 
   namespace CPM_[module name]_NS {
-  namespace Spire {
 
     ...  
 
-  } // namespace Spire
   } // namespace CPM_[module name]_NS
 
 The [module name] part of the definition's name comes directly from your call
