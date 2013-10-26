@@ -89,7 +89,7 @@
 #  CPM_KV_SOURCE_ADDED_MAP_*    - Key/value added source map. Ensures we don't
 #                                 add the same module twice.
 #                                 Key: Full unique path.
-#                                 Value: Always TRUE.
+#                                 Value: Module's chosen name.
 #  CPM_KV_LIST_SOURCE_ADDED_MAP - A list of entries in CPM_KV_SOURCE_ADDED_MAP.
 #                                 Used to ensure we don't issue duplicate
 #                                 add_subdirectory calls.
@@ -414,18 +414,19 @@ macro(_cpm_propogate_version_map_up)
   endif()
 endmacro()
 
+# Propogates the list of directories we have sourced upwards.
 macro(_cpm_propogate_source_added_map_up)
   # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
   # parent CPM_AddModule function's namespace. CPM_AddModule will
   # propogate the versioning information up again to it's parent's namespace.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_SOURCE_ADDED_MAP)
-      set(CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName} ${CPM_KV_MOD_VERSION_MAP_${_cpm_kvName}} PARENT_SCOPE)
+      set(CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName} ${CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName}} PARENT_SCOPE)
     endforeach()
     set(_cpm_kvName) # Clear kvName
 
     # Now propogate the list itself upwards.
-    set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} PARENT_SCOPE)
+    set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} PARENT_SCOPE)
   endif()
 endmacro()
 
@@ -509,6 +510,7 @@ macro(_cpm_check_and_add_preproc moduleName defShortName fullUNID)
   # Clear our variable.
   set(__CPM_LAST_MODULE_PREPROC)
 endmacro()
+
 
 function(_cpm_print_with_hierarchy_level msg)
   # while ${number} is between 0 and 11
@@ -760,42 +762,63 @@ function(CPM_AddModule name)
   set(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
   set(__CPM_NEW_GIT_TAG)
 
+  if ((DEFINED CPM_SHOW_HIERARCHY) AND (CPM_SHOW_HIERARCHY))
+    if(__CPM_USING_GIT)
+      _cpm_print_with_hierarchy_level("${name} - GIT - Tag: ${__CPM_NEW_GIT_TAG} - Unid: ${__CPM_FULL_UNID}")
+    else()
+      _cpm_print_with_hierarchy_level("${name} - Source - Unid: ${__CPM_FULL_UNID}")
+    endif()
+  endif()
 
-  # Setup the project.
-  message("Adding subdir: ${__CPM_MODULE_SOURCE_DIR} -- ${__CPM_MODULE_BIN_DIR}")
-  add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
+  # Add the project's source code.
+  if (NOT DEFINED CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID})
+    add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
 
-  # Parse the arguments once again after adding the subdirectory (since we
-  # cleared them all).
-  _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
-  _cpm_obtain_version_from_params(__CPM_NEW_GIT_TAG)
+    # Parse the arguments once again after adding the subdirectory (since we
+    # cleared them all).
+    _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
+    _cpm_obtain_version_from_params(__CPM_NEW_GIT_TAG)
 
-  # Enforce one module version if the module has requested it.
-  if (DEFINED CPM_FORCE_ONLY_ONE_MODULE_VERSION)
-    if(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
-      # Check version of __CPM_PATH_UNID in our pre-existing map key/value map.
-      if (DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID})
-        if (NOT "${CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID}}" STREQUAL "${__CPM_NEW_GIT_TAG}")
-          message(FATAL_ERROR "Module '${name}' was declared as only allowing one version of its module. Another version of the module was found: ${CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID}}.")
+    # Enforce one module version if the module has requested it.
+    if (DEFINED CPM_FORCE_ONLY_ONE_MODULE_VERSION)
+      if(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
+        # Check version of __CPM_PATH_UNID in our pre-existing map key/value map.
+        if (DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID})
+          if (NOT "${CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID}}" STREQUAL "${__CPM_NEW_GIT_TAG}")
+            message(FATAL_ERROR "Module '${name}' was declared as only allowing one version of its module. Another version of the module was found: ${CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID}}.")
+          endif()
         endif()
       endif()
     endif()
-  endif()
-  set(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
+    set(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
 
-  # Add the module version to the map.
-  if (NOT DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID})
-    # Add this entry to the map list.
-    set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} ${__CPM_PATH_UNID} PARENT_SCOPE)
-  endif()
-  set(CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID} ${__CPM_NEW_GIT_TAG} PARENT_SCOPE)
+    # Add the module version to the map.
+    if (NOT DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID})
+      # Add this entry to the map list.
+      set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} ${__CPM_PATH_UNID} PARENT_SCOPE)
+    endif()
+    set(CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID} ${__CPM_NEW_GIT_TAG} PARENT_SCOPE)
 
-  # Setup module interface definition. This is the name the module is using
-  # to identify itself in it's headers.
-  if (DEFINED CPM_LAST_MODULE_NAME)
-    _cpm_check_and_add_preproc(${name} ${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
+    # Setup module interface definition. This is the name the module is using
+    # to identify itself in it's headers.
+    if (DEFINED CPM_LAST_MODULE_NAME)
+      _cpm_check_and_add_preproc(${name} ${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
+    else()
+      message(FATAL_ERROR "A module (${name}) failed to define its name!")
+    endif()
+
+    # Ensure we log that we have added this source directory.
+    # Otherwise CMake will error out and tell us we can't use the same binary
+    # directory for two source directories.
+    set(CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID} ${CPM_LAST_MODULE_NAME})
+    set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} "CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}")
+
+    # Append target to pre-existing libraries.
+    set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
+    set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include" PARENT_SCOPE)
+
   else()
-    message(FATAL_ERROR "A module (${name}) failed to define its name!")
+    message("SKIPPING DIRECTORY")
   endif()
 
   # Set the appropriate preprocessor definition for this module and populate 
@@ -805,21 +828,10 @@ function(CPM_AddModule name)
   file(APPEND ${CPM_USING_NS_HEADER_FILE} "using namespace ${__CPM_MODULE_PREPROC};\n")
   set(__CPM_MODULE_PREPROC)
 
-  # Append target to pre-existing libraries.
-  set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
-  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/include" PARENT_SCOPE)
-
-  if ((DEFINED CPM_SHOW_HIERARCHY) AND (CPM_SHOW_HIERARCHY))
-    if(__CPM_USING_GIT)
-      _cpm_print_with_hierarchy_level("${name} - GIT - Tag: ${__CPM_NEW_GIT_TAG} - Unid: ${__CPM_FULL_UNID}")
-    else()
-      _cpm_print_with_hierarchy_level("${name} - Source - Unid: ${__CPM_FULL_UNID}")
-    endif()
-  endif()
-
   # Now propogate the version map upwards (we don't really *need* to do this).
   # But makes it clear what we are trying to do.
   _cpm_propogate_version_map_up()
+  _cpm_propogate_source_added_map_up()
 endfunction()
 
 function(CPM_AddExternal name)
