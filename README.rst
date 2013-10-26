@@ -182,7 +182,7 @@ if ``<name>`` is 'spire', then the preprocessor definition that will be added
 to your project will be ``CPM_SPIRE_NS``. Use this definition as a wrapper
 around your namespaces. Also use ``CPM_LIB_TARGET_NAME`` as the name of your
 library in add_library and include ``CPM_LIBRARIES`` in target_link_libraries
-for your static library. Example:
+for your static library. Example::
 
   # Our CPM module library
   add_library(${CPM_LIB_TARGET_NAME} ${Source})
