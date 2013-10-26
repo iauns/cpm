@@ -812,9 +812,9 @@ function(CPM_AddModule name)
 
     # Ensure we log that we have added this source directory.
     # Otherwise CMake will error out and tell us we can't use the same binary
-    # directory for two source directories.
-    set(CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID} ${CPM_LAST_MODULE_NAME})
-    set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} "CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}")
+    # directory for two source directories. We always start in the parent scope.
+    set(CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID} ${CPM_LAST_MODULE_NAME} PARENT_SCOPE)
+    set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} "CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}" PARENT_SCOPE)
 
     # Append target to pre-existing libraries.
     set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
