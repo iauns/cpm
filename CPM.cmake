@@ -507,11 +507,13 @@ function(_cpm_print_with_hierarchy_level msg)
 endfunction()
 
 macro(_cpm_make_valid_unid_or_path variable)
-  string(REGEX REPLACE "https://github.com/" "github_" ${variable} ${${variable}})
-  string(REGEX REPLACE "http://github.com/" "github_" ${variable} ${${variable}})
+  if (NOT "${${variable}}" STREQUAL "")
+    string(REGEX REPLACE "https://github.com/" "github_" ${variable} ${${variable}})
+    string(REGEX REPLACE "http://github.com/" "github_" ${variable} ${${variable}})
 
-  string(REGEX REPLACE "/" "_" ${variable} ${${variable}})
-  string(REGEX REPLACE "[:/\\.?-]" "" ${variable} ${${variable}})
+    string(REGEX REPLACE "/" "_" ${variable} ${${variable}})
+    string(REGEX REPLACE "[:/\\.?-]" "" ${variable} ${${variable}})
+  endif()
 endmacro()
 
 macro(_cpm_obtain_version_from_params parentVar)
