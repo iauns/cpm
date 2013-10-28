@@ -32,13 +32,11 @@ CMakeLists.txt::
   #------------------------------------------------------------------------------
   # Required CPM Setup - See: http://github.com/iauns/cpm
   #------------------------------------------------------------------------------
+  # You may set CPM_DIR to any path you want. Outside of the binary directory,
+  # or anywhere on your harddrive. Any project that wants to use the same
+  # version of any module can benefit immediately from the built packages.
+  # Just be careful of pre-project settings for modules.
   set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
-  if(${CPM_DIR} MATCHES "${CMAKE_CURRENT_BINARY_DIR}")
-    message("NOTE: Placing CPM in the binary directory is not recommended.")
-    message("      Place CPM alongside the binary directory so that you don't need to")
-    message("      recompile your modules everytime you clean your project.")
-    message("      Use the CPM_DIR variable to set the CPM directory.")
-  endif()
   
   find_package(Git)
   if(NOT GIT_FOUND)
