@@ -83,8 +83,8 @@ you will want to rename the namespace to something more appropriate:
 header containing all of your module namespaces is quite useful. Something like
 the following::
 
-  #ifndef NAMESPACES_H
-  #define NAMESPACES_H
+  #ifndef __MY_NAMESPACES_H
+  #define __MY_NAMESPACES_H
 
   // 'Forward declaration' of CPM module namespaces.
   namespace CPM_SPIRE_NS {}
@@ -103,6 +103,11 @@ Also be sure to place your calls to CPM_AddModule before your call to
 CPM_Finish. The ``# Include any modules here...`` section mentioned in the
 first snippet indicates where you should place calls to ``CPM_AddModule`` and
 ``CPM_AddExternal``.
+
+Remember not to expose your namespaces.h header file in your public interface.
+Use the preprocessor definitions in your public interface. If you absolutely
+must include the namespaces header file in your public interface, then ensure
+you give the include guard for your namespaces header a unique name.
 
 CPM Externals
 -------------
