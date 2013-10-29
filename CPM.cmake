@@ -752,6 +752,10 @@ function(CPM_AddModule name)
 
   # Add the project's source code.
   if (NOT DEFINED CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID})
+    # Ensure we do not build dynamic libraries.
+    set(BUILD_SHARED_LIBS OFF)
+
+    # Add the module's code.
     add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
 
     # Parse the arguments once again after adding the subdirectory (since we
