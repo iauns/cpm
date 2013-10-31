@@ -2,7 +2,7 @@
 CPM
 ===
 
-CMake C++ Package Manager.
+C++ Package Manager based on CMake.
 
 CPM is designed to save you time and promote small, well-tested, and composable
 C++ modules. It allows you to link against multiple different versions of the
