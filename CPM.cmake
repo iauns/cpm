@@ -824,12 +824,16 @@ function(CPM_AddModule name)
   _cpm_propogate_source_added_map_up()
 endfunction()
 
-function(CPM_AddExternal name)
+macro(CPM_AddExternal name)
   # We use AddModule as the backbone in add external. We check to make sure
   # that only one version of an external can exist.
   _cpm_parse_arguments(CPM_AddExternal _CPM_ "${ARGN}")
 
-  CPM_AddModule(${name})
+  CPM_AddModule(${name}
+    ${_CPM_SOURCE_DIR}
+    ${_CPM_GIT_TAG}
+    ${_CPM_GIT_REPOSITORY}
+    ${_CPM_USE_EXISTING_VER})
 
 endfunction()
 
