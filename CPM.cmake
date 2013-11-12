@@ -824,20 +824,3 @@ function(CPM_AddModule name)
   _cpm_propogate_source_added_map_up()
 endfunction()
 
-macro(CPM_AddExternal name)
-  # We use AddModule as the backbone in add external. We check to make sure
-  # that only one version of an external can exist.
-  _cpm_parse_arguments(CPM_AddExternal _CPM_ "${ARGN}")
-
-  CPM_AddModule(${name}
-    ${_CPM_SOURCE_DIR}
-    ${_CPM_GIT_TAG}
-    ${_CPM_GIT_REPOSITORY}
-    ${_CPM_USE_EXISTING_VER})
-
-endmacro()
-
-# I fully implemented the external project approach, see commit SHA:
-# 107d0952bd3a64c371d1d3224271bdcca915b2fa . I also tagged it as 
-# "External_Project_Approach".
-#
