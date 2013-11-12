@@ -835,7 +835,7 @@ macro(CPM_AddExternal name)
     ${_CPM_GIT_REPOSITORY}
     ${_CPM_USE_EXISTING_VER})
 
-endfunction()
+endmacro()
 
 # I fully implemented the external project approach, see commit SHA:
 # 107d0952bd3a64c371d1d3224271bdcca915b2fa . I also tagged it as 
