@@ -43,14 +43,6 @@
 #    [PREPROCESSOR_POSTFIX post]  # Adds "_${PREPROCESSOR_POSTFIX}" onto all C preprocessor definitions.
 #    )
 #
-# Add external function reference:
-#  CPM_AddExternal(<name>         # Required - External target name.
-#     [SOURCE_DIR dir]            # Uses 'dir' as the source directory as opposed to downloading.
-#     [GIT_TAG tag]               # Same as ExternalProject_Add's GIT_TAG
-#     [GIT_REPOSITORY repo]       # Git repository to fetch source data from.
-#     [USE_EXISTING_VER truth]    # If set to true then the module will attempt to use a pre-existing version of the module.
-#     )
-#
 # Define CPM_SHOW_HIERARCHY to see all modules and their dependencies in
 # a hierarchical fashion. The output from defining this is usually best viewed
 # after all of the modules have cloned their source.
@@ -66,12 +58,6 @@
 # packages. CPM_AddExternal is not as robust as modules and can't be versioned
 # well. Additionally, you cannot link against multiple versions of the same
 # library unless you use shared libraries.
-#
-# Add external function reference: CPM_AddExternal(<name>         # Required -
-# External name (will be used to lookup external).  [GIT_REPOSITORY repo]
-# # Indicates git repository containing recipe to build external.  [GIT_TAG
-# tag]                # Tag inside of the git repo.  [VERSION version]
-# # Attempt to find this version number.)
 #
 # Also remember: you will probably want to use add_dependencies with the
 # ${CPM_LIBRARIES}.
@@ -117,6 +103,27 @@
 # NOTE: End users aren't required to finalize their modules after they add them
 # because all appropriate constraints do not need to be propogated further then
 # the top level file. 
+#
+# Additional functions and macros.
+#
+#  CPM_ExportAdditionalDefinition <def>
+#
+#     Exports an additional definition in the parent scope, from the module.
+#     Use sparingly. Primarily used to expose mandatory external project
+#     definitions to the parent module.
+#
+#  CPM_ExportAdditionalIncludeDir <dir>
+#
+#     Exposes an additional include directory to the consumer of a module.
+#     Use sparingly. Primarily used to expose external project directories
+#     to module consumers.
+#
+#  CPM_ForceOnlyOneModuleVersion
+#
+#     When called from a module, this function ensures that we use only one
+#     version of that module throughout our static linkage. This is mandatory
+#     for modules which import code not written as a CPM module. Such as
+#     code built with CMake's ExternalProject.
 #
 #-------------------------------------------------------------------------------
 # Pre-compute a regex to match documented keywords for each command.
@@ -198,6 +205,9 @@ set(CPM_DIR_OF_CPM ${CMAKE_CURRENT_LIST_DIR})
 
 # Clear out any definitions a parent_scope might have declared.
 set(CPM_DEFINITIONS)
+
+# Clear out any include directories.
+set(CPM_INCLUDE_DIRS)
 
 # Increment the module hierarchy level if it exists.
 if (DEFINED CPM_HIERARCHY_LEVEL)
@@ -472,6 +482,21 @@ macro(CPM_ForceOnlyOneModuleVersion)
   # Set a flag in the parent namespace to force a check against module name
   # and version.
   set(CPM_FORCE_ONLY_ONE_MODULE_VERSION TRUE PARENT_SCOPE)
+endmacro()
+
+# This macro allows modules to expose additional include directories to
+# consumers. This is necessary for externals, and only exposes the include
+# definition to the direct consumer of the module. None of the consumer's
+# parents.
+macro(CPM_ExportAdditionalIncludeDir dir)
+  set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${dir}" PARENT_SCOPE)
+endmacro()
+
+# This macro allows modules to expose additional definitions.
+# As with ExportAdditionalIncludeDirectory, this only exposes the definition
+# to the direct consumer of the module. None of the consumer's parents.
+macro(CPM_ExportAdditionalDefinition def)
+  set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${def} PARENT_SCOPE)
 endmacro()
 
 # We use this code in multiple places to check that we don't have preprocessor
@@ -765,6 +790,16 @@ function(CPM_AddModule name)
 
     # Add the module's code.
     add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
+
+    # Add any includes the module wants to expose in the parent's scope.
+    if(DEFINED CPM_ADDITIONAL_INCLUDE_DIRS)
+      set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${CPM_ADDITIONAL_INCLUDE_DIRS})
+    endif()
+
+    # Add any definitions the module wants to expose in the parent's scope.
+    if(DEFINED CPM_ADDITIONAL_DEFINITIONS)
+      set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${CPM_ADDITIONAL_DEFINITIONS})
+    endif()
 
     # Parse the arguments once again after adding the subdirectory (since we
     # cleared them all).

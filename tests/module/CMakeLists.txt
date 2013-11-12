@@ -31,10 +31,7 @@ include(${CPM_DIR}/CPM.cmake)
 # a full explanation.
 CPM_AddModule("spire"
               GIT_REPOSITORY  "https://github.com/SCIInstitute/spire"
-              GIT_TAG         "origin/concurrent")
-
-#CPM_AddExternal("CMongoDB"
-#GIT_REPOSITORY "/")
+              GIT_TAG         "origin/master")
 
 # Do the following only if we include spire...
 # do this AFTER we have included all other modules.
