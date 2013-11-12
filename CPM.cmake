@@ -37,11 +37,19 @@
 # Add module function reference:
 #  CPM_AddModule(<name>           # Required - Module target name.
 #    [SOURCE_DIR dir]             # Uses 'dir' as the source directory as opposed to downloading.
-#    [GIT_TAG tag]                # Same as ExternalProject_Add's GIT_TAG
-#    [GIT_REPOSITORY repo]        # Same as ExternalProject_Add's GIT_REPOSITORY.
+#    [GIT_TAG tag]                # Git tag to checkout when repository is downloaded. Tags, shas, and branches all work.
+#    [GIT_REPOSITORY repo]        # Git repository to fetch source data from.
 #    [USE_EXISTING_VER truth]     # If set to true then the module will attempt to use a pre-existing version of the module.
 #    [PREPROCESSOR_POSTFIX post]  # Adds "_${PREPROCESSOR_POSTFIX}" onto all C preprocessor definitions.
 #    )
+#
+# Add external function reference:
+#  CPM_AddExternal(<name>         # Required - External target name.
+#     [SOURCE_DIR dir]            # Uses 'dir' as the source directory as opposed to downloading.
+#     [GIT_TAG tag]               # Same as ExternalProject_Add's GIT_TAG
+#     [GIT_REPOSITORY repo]       # Git repository to fetch source data from.
+#     [USE_EXISTING_VER truth]    # If set to true then the module will attempt to use a pre-existing version of the module.
+#     )
 #
 # Define CPM_SHOW_HIERARCHY to see all modules and their dependencies in
 # a hierarchical fashion. The output from defining this is usually best viewed
@@ -817,8 +825,12 @@ function(CPM_AddModule name)
 endfunction()
 
 function(CPM_AddExternal name)
-  # Attempt to find common directory for external project build recipes?
-  # Or just download them to the cpm directory?
+  # We use AddModule as the backbone in add external. We check to make sure
+  # that only one version of an external can exist.
+  _cpm_parse_arguments(CPM_AddExternal _CPM_ "${ARGN}")
+
+  CPM_AddModule(${name})
+
 endfunction()
 
 # I fully implemented the external project approach, see commit SHA:
