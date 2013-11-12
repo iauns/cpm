@@ -52,15 +52,19 @@
 # directory manually. If you set the source directory the project will not be
 # downloaded and will not be updated using git. You must manage that manually.
 #
-# Add external simply looks for the name plus an optional associated version.
-# If you use this function, additional data will be downloaded from a CPM
-# repository. This repository holds build scripts for various different popular
-# packages. CPM_AddExternal is not as robust as modules and can't be versioned
-# well. Additionally, you cannot link against multiple versions of the same
-# library unless you use shared libraries.
-#
 # Also remember: you will probably want to use add_dependencies with the
 # ${CPM_LIBRARIES}.
+#
+# The following is a reference for CPM_EnsureRepoCurrent, a utility function
+# that allows CPM users to ensure a repository is available at some target
+# directory location. This function is useful for creating modules for external
+# header only libraries.
+#
+#  CPM_EnsureRepoIsCurrent(
+#    [TARGET_DIR dir]             # Required - Directory to place repository.
+#    [GIT_REPOSITORY repo]        # Required - Git repository to clone and update in TARGET_DIR.
+#    [GIT_TAG tag]                # Git tag to checkout.
+#    )
 #
 # CPM also adds the following variables to the global namespace for CPM script
 # purposes only. These variables are unlikely to be useful to you.
@@ -575,6 +579,149 @@ macro(_cpm_obtain_version_from_params parentVar)
   endif()
 endmacro()
 
+function(CPM_EnsureRepoIsCurrent)
+  _cpm_parse_arguments(CPM_EnsureRepoIsCurrent _CPM_REPO_ "${ARGN}")
+
+  # Tag with a sane default if not present.
+  if (DEFINED _CPM_REPO_GIT_TAG)
+    set(tag ${_CPM_REPO_GIT_TAG})
+  else()
+    set(tag "origin/master")
+  endif()
+
+  set(repo ${_CPM_REPO_GIT_REPOSITORY})
+  set(dir ${_CPM_REPO_TARGET_DIR})
+
+  if (NOT EXISTS "${dir}/")
+    message(STATUS "Cloning repo (${repo})")
+
+    # Much of this clone code is taken from external project's generation
+    # of its *gitclone.cmake files.
+    # Try the clone 3 times (from External Project source).
+    # We don't set a timeout here because we absolutely need to clone the
+    # directory in order to continue with the build process.
+    set(error_code 1)
+    set(number_of_tries 0)
+    while(error_code AND number_of_tries LESS 3)
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" clone "${repo}" "${dir}"
+        WORKING_DIRECTORY "${CPM_DIR_OF_CPM}"
+        RESULT_VARIABLE error_code
+        )
+      math(EXPR number_of_tries "${number_of_tries} + 1")
+    endwhile()
+
+    # Check to see if we really have cloned the repository.
+    if(number_of_tries GREATER 1)
+      message(STATUS "Had to git clone more than once:
+      ${number_of_tries} times.")
+    endif()
+    if(error_code)
+      message(FATAL_ERROR "Failed to clone repository: '${repo}'")
+    endif()
+
+    # Checkout the appropriate tag.
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" checkout ${tag}
+      WORKING_DIRECTORY "${dir}"
+      RESULT_VARIABLE error_code
+      OUTPUT_QUIET
+      ERROR_QUIET
+      )
+    if(error_code)
+      message(FATAL_ERROR "Failed to checkout tag: '${tag}'")
+    endif()
+
+    # Initialize and update any submodules that may be present in the repo.
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" submodule init
+      WORKING_DIRECTORY "${dir}"
+      RESULT_VARIABLE error_code
+      )
+    if(error_code)
+      message(FATAL_ERROR "Failed to init submodules in: '${dir}'")
+    endif()
+
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
+      WORKING_DIRECTORY "${dir}"
+      RESULT_VARIABLE error_code
+      )
+    if(error_code)
+      message(FATAL_ERROR "Failed to update submodules in: '${dir}'")
+    endif()
+  endif()
+
+  # Attempt to update with a timeout.
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-list --max-count=1 HEAD
+    WORKING_DIRECTORY "${dir}"
+    RESULT_VARIABLE error_code
+    OUTPUT_VARIABLE head_sha
+    )
+  if(error_code)
+    message(FATAL_ERROR "Failed to get the hash for HEAD")
+  endif()
+
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" show-ref ${tag}
+    WORKING_DIRECTORY "${dir}"
+    OUTPUT_VARIABLE show_ref_output
+    )
+  # If a remote ref is asked for, which can possibly move around,
+  # we must always do a fetch and checkout.
+  if("${show_ref_output}" MATCHES "remotes")
+    set(is_remote_ref 1)
+  else()
+    set(is_remote_ref 0)
+  endif()
+
+  # This will fail if the tag does not exist (it probably has not been fetched
+  # yet).
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-list --max-count=1 ${tag}
+    WORKING_DIRECTORY "${dir}"
+    RESULT_VARIABLE error_code
+    OUTPUT_VARIABLE tag_sha
+    )
+
+  # Is the hash checkout out that we want?
+  if(error_code OR is_remote_ref OR NOT ("${tag_sha}" STREQUAL "${head_sha}"))
+    # Fetch the remote repository and limit it to 15 seconds.
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" fetch
+      WORKING_DIRECTORY "${dir}"
+      RESULT_VARIABLE error_code
+      TIMEOUT 15
+      )
+    if(error_code)
+      message("Failed to fetch repository '${repo}'. Skipping fetch.")
+    endif()
+
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" checkout ${tag}
+      WORKING_DIRECTORY "${dir}"
+      RESULT_VARIABLE error_code
+      OUTPUT_QUIET
+      ERROR_QUIET
+      )
+    if(error_code)
+      message(FATAL_ERROR "Failed to checkout tag: '${tag}'")
+    endif()
+
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
+      WORKING_DIRECTORY "${dir}"
+      RESULT_VARIABLE error_code
+      TIMEOUT 15
+      )
+    if(error_code)
+      message("Failed to update submodules in: '${dir}'. Skipping submodule update.")
+    endif()
+  endif()
+
+endfunction()
+
 # name - Required as this name determines what preprocessor definition will
 #        be generated for this module.
 function(CPM_AddModule name)
@@ -622,133 +769,11 @@ function(CPM_AddModule name)
     set(__CPM_MODULE_SOURCE_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_FULL_UNID}/src")
     # Download the code if it doesn't already exist. Otherwise make sure
     # the code is updated (on the latest branch or tag).
-    if (NOT EXISTS "${__CPM_MODULE_SOURCE_DIR}/")
-      message(STATUS "Cloning module repo (${_CPM_GIT_REPOSITORY})")
-      # Much of this clone code is taken from external project's generation
-      # of its *gitclone.cmake files.
-      # Try the clone 3 times (from External Project source).
-      # We don't set a timeout here because we absolutely need to clone the
-      # directory in order to continue with the build process.
-      set(error_code 1)
-      set(number_of_tries 0)
-      while(error_code AND number_of_tries LESS 3)
-        execute_process(
-          COMMAND "${GIT_EXECUTABLE}" clone "${_CPM_GIT_REPOSITORY}" "${__CPM_MODULE_SOURCE_DIR}"
-          WORKING_DIRECTORY "${CPM_DIR_OF_CPM}"
-          RESULT_VARIABLE error_code
-          )
-        math(EXPR number_of_tries "${number_of_tries} + 1")
-      endwhile()
-
-      # Check to see if we really have cloned the repository.
-      if(number_of_tries GREATER 1)
-        message(STATUS "Had to git clone more than once:
-        ${number_of_tries} times.")
-      endif()
-      if(error_code)
-        message(FATAL_ERROR "Failed to clone repository: '${_CPM_GIT_REPOSITORY}'")
-      endif()
-
-      # Checkout the appropriate tag.
-      execute_process(
-        COMMAND "${GIT_EXECUTABLE}" checkout ${__CPM_NEW_GIT_TAG}
-        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
-        RESULT_VARIABLE error_code
-        OUTPUT_QUIET
-        ERROR_QUIET
-        )
-      if(error_code)
-        message(FATAL_ERROR "Failed to checkout tag: '${__CPM_NEW_GIT_TAG}'")
-      endif()
-
-      # Initialize and update any submodules that may be present in the repo.
-      execute_process(
-        COMMAND "${GIT_EXECUTABLE}" submodule init
-        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
-        RESULT_VARIABLE error_code
-        )
-      if(error_code)
-        message(FATAL_ERROR "Failed to init submodules in: '${__CPM_MODULE_SOURCE_DIR}'")
-      endif()
-
-      execute_process(
-        COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
-        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
-        RESULT_VARIABLE error_code
-        )
-      if(error_code)
-        message(FATAL_ERROR "Failed to update submodules in: '${__CPM_MODULE_SOURCE_DIR}'")
-      endif()
-    endif()
-
-    # Attempt to update with a timeout.
-    execute_process(
-      COMMAND "${GIT_EXECUTABLE}" rev-list --max-count=1 HEAD
-      WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
-      RESULT_VARIABLE error_code
-      OUTPUT_VARIABLE head_sha
+    CPM_EnsureRepoIsCurrent(
+      TARGET_DIR      ${__CPM_MODULE_SOURCE_DIR}
+      GIT_REPOSITORY  ${_CPM_GIT_REPOSITORY}
+      GIT_TAG         ${__CPM_NEW_GIT_TAG}
       )
-    if(error_code)
-      message(FATAL_ERROR "Failed to get the hash for HEAD")
-    endif()
-
-    execute_process(
-      COMMAND "${GIT_EXECUTABLE}" show-ref master
-      WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
-      OUTPUT_VARIABLE show_ref_output
-      )
-    # If a remote ref is asked for, which can possibly move around,
-    # we must always do a fetch and checkout.
-    if("${show_ref_output}" MATCHES "remotes")
-      set(is_remote_ref 1)
-    else()
-      set(is_remote_ref 0)
-    endif()
-
-    # This will fail if the tag does not exist (it probably has not been fetched
-    # yet).
-    execute_process(
-      COMMAND "${GIT_EXECUTABLE}" rev-list --max-count=1 master
-      WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
-      RESULT_VARIABLE error_code
-      OUTPUT_VARIABLE tag_sha
-      )
-
-    # Is the hash checkout out that we want?
-    if(error_code OR is_remote_ref OR NOT ("${tag_sha}" STREQUAL "${head_sha}"))
-      # Fetch the remote repository and limit it to 15 seconds.
-      execute_process(
-        COMMAND "${GIT_EXECUTABLE}" fetch
-        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
-        RESULT_VARIABLE error_code
-        TIMEOUT 15
-        )
-      if(error_code)
-        message("Failed to fetch repository '${_CPM_GIT_REPOSITORY}'. Skipping fetch.")
-      endif()
-
-      execute_process(
-        COMMAND "${GIT_EXECUTABLE}" checkout ${__CPM_NEW_GIT_TAG}
-        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
-        RESULT_VARIABLE error_code
-        OUTPUT_QUIET
-        ERROR_QUIET
-        )
-      if(error_code)
-        message(FATAL_ERROR "Failed to checkout tag: '${__CPM_NEW_GIT_TAG}'")
-      endif()
-
-      execute_process(
-        COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
-        WORKING_DIRECTORY "${__CPM_MODULE_SOURCE_DIR}"
-        RESULT_VARIABLE error_code
-        TIMEOUT 15
-        )
-      if(error_code)
-        message("Failed to update submodules in: '${__CPM_MODULE_SOURCE_DIR}'. Skipping submodule update.")
-      endif()
-    endif()
-
   endif(__CPM_USING_GIT)
 
   # We are either using the git clone or we are using a user supplied source
