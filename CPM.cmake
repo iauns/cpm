@@ -525,6 +525,7 @@ macro(CPM_InitModule name)
   include_directories(SYSTEM ${CPM_INCLUDE_DIRS})
 
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+  # TODO: Remove the following line when we upgrade SCIRun.
   include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty)
 
 endmacro()
@@ -1018,7 +1019,9 @@ function(CPM_AddModule name)
     #message(WARNING "See: add_custom_target")
   endif()
 
+  # TODO: Remove the following two lines when we upgrade SCIRun.
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/3rdParty")
+  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}")
   set(CPM_DEFINITIONS ${CPM_DEFINITIONS} PARENT_SCOPE)
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} PARENT_SCOPE)
 
