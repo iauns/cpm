@@ -9,19 +9,14 @@ C++ modules. It allows you to link against multiple different versions of the
 same static library so that you can include other C++ modules that may depend
 on older or newer versions of the same modules you are using. CPM will also
 automatically download and build these C++ modules for you. CPM's goal is to
-help support the growth of a module eco-system similar to that of Node.js'.
+help support the growth of a "do one thing and do it well" module eco-system in
+C++.
 
-You can also manage external C or C++ libraries that do not use CPM. Using CPM
-externals is akin to using CMake's external project mechanism with the external
-project details hidden.
-
-  Note: Modules are fully implemented but external libraries are not.
-
-+---------------+--------------------------------------------------------------+
-|  **Warning**  |  CPM is alpha software. The module code is complete but CPM  |
-|               |  externals are missing. Feel free to evaluate CPM but please |
-|               |  wait until CPM leaves alpha before using it in projects.    |
-+---------------+--------------------------------------------------------------+
+Using CPM, you can also manage C or C++ libraries that do not use CPM. A number
+of what we call 'external' modules are already in the cpm-modules repository.
+These modules abstract away the details of writing a CMake external project for
+you. Just be aware that you cannot statically link against multiple different
+versions of these external modules.
 
 Using CPM
 =========
@@ -101,8 +96,7 @@ the following::
 
 Also be sure to place your calls to CPM_AddModule before your call to
 CPM_Finish. The ``# Include any modules here...`` section mentioned in the
-first snippet indicates where you should place calls to ``CPM_AddModule`` and
-``CPM_AddExternal``.
+first snippet indicates where you should place calls to ``CPM_AddModule``.
 
 Remember not to expose your namespaces.h header file in your public interface.
 Use the preprocessor definitions in your public interface. If you absolutely
@@ -112,21 +106,15 @@ you give the include guard for your namespaces header a unique name.
 CPM Externals
 -------------
 
-If the library you are interested in isn't a CPM module, try using CPM
-externals. While you won't be able to statically link against multiple versions
-of the library you can quickly include it if there is a CPM external formula
-for it. If the library is hosted in a public location, use the URL of the
-library::
+If the library you are interested in isn't a CPM module, try browsing through
+the CPM externals listed on http://www.cppcpm.org. While you won't be able to
+statically link against multiple versions of the library, you can quickly
+include it if there is already CPM external formula for it. Just use
+CPM_AddModule as you would with any other module.
 
-  CPM_AddExternal("Full URL goes here")
-
-Otherwise you may attempt to reference the library by name directly::
-
-  CPM_AddExternal("mongodb-c")
-
-If you don't find a formula for a library that you would like to use, kindly
-consider contributing one to our CPM externals repository. We're always looking
-to expand these formula.
+If you don't find a formula for your favorite library, kindly consider
+contributing one to our CPM externals repository. We're always looking to
+expand these formulae.
 
 Advantages
 ----------
@@ -191,7 +179,7 @@ Add the following to the top of the CMakeLists.txt for your module::
     include(${CPM_DIR}/CPM.cmake)
   endif()
   
-  # Include CPM modules or externals here (with CPM_AddModule / CPM_AddExternal).
+  # Include CPM modules or externals here (with CPM_AddModule).
   
   CPM_InitModule(${CPM_MODULE_NAME})
 
