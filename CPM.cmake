@@ -957,6 +957,9 @@ function(CPM_AddModule name)
 
         set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
         set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
+
+        message("Exported includes: ${${IMPORT_INCLUDE_MAP_NAME}}")
+        message("Exported definitions: ${${IMPORT_DEFINITION_MAP_NAME}}")
       endforeach()
     endif()
 
