@@ -11,7 +11,7 @@ on older or newer versions of the same modules you are using. CPM will also
 automatically download and build these C++ modules for you. CPM's goal is to
 help support the growth of a "do one thing and do it well" module ecosystem in
 C++. To explore the ecosystem in it's current state, head on over to the CPM
-website: http://cpmcpp.com.
+website: http://cpmcpp.com (or http://cmakepm.org).
 
 Using CPM, you can also manage C or C++ libraries that do not use CPM. A number
 of what we call 'external' modules are already in the cpm-modules repository.
