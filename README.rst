@@ -322,12 +322,6 @@ Using this structure users would include your public headers using::
 
   #include <[module name]/interface.h>
 
-Also, CPM allows users to add a custom prefix onto the beginning of your
-path. This allows them to fix naming conflicts without having to patch or
-contact upstream. To include a public header file with a modified prefix use::
-
-  #include <[prefix]/[module name]/interface.h>
-
 Include Path
 ------------
 
