@@ -41,6 +41,7 @@
 #    [GIT_REPOSITORY repo]        # Git repository to fetch source data from.
 #    [USE_EXISTING_VER truth]     # If set to true then the module will attempt to use a pre-existing version of the module.
 #    [PREPROCESSOR_POSTFIX post]  # Adds "_${PREPROCESSOR_POSTFIX}" onto all C preprocessor definitions.
+#    [EXPORT_MODULE truth]        # If true, then the module's definitions and includes will be exported to the parent.
 #    )
 #
 # Define CPM_SHOW_HIERARCHY to see all modules and their dependencies in
@@ -102,6 +103,27 @@
 #                                 This list is used to clear the map when
 #                                 descending the build hierarchy using 
 #                                 add_subdirectory.
+#  CPM_KV_INCLUDE_MAP_*         - A key/value mapping from unique id to a
+#                                 list of include files.
+#                                 Key: unique path (with version)
+#                                 Value: List of include statements.
+#                                 Used only for determining includes that are
+#                                 associated with an exported module.
+#  CPM_KV_LIST_INCLUDE_MAP      - A list of entries in CPM_KV_INCLUDE_MAP.
+#
+#  CPM_KV_DEFINITION_MAP_*      - A key/value mapping from unique id to
+#                                 definitions.
+#                                 Key: unique path (with version)
+#                                 Value: List of definitions.
+#                                 Used only for determining definitions that are
+#                                 associated with an exported module.
+#  CPM_KV_LIST_DEFINITION_MAP   - A list of values in the definition map.
+#  CPM_KV_EXPORT_MODULE_MAP     - A key/value mapping of all exported modules
+#                                 from a module.
+#                                 Key: unique path (with version).
+#                                 Value: A list of modules that have been exported.
+#  CPM_KV_LIST_EXPORT_MODULE_MAP- List of values from exported module map.
+#
 #  CPM_HIERARCHY_LEVEL          - Contains current CPM hierarchy level.
 #
 # NOTE: End users aren't required to finalize their modules after they add them
@@ -390,16 +412,6 @@ function(_cpm_build_preproc_name name parentVar)
   set(${parentVar} "CPM_${CPM_UPPER_CASE_NAME}_NS" PARENT_SCOPE)
 endfunction()
 
-# Exports the module with 'name'. This is necessary if you need to expose
-# other module interfaces through your module interface. This is not necessary
-# if you are using the module but not exposing it via your public interface.
-# CPM runs a check to see if you are using non-exported modules in your
-# interface code, and fails/warns if you are. The check is not exhastive
-# however. Use this sparingly.
-macro(CPM_ExportModuleInterface name)
-  
-endmacro()
-
 macro(_cpm_propogate_version_map_up)
   # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
   # parent CPM_AddModule function's namespace. CPM_AddModule will
@@ -431,6 +443,16 @@ macro(_cpm_propogate_source_added_map_up)
   endif()
 endmacro()
 
+#macro(_cpm_propogate_exported_modules_up)
+#  if (DEFINED CPM_ADDITIONAL_INCLUDE_DIRS)
+#    set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} PARENT_SCOPE)
+#  endif()
+#
+#  if (DEFINED CPM_ADDITIONAL_DEFINITIONS)
+#    set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} PARENT_SCOPE)
+#  endif()
+#endmacro()
+
 # This macro initializes a CPM module. We use a macro for this code so that
 # we can set variables in the parent namespace (if any).
 # name - Same as the name parameter in CPM_AddModule. A preprocessor definition
@@ -461,7 +483,6 @@ macro(CPM_InitModule name)
   include_directories(SYSTEM ${CPM_INCLUDE_DIRS})
 
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty)
 
 endmacro()
 
@@ -494,6 +515,7 @@ endmacro()
 # parents.
 macro(CPM_ExportAdditionalIncludeDir dir)
   set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${dir}" PARENT_SCOPE)
+  set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${dir}")
 endmacro()
 
 # This macro allows modules to expose additional definitions.
@@ -501,6 +523,7 @@ endmacro()
 # to the direct consumer of the module. None of the consumer's parents.
 macro(CPM_ExportAdditionalDefinition def)
   set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${def} PARENT_SCOPE)
+  set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${def})
 endmacro()
 
 # We use this code in multiple places to check that we don't have preprocessor
@@ -872,8 +895,7 @@ function(CPM_AddModule name)
 
   # Append target to pre-existing libraries.
   set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
-  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}")
-  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/3rdParty" PARENT_SCOPE)
+  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}" PARENT_SCOPE)
 
   # Set the appropriate preprocessor definition for this module and populate 
   # our namespace header file.
