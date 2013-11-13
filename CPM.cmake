@@ -8,10 +8,12 @@
 # CPM modules use add_subdirectory for CPM modules and ExternalProject for
 # traditional builds. CPM is inspired by Node.js' NPM package manager. 
 #
-# CPM consists of two function: CPM_AddModule(...) and CPM_AddExternal(...) .
+# CPM's primary function is CPM_AddModule(...).
 # CPM_AddModule accepts a few of the same parameters as ExternalProject
-# alongside adding a few of its own. The following variables are created in /
-# appended to PARENT_SCOPE whenever the add module function is called:
+# alongside adding a few of its own.
+# 
+# The following variables are created in / appended to PARENT_SCOPE whenever
+# the add module function is called:
 # 
 #  CPM_INCLUDE_DIRS     - All module search paths.
 #  CPM_LIBRARIES        - All targets to link against.
@@ -101,11 +103,14 @@
 #                                 Used only for determining definitions that are
 #                                 associated with an exported module.
 #  CPM_KV_LIST_DEFINITION_MAP   - A list of values in the definition map.
-#  CPM_KV_EXPORT_MODULE_MAP     - A key/value mapping of all exported modules
+#  CPM_KV_EXPORT_MAP            - A key/value mapping of all exported modules
 #                                 from a module.
 #                                 Key: unique path (with version).
 #                                 Value: A list of modules that have been exported.
-#  CPM_KV_LIST_EXPORT_MODULE_MAP- List of values from exported module map.
+#                                        in particular, their unique ids with version.
+#  CPM_KV_LIST_EXPORT_MAP       - List of values from exported module map.
+#
+#  CPM_EXPORTED_MODULES         - Used to determine what modules are exported.
 #
 #  CPM_HIERARCHY_LEVEL          - Contains current CPM hierarchy level.
 #
@@ -426,15 +431,54 @@ macro(_cpm_propogate_source_added_map_up)
   endif()
 endmacro()
 
-#macro(_cpm_propogate_exported_modules_up)
-#  if (DEFINED CPM_ADDITIONAL_INCLUDE_DIRS)
-#    set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} PARENT_SCOPE)
-#  endif()
-#
-#  if (DEFINED CPM_ADDITIONAL_DEFINITIONS)
-#    set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} PARENT_SCOPE)
-#  endif()
-#endmacro()
+# Propogates include map up.
+macro(_cpm_propogate_include_map_up)
+  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
+  # parent CPM_AddModule function's namespace. CPM_AddModule will
+  # propogate the versioning information up again to it's parent's namespace.
+  if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    foreach(_cpm_kvName IN LISTS CPM_KV_LIST_INCLUDE_MAP)
+      set(${_cpm_kvName} ${CPM_KV_INCLUDE_MAP_${_cpm_kvName}} PARENT_SCOPE)
+    endforeach()
+    set(_cpm_kvName) # Clear kvName
+
+    # Now propogate the list itself upwards.
+    set(CPM_KV_LIST_INCLUDE_MAP ${CPM_KV_LIST_INCLUDE_MAP} PARENT_SCOPE)
+  endif()
+endmacro()
+
+# Propogates definition map up.
+macro(_cpm_propogate_definition_map_up)
+  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
+  # parent CPM_AddModule function's namespace. CPM_AddModule will
+  # propogate the versioning information up again to it's parent's namespace.
+  if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    foreach(_cpm_kvName IN LISTS CPM_KV_LIST_DEFINITION_MAP)
+      set(${_cpm_kvName} ${CPM_KV_DEFINITION_MAP_${_cpm_kvName}} PARENT_SCOPE)
+    endforeach()
+    set(_cpm_kvName) # Clear kvName
+
+    # Now propogate the list itself upwards.
+    set(CPM_KV_LIST_DEFINITION_MAP ${CPM_KV_LIST_DEFINITION_MAP} PARENT_SCOPE)
+  endif()
+endmacro()
+
+# Propogates export module map up.
+macro(_cpm_propogate_export_map_up)
+  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
+  # parent CPM_AddModule function's namespace. CPM_AddModule will
+  # propogate the versioning information up again to it's parent's namespace.
+  if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    foreach(_cpm_kvName IN LISTS CPM_KV_LIST_EXPORT_MAP)
+      set(${_cpm_kvName} ${CPM_KV_EXPORT_MAP_${_cpm_kvName}} PARENT_SCOPE)
+    endforeach()
+    set(_cpm_kvName) # Clear kvName
+
+    # Now propogate the list itself upwards.
+    set(CPM_KV_LIST_EXPORT_MAP ${CPM_KV_LIST_EXPORT_MAP} PARENT_SCOPE)
+  endif()
+endmacro()
+
 
 # This macro initializes a CPM module. We use a macro for this code so that
 # we can set variables in the parent namespace (if any).
@@ -456,7 +500,15 @@ macro(CPM_InitModule name)
   endif()
   set(__CPM_TMP_VAR) # Clean up
 
+  # TODO:
+  # Build export map entry based on CPM_EXPORTED_MODULES.
+  # Do this before we propogate up.
+
   _cpm_propogate_version_map_up()
+  _cpm_propogate_include_map_up()
+  _cpm_propogate_definition_map_up()
+  _cpm_propogate_export_map_up()
+
 
   # Setup the module with appropriate definitions and includes.
   # We can do this because we are not in a new scope; instead, we are in a macro
@@ -833,6 +885,9 @@ function(CPM_AddModule name)
       set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${CPM_ADDITIONAL_DEFINITIONS})
     endif()
 
+    # TODO:
+    # Add these additional include directories and definitions to our maps...
+
     # Parse the arguments once again after adding the subdirectory (since we
     # cleared them all).
     _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
@@ -872,13 +927,29 @@ function(CPM_AddModule name)
     set(CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID} ${CPM_LAST_MODULE_NAME} PARENT_SCOPE)
     set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} "CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}" PARENT_SCOPE)
 
+    set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}" PARENT_SCOPE)
+
+    # TODO:
+    # Add ${__CPM_MODULE_SOURCE_DIR} to our include directory map.
+
   else()
     _cpm_check_and_add_preproc(${name} ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}} ${__CPM_FULL_UNID})
+
+    # TODO:
+    # Lookup the module by full unique ID and pull their definitions and additional include directories.
   endif()
+
+  # TODO:
+  # Check to see if the module exported any other modules through
+  # its interface. If so, export each of these modules definitions and includes.
+
+  # TODO:
+  # if _CPM_EXPORT_MODULE is TRUE, then add on to the CPM_EXPORTED_MODULES
+  # variable in the parent_scope. This variable will be used to populate
+  # the exported modules map.
 
   # Append target to pre-existing libraries.
   set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
-  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}" PARENT_SCOPE)
 
   # Set the appropriate preprocessor definition for this module and populate 
   # our namespace header file.
@@ -888,5 +959,10 @@ function(CPM_AddModule name)
   # But makes it clear what we are trying to do.
   _cpm_propogate_version_map_up()
   _cpm_propogate_source_added_map_up()
+
+  # Export the rest of the maps for exported modules and the like.
+  _cpm_propogate_include_map_up()
+  _cpm_propogate_definition_map_up()
+  _cpm_propogate_export_map_up()
 endfunction()
 
