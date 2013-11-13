@@ -950,6 +950,7 @@ function(CPM_AddModule name)
     # Check to see if the module exported any of its modules. If so, then export each
     # of the exported modules into our parents includes / definitions.
     if (DEFINED CPM_EXPORTED_MODULES)
+      message("Exported modules: ${CPM_EXPORTED_MODULES}")
       foreach(module IN LISTS CPM_EXPORTED_MODULES)
         set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
         set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
