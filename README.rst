@@ -333,8 +333,8 @@ This is allowed by tagging the module that you plan on exporting with
     )                     # through our own interface hence why we export it.
 
 In this case, GLM's definitions and include paths will be exported to the
-direct consumer of your module. It will not export this module to anything
-other than the consumer of your module.
+direct consumer of your module. It will not export this module to any parents
+of your consumer.
 
 Using existing module version
 -----------------------------
