@@ -9,14 +9,76 @@ C++ modules. It allows you to link against multiple different versions of the
 same static library so that you can include other C++ modules that may depend
 on older or newer versions of the same modules you are using. CPM will also
 automatically download and build these C++ modules for you. CPM's goal is to
-help support the growth of a "do one thing and do it well" module eco-system in
-C++.
+help support the growth of a "do one thing and do it well" module ecosystem in
+C++. To explore the ecosystem in it's current state, head on over to the CPM
+website: http://cppcpm.org.
 
 Using CPM, you can also manage C or C++ libraries that do not use CPM. A number
 of what we call 'external' modules are already in the cpm-modules repository.
 These modules abstract away the details of writing a CMake external project for
 you. Just be aware that you cannot statically link against multiple different
 versions of these external modules.
+
+Below is a simple example of a CMakeLists.txt file that uses 3 different
+modules. The modules are simple OpenGL wrapper library name Spire, MongoDB's C
+library, and G-truc's vector math library. See the next section for a full
+explanation of how to use CPM and work with the namespaces it creates.::
+
+  cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
+  project(Viewer)
+  
+  #------------------------------------------------------------------------------
+  # Required CPM Setup - See: http://github.com/iauns/cpm
+  #------------------------------------------------------------------------------
+  set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm_packages" CACHE TYPE STRING)
+  find_package(Git)
+  if(NOT GIT_FOUND)
+    message(FATAL_ERROR "CPM requires Git.")
+  endif()
+  if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" clone https://github.com/iauns/cpm ${CPM_DIR}
+      RESULT_VARIABLE error_code
+      OUTPUT_VARIABLE head_sha
+      )
+    if(error_code)
+      message(FATAL_ERROR "CPM failed to get the hash for HEAD")
+    endif()
+  endif()
+  include(${CPM_DIR}/CPM.cmake)
+  
+  # ++ MODULE: Spire
+  CPM_AddModule("spire"
+    GIT_REPOSITORY "https://github.com/SCIInstitute/spire"
+    GIT_TAG "v0.7.0")
+
+  # ++ EXTERNAL-MODULE: MongoDB
+  CPM_AddModule("mongodb"
+    GIT_REPOSITORY "https://github.com/iauns/cpm-mongoc"
+    GIT_TAG "origin/master")
+
+  # ++ EXTERNAL-MODULE: GLM
+  CPM_AddModule("glm"
+    GIT_REPOSITORY "https://github.com/iauns/cpm-glm"
+    GIT_TAG "0.9.4.6")
+  
+  CPM_Finish()
+  
+  #-----------------------------------------------------------------------
+  # Setup source
+  #-----------------------------------------------------------------------
+  file(GLOB Sources
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+    )
+  
+  #-----------------------------------------------------------------------
+  # Setup executable
+  #-----------------------------------------------------------------------
+  set(EXE_NAME myViewer)
+  add_executable(${EXE_NAME} ${Sources})
+  target_link_libraries(${EXE_NAME} ${CPM_LIBRARIES})
+
 
 Using CPM
 =========
@@ -107,7 +169,7 @@ CPM Externals
 -------------
 
 If the library you are interested in isn't a CPM module, try browsing through
-the CPM externals listed on http://www.cppcpm.org. While you won't be able to
+the CPM externals listed on http://cppcpm.org. While you won't be able to
 statically link against multiple versions of the library, you can quickly
 include it if there is already CPM external formula for it. Just use
 CPM_AddModule as you would with any other module.
