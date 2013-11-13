@@ -5,10 +5,6 @@ project (Foo)
 # Required CPM Setup - See: http://github.com/iauns/cpm
 #------------------------------------------------------------------------------
 set (CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
-if (${CPM_DIR} MATCHES "${CMAKE_CURRENT_BINARY_DIR}")
-  message("NOTE: Placing CPM in the binary directory is not recommended.")
-endif ()
-
 find_package(Git)
 if(NOT GIT_FOUND)
   message(FATAL_ERROR "CPM requires Git.")
