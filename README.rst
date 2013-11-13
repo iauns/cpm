@@ -250,7 +250,6 @@ following structure::
 
   Root of [module name]
     |-> CMakeLists.txt
-    |-> 3rdParty
     |-> test
     |-> [module name]
       |-> [public headers go here]  
@@ -270,13 +269,49 @@ contact upstream. To include a public header file with a modified prefix use::
 Include Path
 ------------
 
-By default, the root of your project is added to the include path along with
-the 3rdParty directory. Note that the 3rdParty directory is added as a SYSTEM
-include directory. This is to ignore warnings coming from headers which you do
-not have control over.
+By default, the root of your project is added to the include path. If you need
+to expose more directories to the consumer of your module use the
+``CPM_ExportAdditionalIncludeDir`` function to add directories to the
+consumer's include path. The first and only argument to
+``CPM_ExportAdditionalIncludeDir`` is the directory you want to add to the
+path. Be sure to clearly document any changes you make to the include path in
+your module's README.
 
-Please use the 3rdParty directory at the root of your project sparingly. The
-includes in this directory will be exposed to all of the users of your module.
+Definitions
+-----------
+
+Just as with the include paths above you can set preprocessor definitions for
+the consumer. Use the function ``CPM_ExportAdditionalDefinition``, like below::
+
+  CPM_ExportAdditionalDefinition("-DMONGO_HAVE_STDINT")
+
+Registering Your Module
+-----------------------
+
+Once you have finished writing your module, fork
+http://github.com/iauns/cpm-modules.git and submit your module via a pull
+request. You only have to do this once per module, and your module will be
+registered with the cpm website.
+
+Building Externals
+------------------
+
+If you are wrapping non-CPM code then you are likely building a CPM external.
+Building externals are just like building CPM modules with the only difference
+being a call to::
+
+  CPM_ForceOnlyOneModuleVersion()
+
+somewhere in your module's CMakeLists.txt file. This function ensures exactly
+one version of your module is ever statically linked, and never any more than
+one. This is extremelly important because you are wrapping code that does not
+support the CPM namespace modifications necessary to statically link multiple
+versions of the same module.
+
+In addition to this, you should reference the original repository in your
+cpm-modules JSON file by adding the 'external' key/value pair. The key being
+'external' and the value being be a URL locating the repository for which you
+have created this external. 
 
 Common Issues
 =============
@@ -312,10 +347,6 @@ handling and Extension Wrangler's binding of function pointers.
 To enforce this during the CMake configure step, include a call to
 ``CPM_ForceOnlyOneModuleVersion`` anywhere in your module's CMakeLists.txt file.
 Usually this call is made directly after calling ``CPM_InitModule``.
-
-Building CPM Externals
-======================
-
 
 FAQ
 ===
