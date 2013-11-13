@@ -752,9 +752,10 @@ function(CPM_AddModule name)
 
   # Check to see if the source is stored locally.
   if (DEFINED _CPM_SOURCE_DIR)
-    set(__CPM_PATH_UNID ${_CPM_SOURCE_DIR})
+    get_filename_component(tmp_src_dir ${_CPM_SOURCE_DIR} ABSOLUTE)
+    set(__CPM_PATH_UNID ${tmp_src_dir})
     set(__CPM_PATH_UNID_VERSION "")
-    set(__CPM_MODULE_SOURCE_DIR "${_CPM_SOURCE_DIR}")
+    set(__CPM_MODULE_SOURCE_DIR "${tmp_src_dir}")
   endif()
 
   # Cunstruct full UNID
