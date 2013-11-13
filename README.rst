@@ -342,23 +342,19 @@ Using an existing module version
 CPM allows you the flexibility of selecting the most recently used version of a
 particular module instead of the version you requested. This is useful when you
 are working with externals or modules that require you to only use one version.
-Simply add ``USE_EXISTING_VER TRUE`` to your call to ``CPM_AddModule``. An
+Simply add ``USE_EXISTING_VER TRUE`` in your call to ``CPM_AddModule``. An
 example of this is given above in the section on exposing foregin module
 interfaces.
 
 Force only one module version
 -----------------------------
 
-This issues arises, for example, if you are using something like the OpenGL
-extension wrangler. The extension wrangler depends on OpenGL context specific
-funciton binding. So calling 'wrangled' functions from multiple static
-libraries will cause undue amounts of chaos. Most users won't need to worry
-about this corner case. This is a particular affectation of OpenGL's context
-handling and Extension Wrangler's binding of function pointers.
-
-To enforce this during the CMake configure step, include a call to
-``CPM_ForceOnlyOneModuleVersion`` anywhere in your module's CMakeLists.txt file.
-Usually this call is made directly after calling ``CPM_InitModule``.
+As pointed out in the externals section you may force all consumers, indirect
+or direct, of your module to use only one version. Most users won't need to
+worry about this corner case, but it is required that all externals use this.
+Include a call to ``CPM_ForceOnlyOneModuleVersion`` anywhere in your module's
+CMakeLists.txt file to enforce this. Usually this call is made directly after
+calling ``CPM_InitModule``.
 
 FAQ
 ===
