@@ -336,8 +336,8 @@ In this case, GLM's definitions and include paths will be exported to the
 direct consumer of your module. It will not export this module to any parents
 of your consumer.
 
-Using existing module version
------------------------------
+Using an existing module version
+--------------------------------
 
 CPM allows you the flexibility of using the most recently used version of a
 particular module instead of the version you requested. This is useful when you
