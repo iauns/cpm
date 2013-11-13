@@ -22,7 +22,7 @@ versions of these external modules.
 Below is a simple example of a CMakeLists.txt file that uses 3 different
 modules. The modules are simple OpenGL wrapper library name Spire, MongoDB's C
 library, and G-truc's vector math library. See the next section for a full
-explanation of how to use CPM and work with the namespaces it creates.::
+explanation of how to use CPM and work with the namespaces it creates. Example::
 
   cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
   project(Viewer)
