@@ -525,6 +525,7 @@ macro(CPM_InitModule name)
   include_directories(SYSTEM ${CPM_INCLUDE_DIRS})
 
   include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty)
 
 endmacro()
 
@@ -1017,6 +1018,7 @@ function(CPM_AddModule name)
     #message(WARNING "See: add_custom_target")
   endif()
 
+  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/3rdParty")
   set(CPM_DEFINITIONS ${CPM_DEFINITIONS} PARENT_SCOPE)
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} PARENT_SCOPE)
 
