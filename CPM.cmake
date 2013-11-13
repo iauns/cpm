@@ -681,6 +681,7 @@ function(CPM_EnsureRepoIsCurrent)
         COMMAND "${GIT_EXECUTABLE}" clone "${repo}" "${dir}"
         WORKING_DIRECTORY "${CPM_DIR_OF_CPM}"
         RESULT_VARIABLE error_code
+        OUTPUT_QUIET
         )
       math(EXPR number_of_tries "${number_of_tries} + 1")
     endwhile()
