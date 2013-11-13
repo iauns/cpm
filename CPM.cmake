@@ -682,14 +682,14 @@ function(CPM_EnsureRepoIsCurrent)
         WORKING_DIRECTORY "${CPM_DIR_OF_CPM}"
         RESULT_VARIABLE error_code
         OUTPUT_QUIET
+        ERROR_QUIET
         )
       math(EXPR number_of_tries "${number_of_tries} + 1")
     endwhile()
 
     # Check to see if we really have cloned the repository.
     if(number_of_tries GREATER 1)
-      message(STATUS "Had to git clone more than once:
-      ${number_of_tries} times.")
+      message(STATUS "Had to git clone more than once: ${number_of_tries} times.")
     endif()
     if(error_code)
       message(FATAL_ERROR "Failed to clone repository: '${repo}'")
