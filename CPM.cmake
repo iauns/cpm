@@ -496,11 +496,10 @@ macro(CPM_InitModule name)
 
   # Build the appropriate definition for the module. We stored the unique ID
   _cpm_build_preproc_name(${name} __CPM_TMP_VAR)
-  if (DEFINED CPM_UNIQUE_ID)
-    add_definitions("-D${__CPM_TMP_VAR}=${CPM_UNIQUE_ID}")
-  else()
-    add_definitions("-D${__CPM_TMP_VAR}=CPM_TESTING_UPPER_LEVEL_NAMESPACE")
+  if (NOT DEFINED CPM_UNIQUE_ID)
+    set(CPM_UNIQUE_ID CPM_TESTING_UPPER_LEVEL_NAMESPACE)
   endif()
+  add_definitions("-D${__CPM_TMP_VAR}=${CPM_UNIQUE_ID}")
   set(__CPM_TMP_VAR) # Clean up
 
   # Propogate our exported modules up.
@@ -508,11 +507,14 @@ macro(CPM_InitModule name)
     set(CPM_EXPORTED_MODULES ${CPM_EXPORTED_MODULES} PARENT_SCOPE)
   endif()
 
+  # Setup the export map.
+  set(CPM_KV_EXPORT_MAP_${CPM_UNIQUE_ID} ${CPM_EXPORTED_MODULES})
+  set(CPM_KV_LIST_EXPORT_MAP ${CPM_KV_LIST_EXPORT_MAP} ${CPM_UNIQUE_ID})
+
   _cpm_propogate_version_map_up()
   _cpm_propogate_include_map_up()
   _cpm_propogate_definition_map_up()
   _cpm_propogate_export_map_up()
-
 
   # Setup the module with appropriate definitions and includes.
   # We can do this because we are not in a new scope; instead, we are in a macro
@@ -945,6 +947,22 @@ function(CPM_AddModule name)
     # Add ${__CPM_MODULE_SOURCE_DIR} to our include directory map.
     set(${INCLUDE_MAP_NAME} ${${INCLUDE_MAP_NAME}} "${__CPM_MODULE_SOURCE_DIR}")
 
+    # Check to see if the module exported any of its modules. If so, then export each
+    # of the exported modules into our parents includes / definitions.
+    if (DEFINED CPM_EXPORTED_MODULES)
+      foreach(module IN LISTS CPM_EXPORTED_MODULES)
+        set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
+        set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
+
+        set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
+        set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
+      endforeach()
+    endif()
+
+    # Make sure there are entries for us in the include and definition lists.
+    set(CPM_KV_LIST_INCLUDE_MAP ${CPM_KV_LIST_INCLUDE_MAP} ${__CPM_FULL_UNID})
+    set(CPM_KV_LIST_DEFINITION_MAP ${CPM_KV_LIST_DEFINITION_MAP} ${__CPM_FULL_UNID})
+
   else()
     # We don't need the following line since we are adding the preprocessor definition in the definition map.
     #_cpm_check_and_add_preproc(${name} ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}} ${__CPM_FULL_UNID})
@@ -957,22 +975,21 @@ function(CPM_AddModule name)
     if (DEFINED ${DEFINITION_MAP_NAME})
       set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${DEFINITION_MAP_NAME}})
     endif()
-  endif()
 
-  # Check to see if the module exported any of its modules. If so, then export each
-  # of the exported modules into our parents includes / definitions.
-  if (DEFINED CPM_EXPORTED_MODULES)
-    foreach(module IN LISTS CPM_EXPORTED_MODULES)
-      set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
-      set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
+    if (DEFINED CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
+      foreach(module IN LISTS ${CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID}})
+        set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
+        set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
 
-      set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
-      set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
-    endforeach()
+        set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
+        set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
+      endforeach()
+    endif()
+
   endif()
 
   # If we are exporting this module, be sure the parent knows.
-  if (_CPM_EXPORT_MODULE)
+  if ((DEFINED _CPM_EXPORT_MODULE) AND (_CPM_EXPORT_MODULE))
     set(CPM_EXPORTED_MODULES ${CPM_EXPORTED_MODULES} ${__CPM_FULL_UNID} PARENT_SCOPE)
   endif()
 
