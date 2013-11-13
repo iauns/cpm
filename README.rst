@@ -318,21 +318,33 @@ Common Issues
 
 Below are some common issues users encounter and solutions to them.
 
-Matching module versions
-------------------------
+Exposing foreign module interfaces
+----------------------------------
 
-Some module interfaces require the ability to expose classes from other
-included modules. This is allowed. By doing this, you tie your module and its
-users to a particular version of the exposed module. To do this, in your
-module interface files, make sure you don't include your automatically
-generated 'cpm.h' headers (you shouldn't do this anyways). You should
-reference CPM's automatically generated unique ID namespace name 
+Some modules require the ability to expose classes from other included modules.
+This is allowed by tagging the module that you plan on exporting with
+``EXPORT_MODULE TRUE`` just like:: 
 
-An example may help illustrate this better:
+  CPM_AddModule("GLM"
+    GIT_REPOSITORY "https://github.com/iauns/cpm-glm"
+    GIT_TAG "origin/master"
+    USE_EXISTING_VER TRUE
+    EXPORT_MODULE TRUE    # Use EXPORT_MODULE sparingly. We expose GLM's interface
+    )                     # through our own interface hence why we export it.
 
-Sally codes CPM module ``A`` in which she wants to expose a class from Bob's CPM
-module ``B``. Sally currently has version 0.11 of Bob's module ``B``. A new
-programmer, James, wants to use Sally's module ``A`` module.
+In this case, GLM's definitions and include paths will be exported to the
+direct consumer of your module. It will not export this module to anything
+other than the consumer of your module.
+
+Using existing module version
+-----------------------------
+
+CPM allows you the flexibility of using the most recently used module version
+instead of the version you request. This is useful when you are working with
+externals or modules that require you to only use one version. To utilize this
+feature simply add ``USE_EXISTING_VER TRUE`` to your call to ``CPM_AddModule``.
+An example of this is given above in the section on exposing foregin module
+interfaces.
 
 Force only one module version
 -----------------------------
