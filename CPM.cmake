@@ -441,7 +441,7 @@ macro(_cpm_propogate_include_map_up)
   # propogate the versioning information up again to it's parent's namespace.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_INCLUDE_MAP)
-      set(${_cpm_kvName} ${CPM_KV_INCLUDE_MAP_${_cpm_kvName}} PARENT_SCOPE)
+      set(CPM_KV_INCLUDE_MAP_${_cpm_kvName} ${CPM_KV_INCLUDE_MAP_${_cpm_kvName}} PARENT_SCOPE)
     endforeach()
     set(_cpm_kvName) # Clear kvName
 
@@ -457,7 +457,7 @@ macro(_cpm_propogate_definition_map_up)
   # propogate the versioning information up again to it's parent's namespace.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_DEFINITION_MAP)
-      set(${_cpm_kvName} ${CPM_KV_DEFINITION_MAP_${_cpm_kvName}} PARENT_SCOPE)
+      set(CPM_KV_DEFINITION_MAP_${_cpm_kvName} ${CPM_KV_DEFINITION_MAP_${_cpm_kvName}} PARENT_SCOPE)
     endforeach()
     set(_cpm_kvName) # Clear kvName
 
@@ -473,7 +473,7 @@ macro(_cpm_propogate_export_map_up)
   # propogate the versioning information up again to it's parent's namespace.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_EXPORT_MAP)
-      set(${_cpm_kvName} ${CPM_KV_EXPORT_MAP_${_cpm_kvName}} PARENT_SCOPE)
+      set(CPM_KV_EXPORT_MAP_${_cpm_kvName} ${CPM_KV_EXPORT_MAP_${_cpm_kvName}} PARENT_SCOPE)
     endforeach()
     set(_cpm_kvName) # Clear kvName
 
@@ -933,7 +933,7 @@ function(CPM_AddModule name)
 
     # Add the preprocessor definition to our list of definitions.
     _cpm_build_preproc_name(${CPM_LAST_MODULE_NAME} __CPM_LAST_MODULE_PREPROC)
-    set(${DEFINITION_MAP_NAME} ${${DEFINITION_MAP_NAME}} "-D${__CPM_LAST_MODULE_PREPROC}=${__CPM_FULL_UNID}" PARENT_SCOPE)
+    set(${DEFINITION_MAP_NAME} ${${DEFINITION_MAP_NAME}} "-D${__CPM_LAST_MODULE_PREPROC}=${__CPM_FULL_UNID}")
     set(__CPM_LAST_MODULE_PREPROC)
 
     # Ensure we log that we have added this source directory.
