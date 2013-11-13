@@ -358,10 +358,7 @@ Building an external is just like building a module except for a call to::
   CPM_ForceOnlyOneModuleVersion()
 
 somewhere in your module's CMakeLists.txt file. This function ensures exactly
-one version of your module is ever statically linked, and never any more than
-one. This is extremelly important because you are wrapping code that does not
-support the CPM namespace modifications necessary to statically link multiple
-versions of the same module.
+one (and only one) version of your module is ever statically linked.
 
 In addition to this, you should reference the original repository in your
 cpm-modules JSON file by adding the 'external' key/value pair. The key being
