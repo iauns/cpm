@@ -942,7 +942,7 @@ function(CPM_AddModule name)
     set(CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID} ${CPM_LAST_MODULE_NAME} PARENT_SCOPE)
     set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} "CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}" PARENT_SCOPE)
 
-    set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}" PARENT_SCOPE)
+    set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}")
 
     # Add ${__CPM_MODULE_SOURCE_DIR} to our include directory map.
     set(${INCLUDE_MAP_NAME} ${${INCLUDE_MAP_NAME}} "${__CPM_MODULE_SOURCE_DIR}")
@@ -950,16 +950,12 @@ function(CPM_AddModule name)
     # Check to see if the module exported any of its modules. If so, then export each
     # of the exported modules into our parents includes / definitions.
     if (DEFINED CPM_EXPORTED_MODULES)
-      message("Exported modules: ${CPM_EXPORTED_MODULES}")
       foreach(module IN LISTS CPM_EXPORTED_MODULES)
         set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
         set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
 
         set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
         set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
-
-        message("Exported includes: ${${IMPORT_INCLUDE_MAP_NAME}}")
-        message("Exported definitions: ${${IMPORT_DEFINITION_MAP_NAME}}")
       endforeach()
     endif()
 
@@ -999,6 +995,9 @@ function(CPM_AddModule name)
 
   # Append target to pre-existing libraries.
   set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
+
+  set(CPM_DEFINITIONS ${CPM_DEFINITIONS} PARENT_SCOPE)
+  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS } PARENT_SCOPE)
 
   # Set the appropriate preprocessor definition for this module and populate 
   # our namespace header file.
