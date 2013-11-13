@@ -11,7 +11,7 @@ on older or newer versions of the same modules you are using. CPM will also
 automatically download and build these C++ modules for you. CPM's goal is to
 help support the growth of a "do one thing and do it well" module ecosystem in
 C++. To explore the ecosystem in it's current state, head on over to the CPM
-website: http://cpmcpp.org.
+website: http://cpmcpp.com.
 
 Using CPM, you can also manage C or C++ libraries that do not use CPM. A number
 of what we call 'external' modules are already in the cpm-modules repository.
@@ -169,7 +169,7 @@ CPM Externals
 -------------
 
 If the library you are interested in isn't a CPM module, try browsing through
-the CPM externals listed on http://cpmcpp.org. While you won't be able to
+the CPM externals listed on http://cpmcpp.com. While you won't be able to
 statically link against multiple versions of the library, you can quickly
 include it if there is already CPM external formula for it. Just use
 CPM_AddModule as you would with any other module.
