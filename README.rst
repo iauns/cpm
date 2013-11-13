@@ -36,11 +36,12 @@ explanation of how to use CPM and work with the namespaces it creates. Example::
     message(FATAL_ERROR "CPM requires Git.")
   endif()
   if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
+    message(STATUS "Cloning repo (https://github.com/iauns/cpm)")
     execute_process(
       COMMAND "${GIT_EXECUTABLE}" clone https://github.com/iauns/cpm ${CPM_DIR}
       RESULT_VARIABLE error_code
       OUTPUT_VARIABLE head_sha
-      )
+      OUTPUT_QUIET ERROR_QUIET)
     if(error_code)
       message(FATAL_ERROR "CPM failed to get the hash for HEAD")
     endif()
@@ -100,11 +101,12 @@ CMakeLists.txt::
     message(FATAL_ERROR "CPM requires Git.")
   endif()
   if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
+    message(STATUS "Cloning repo (https://github.com/iauns/cpm)")
     execute_process(
       COMMAND "${GIT_EXECUTABLE}" clone https://github.com/iauns/cpm ${CPM_DIR}
       RESULT_VARIABLE error_code
       OUTPUT_VARIABLE head_sha
-      )
+      OUTPUT_QUIET ERROR_QUIET)
     if(error_code)
       message(FATAL_ERROR "CPM failed to get the hash for HEAD")
     endif()
@@ -230,10 +232,12 @@ Add the following to the top of the CMakeLists.txt for your module::
       message(FATAL_ERROR "CPM requires Git.")
     endif()
     if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
+      message(STATUS "Cloning repo (https://github.com/iauns/cpm)")
       execute_process(
         COMMAND "${GIT_EXECUTABLE}" clone https://github.com/iauns/cpm ${CPM_DIR}
         RESULT_VARIABLE error_code
-        OUTPUT_VARIABLE head_sha)
+        OUTPUT_VARIABLE head_sha
+        OUTPUT_QUIET ERROR_QUIET)
       if(error_code)
         message(FATAL_ERROR "CPM failed to get the hash for HEAD")
       endif()
