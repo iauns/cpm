@@ -996,6 +996,10 @@ function(CPM_AddModule name)
   # Append target to pre-existing libraries.
   if (TARGET ${CPM_TARGET_NAME})
     set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
+  else()
+    message(WARNING "Module ${name} did not produce a target. add_dependencies may fail.")
+    message(WARNING "All modules should produce a target, even header only libraries.")
+    message(WARNING "See: add_custom_target")
   endif()
 
   set(CPM_DEFINITIONS ${CPM_DEFINITIONS} PARENT_SCOPE)
