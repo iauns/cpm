@@ -1,22 +1,5 @@
 # CPM - CMake Package Manager
 #
-# TODO: Implement 'export module interface'.
-# TODO: Add source prefixes. We can take advantage of the standard directory
-#       layout of CPM modules and prefix the cloned source directories. These
-#       prefixes will allow us to bypass, however unlikely, header naming
-#       conflicts.
-#       Name: INCLUDE_PREFIX.
-# TODO: Add exetrnal library constraints. Some modules may require the user to
-#       use the same version of GLM it uses, for instance. This is to avoid
-#       conflicts regarding what headers are used. This shouldn't be hard
-#       to do as long as all externals and modules are run through CPM.
-# TODO: Add externals. CPM could check the user's home directory for the
-#       existance of recipes to make external projects. If that is not found,
-#       it can manually download all of the recipes.
-# TODO: Allow copying of source directories into prefixed directories. This
-#       will allow us to change the include prefix on a per-module basis.
-#       this would allow us to avoid namespace conflicts.
-#
 # A CMake module for managing external dependencies.
 # CPM can be used to build traditional C/C++ libraries and CPM modules.
 # In contrast to traditional C++ libraries, CPM modules have namespace
