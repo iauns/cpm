@@ -997,7 +997,7 @@ function(CPM_AddModule name)
   set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
 
   set(CPM_DEFINITIONS ${CPM_DEFINITIONS} PARENT_SCOPE)
-  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS } PARENT_SCOPE)
+  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} PARENT_SCOPE)
 
   # Set the appropriate preprocessor definition for this module and populate 
   # our namespace header file.
