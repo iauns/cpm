@@ -540,6 +540,15 @@ macro(CPM_Finish)
   # Setup appropriate definitions and include directories.
   add_definitions(${CPM_DEFINITIONS})
   include_directories(SYSTEM ${CPM_INCLUDE_DIRS})
+
+  # Ensure CPM.cmake is current. CPM_Finish will always be called at
+  # the end of setting up the entire hierarchy chain. So this
+  # won't affect what the modules include.
+  CPM_EnsureRepoIsCurrent(
+    TARGET_DIR ${CPM_DIR_OF_CPM}
+    GIT_REPOSITORY "https://github.com/iauns/cpm"
+    GIT_TAG "origin/master"
+    )
 endmacro()
 
 # This macro forces one, and only one, version of a module to be linked into
@@ -784,8 +793,8 @@ function(CPM_EnsureRepoIsCurrent)
       message("Failed to update submodules in: '${dir}'. Skipping submodule update.")
     endif()
   endif()
-
 endfunction()
+
 
 # name - Required as this name determines what preprocessor definition will
 #        be generated for this module.
