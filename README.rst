@@ -353,7 +353,7 @@ Building Externals
 ------------------
 
 If you are wrapping non-CPM code then you are likely building a CPM external.
-Building externals are just like building modules except for a call to::
+Building an external is just like building a module except for a call to::
 
   CPM_ForceOnlyOneModuleVersion()
 
