@@ -819,7 +819,6 @@ function(CPM_AddModule name)
 
     # Add any includes the module wants to expose in the parent's scope.
     if(DEFINED CPM_ADDITIONAL_INCLUDE_DIRS)
-      message("Additional dir: ${CPM_ADDITIONAL_INCLUDE_DIRS}")
       set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${CPM_ADDITIONAL_INCLUDE_DIRS})
     endif()
 
