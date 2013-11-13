@@ -339,7 +339,7 @@ of your consumer.
 Using an existing module version
 --------------------------------
 
-CPM allows you the flexibility of using the most recently used version of a
+CPM allows you the flexibility of selecting the most recently used version of a
 particular module instead of the version you requested. This is useful when you
 are working with externals or modules that require you to only use one version.
 Simply add ``USE_EXISTING_VER TRUE`` to your call to ``CPM_AddModule``. An
