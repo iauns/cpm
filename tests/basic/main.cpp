@@ -3,6 +3,6 @@
 
 int main(int argc, char* av[])
 {
-  std::cout << module1Function("Test Str") << std::endl;
+  std::cout << CPM_MODULE1_NS::module1Function("Test Str") << std::endl;
   return 0;
 }
