@@ -7,12 +7,7 @@ project (Foo)
 set(CPM_NO_UPDATE TRUE)
 include(../../CPM.cmake)
 
-# Include modules and externals. All modules must come before any project
-# specific setup such as setting compiler flags. See the github readme for
-# a full explanation.
-CPM_AddModule("mongodb"
-  GIT_REPOSITORY  "https://github.com/iauns/cpm-mongoc"
-  GIT_TAG         "origin/master")
+CPM_AddModule("module1" SOURCE_DIR "./module1")
 
 CPM_Finish()
 

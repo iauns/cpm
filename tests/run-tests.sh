@@ -12,13 +12,14 @@ do
 
   # Strips off ./ at the beginning.
   dirOnly=${dir##*/}
-  echo ${dirOnly}
 
   binDir=bin-${dirOnly}
   mkdir ${binDir}
 
+  echo ""
+  echo "RUNNING: ${dirOnly}"
+  echo ""
   pushd ${binDir} > /dev/null
-    echo ../${dirOnly}
     cmake ../${dirOnly}
     make
   popd > /dev/null
