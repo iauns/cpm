@@ -599,7 +599,9 @@ macro(_cpm_check_and_add_preproc moduleName defShortName fullUNID)
   endif()
 
   # Add the interface definition to our list of preprocessor definitions.
-  set(CPM_DEFINITIONS ${CPM_DEFINITIONS} "-D${__CPM_LAST_MODULE_PREPROC}=${fullUNID}" PARENT_SCOPE)
+  # We don't set this in the parent scope because definitions will be propogated
+  # up to the parent at the end of our function.
+  set(CPM_DEFINITIONS ${CPM_DEFINITIONS} "-D${__CPM_LAST_MODULE_PREPROC}=${fullUNID}")
 
   # Clear our variable.
   set(__CPM_LAST_MODULE_PREPROC)
@@ -1021,15 +1023,15 @@ function(CPM_AddModule name)
     #message(WARNING "See: add_custom_target")
   endif()
 
+  # Set the appropriate preprocessor definition for this module and populate 
+  # our namespace header file.
+  _cpm_check_and_add_preproc(${name} ${name} ${__CPM_FULL_UNID})
+
   # TODO: Remove the following two lines when we upgrade SCIRun.
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/3rdParty")
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}")
   set(CPM_DEFINITIONS ${CPM_DEFINITIONS} PARENT_SCOPE)
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} PARENT_SCOPE)
-
-  # Set the appropriate preprocessor definition for this module and populate 
-  # our namespace header file.
-  _cpm_check_and_add_preproc(${name} ${name} ${__CPM_FULL_UNID})
 
   # Now propogate the version map upwards (we don't really *need* to do this).
   # But makes it clear what we are trying to do.
@@ -1040,5 +1042,9 @@ function(CPM_AddModule name)
   _cpm_propogate_include_map_up()
   _cpm_propogate_definition_map_up()
   _cpm_propogate_export_map_up()
+
+  if (COMMAND CPM_PostModuleExecCallback)
+    CPM_PostModuleExecCallback()
+  endif()
 endfunction()
 

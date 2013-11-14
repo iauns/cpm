@@ -1,7 +1,7 @@
 #include "module.hpp"
 #include <sstream>
 
-namespace CPM_MODULE2_NS {
+namespace CPM_MYMODULE2_NS {
 
 std::string module2Function(int num, int num2)
 {
@@ -10,4 +10,4 @@ std::string module2Function(int num, int num2)
   return ss.str();
 }
 
-} // namespace CPM_MODULE2_NS
+} // namespace CPM_MYMODULE2_NS
