@@ -104,7 +104,8 @@
 #                                 Used only for determining definitions that are
 #                                 associated with an exported module.
 #  CPM_KV_LIST_DEFINITION_MAP   - A list of values in the definition map.
-#  CPM_KV_EXPORT_MAP            - A key/value mapping of all exported modules
+#
+#  CPM_KV_EXPORT_MAP_*          - A key/value mapping of all exported modules
 #                                 from a module.
 #                                 Key: unique path (with version).
 #                                 Value: A list of modules that have been exported.
@@ -225,9 +226,7 @@ set(CPM_DEFINITIONS)
 set(CPM_INCLUDE_DIRS)
 
 # Increment the module hierarchy level if it exists.
-if (DEFINED CPM_HIERARCHY_LEVEL)
-  math(EXPR CPM_HIERARCHY_LEVEL "${CPM_HIERARCHY_LEVEL}+1")
-else()
+if (NOT DEFINED CPM_HIERARCHY_LEVEL)
   set(CPM_HIERARCHY_LEVEL 0)
 endif()
 
@@ -426,7 +425,7 @@ macro(_cpm_propogate_source_added_map_up)
   # propogate the versioning information up again to it's parent's namespace.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_SOURCE_ADDED_MAP)
-      set(${_cpm_kvName} ${CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName}} PARENT_SCOPE)
+      set(CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName} ${CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName}} PARENT_SCOPE)
     endforeach()
     set(_cpm_kvName) # Clear kvName
 
@@ -587,15 +586,25 @@ macro(_cpm_check_and_add_preproc moduleName defShortName fullUNID)
   _cpm_build_preproc_name(${defShortName} __CPM_LAST_MODULE_PREPROC)
 
   # Ensure that we don't have a name conflict
-  if (DEFINED CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC})
-    if (NOT "${CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC}}" STREQUAL "${fullUNID}")
-      message(FATAL_ERROR "Namespace preprocessor conflict. Current module: ${moduleName}. Preprocessor definition: ${__CPM_LAST_MODULE_PREPROC}.")
-    endif()
+  if (DEFINED CPM_KV_PREPROC_NS_MAP_${fullUNID})
+    foreach(preproc IN LISTS CPM_KV_PREPROC_NS_MAP_${fullUNID})
+      if (${preproc} STREQUAL "${__CPM_LAST_MODULE_PREPROC}")
+        message(FATAL_ERROR "Namespace preprocessor conflict. Current module: ${moduleName}. Preprocessor definition: ${__CPM_LAST_MODULE_PREPROC}.")
+      endif()
+    endforeach()
   else()
+    # Check the list we are currently building (just in the funciton namespace
+    # this won't leak over into parent or subdirectory namespace).
+    set(CPM_LOCAL_PREPROC_LIST ${CPM_LOCAL_PREPROC_LIST} ${__CPM_LAST_MODULE_PREPROC})
+
     # Add our definition to the list of pre-existing preproc items.
     # We use this list to clear out existing entries in our subdirectories.
-    set(${CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC}} ${fullUNID} PARENT_SCOPE)
-    set(CPM_KV_LIST_PREPROC_NS_MAP ${CPM_KV_LIST_PREPROC_NS_MAP} ${__CPM_LAST_MODULE_PREPROC} PARENT_SCOPE)
+    set(CPM_KV_PREPROC_NS_MAP_${fullUNID} ${CPM_LOCAL_PREPROC_LIST} PARENT_SCOPE)
+
+    # We don't keep a list of added entries to the preproc list, since we
+    # will only be adding one. This takes out the duplicates when calling
+    # this macro multiple times.
+    set(CPM_KV_LIST_PREPROC_NS_MAP ${CPM_KV_LIST_PREPROC_NS_MAP} ${fullUNID} PARENT_SCOPE)
   endif()
 
   # Add the interface definition to our list of preprocessor definitions.
@@ -806,6 +815,9 @@ endfunction()
 # name - Required as this name determines what preprocessor definition will
 #        be generated for this module.
 function(CPM_AddModule name)
+  # Increase the hierarchy level by 1. Mandatory for propogate calls to work
+  # at the top level.
+  math(EXPR CPM_HIERARCHY_LEVEL "${CPM_HIERARCHY_LEVEL}+1")
 
   # Parse all function arguments into our namespace prepended with _CPM_.
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
@@ -957,7 +969,7 @@ function(CPM_AddModule name)
     # Otherwise CMake will error out and tell us we can't use the same binary
     # directory for two source directories. We always start in the parent scope.
     set(CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID} ${CPM_LAST_MODULE_NAME} PARENT_SCOPE)
-    set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} "CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}" PARENT_SCOPE)
+    set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} ${__CPM_FULL_UNID} PARENT_SCOPE)
 
     set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}")
 
@@ -1029,7 +1041,6 @@ function(CPM_AddModule name)
 
   # TODO: Remove the following two lines when we upgrade SCIRun.
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/3rdParty")
-  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}")
   set(CPM_DEFINITIONS ${CPM_DEFINITIONS} PARENT_SCOPE)
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} PARENT_SCOPE)
 
