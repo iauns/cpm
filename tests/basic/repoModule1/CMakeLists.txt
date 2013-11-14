@@ -21,8 +21,8 @@ endif()
 CPM_InitModule(${CPM_MODULE_NAME})
 
 file (GLOB source
-  "*.cpp"
-  "*.hpp"
+  "module1/*.cpp"
+  "module1/*.hpp"
   )
 
 add_library(${CPM_LIB_TARGET_NAME} ${source})
