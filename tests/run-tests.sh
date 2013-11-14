@@ -13,6 +13,7 @@ do
   echo ${dirOnly}
 
   binDir=bin-${dirOnly}
+  rm -rf ${binDir} && true
   mkdir ${binDir}
 
   pushd ${binDir} > /dev/null
@@ -21,6 +22,11 @@ do
     make
   popd > /dev/null
 
+  # Remove the bin directory.
   rm -rf ${binDir}
 
+  # Remove the 'modules' directory. This directory is automatically created
+  # by CPM when running the test since we use the root directory as the CPM
+  # directory.
+  rm -rf ../modules
 done

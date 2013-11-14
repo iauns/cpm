@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 project (Foo)
 
 #------------------------------------------------------------------------------
-# Required CPM Setup - See: http://github.com/iauns/cpm
+# Custom CPM setup (for tests). See https://github.com/iauns/cpm for real setup
 #------------------------------------------------------------------------------
 include(${CPM_DIR}/../../CPM.cmake)
 
