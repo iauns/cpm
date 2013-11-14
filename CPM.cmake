@@ -546,11 +546,13 @@ macro(CPM_Finish)
   # Ensure CPM.cmake is current. CPM_Finish will always be called at
   # the end of setting up the entire hierarchy chain. So this
   # won't affect what the modules include.
-  CPM_EnsureRepoIsCurrent(
-    TARGET_DIR ${CPM_DIR_OF_CPM}
-    GIT_REPOSITORY "https://github.com/iauns/cpm"
-    GIT_TAG "origin/master"
-    )
+  if (NOT ((DEFINED CPM_NO_UPDATE) AND (CPM_NO_UPDATE)))
+    CPM_EnsureRepoIsCurrent(
+      TARGET_DIR ${CPM_DIR_OF_CPM}
+      GIT_REPOSITORY "https://github.com/iauns/cpm"
+      GIT_TAG "origin/master"
+      )
+  endif()
 endmacro()
 
 # This macro forces one, and only one, version of a module to be linked into

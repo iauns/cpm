@@ -1,6 +1,8 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
+./clean-tests.sh
+
 # Terminate the script as soon as any command fails.
 set -e
 
@@ -13,7 +15,6 @@ do
   echo ${dirOnly}
 
   binDir=bin-${dirOnly}
-  rm -rf ${binDir} && true
   mkdir ${binDir}
 
   pushd ${binDir} > /dev/null

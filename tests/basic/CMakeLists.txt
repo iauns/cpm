@@ -4,6 +4,7 @@ project (Foo)
 #------------------------------------------------------------------------------
 # Custom CPM setup (for tests). See https://github.com/iauns/cpm for real setup
 #------------------------------------------------------------------------------
+set(CPM_NO_UPDATE TRUE)
 include(../../CPM.cmake)
 
 # Include modules and externals. All modules must come before any project
