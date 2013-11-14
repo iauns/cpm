@@ -1,18 +1,18 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-project (Foo)
+project (version-test)
 
 #------------------------------------------------------------------------------
-# Required CPM Setup - See: http://github.com/iauns/cpm
+# Custom CPM setup (for tests). See https://github.com/iauns/cpm for real setup
 #------------------------------------------------------------------------------
 set(CPM_NO_UPDATE TRUE)
 include(../../CPM.cmake)
 
-# Include modules and externals. All modules must come before any project
-# specific setup such as setting compiler flags. See the github readme for
-# a full explanation.
-CPM_AddModule("mongodb"
-  GIT_REPOSITORY  "https://github.com/iauns/cpm-mongoc"
-  GIT_TAG         "origin/master")
+#CPM_AddModule("module1" SOURCE_DIR "./repoModule1")
+#CPM_AddModule("module2" SOURCE_DIR "./repoModule1")
+
+CPM_AddModule("test_01"
+  GIT_REPOSITORY "https://github.com/iauns/cpm-test"
+  GIT_TAG "origin/master")
 
 CPM_Finish()
 
