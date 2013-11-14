@@ -72,7 +72,9 @@
 #  CPM_KV_SOURCE_ADDED_MAP_*    - Key/value added source map. Ensures we don't
 #                                 add the same module twice.
 #                                 Key: Full unique path.
-#                                 Value: Module's chosen name.
+#                                 Value: Module's chosen name. This name is used
+#                                        to generate a preprocessor token when
+#                                        the module is exported.
 #  CPM_KV_LIST_SOURCE_ADDED_MAP - A list of entries in CPM_KV_SOURCE_ADDED_MAP.
 #                                 Used to ensure we don't issue duplicate
 #                                 add_subdirectory calls.
@@ -507,10 +509,16 @@ macro(CPM_InitModule name)
     set(CPM_EXPORTED_MODULES ${CPM_EXPORTED_MODULES} PARENT_SCOPE)
   endif()
 
+  # Propogate up additional definitions and includes.
+  # (the reason we propogate this up: addition definitions can be modified
+  #  from the CPM_AddModule function one scope down)
+  set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} PARENT_SCOPE)
+
   # Setup the export map.
   set(CPM_KV_EXPORT_MAP_${CPM_UNIQUE_ID} ${CPM_EXPORTED_MODULES})
   set(CPM_KV_LIST_EXPORT_MAP ${CPM_KV_LIST_EXPORT_MAP} ${CPM_UNIQUE_ID})
 
+  _cpm_propogate_source_added_map_up()
   _cpm_propogate_version_map_up()
   _cpm_propogate_include_map_up()
   _cpm_propogate_definition_map_up()
@@ -903,12 +911,20 @@ function(CPM_AddModule name)
   endif()
 
   set(INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${__CPM_FULL_UNID})
-  set(DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${CPM_FULL_UNID})
+  set(DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${__CPM_FULL_UNID})
+
+  # Save variables that get overwritten by subdirectory.
+  set(CPM_PARENT_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS})
 
   # Add the project's source code.
   if (NOT DEFINED CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID})
     # Ensure we do not build dynamic libraries.
     set(BUILD_SHARED_LIBS OFF)
+
+    # The following call to add_subdirectory will propogate CPM_EXPORTED_MODULES
+    # up to us. We don't want to clear our parent's variable. So we save it
+    # and reset it later on.
+    set(CPM_SAVE_EXPORTED_MODULES ${CPM_EXPORTED_MODULES})
 
     # Add the module's code.
     add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
@@ -948,9 +964,9 @@ function(CPM_AddModule name)
     # Add the module version to the map.
     if (NOT DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID})
       # Add this entry to the map list.
-      set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} ${__CPM_PATH_UNID} PARENT_SCOPE)
+      set(CPM_KV_LIST_MOD_VERSION_MAP ${CPM_KV_LIST_MOD_VERSION_MAP} ${__CPM_PATH_UNID})
     endif()
-    set(CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID} ${__CPM_NEW_GIT_TAG} PARENT_SCOPE)
+    set(CPM_KV_MOD_VERSION_MAP_${__CPM_PATH_UNID} ${__CPM_NEW_GIT_TAG})
 
     # Setup module interface definition. This is the name the module is using
     # to identify itself in it's headers.
@@ -960,16 +976,18 @@ function(CPM_AddModule name)
       message(FATAL_ERROR "A module (${name}) failed to define its name!")
     endif()
 
-    # Add the preprocessor definition to our list of definitions.
-    _cpm_build_preproc_name(${CPM_LAST_MODULE_NAME} __CPM_LAST_MODULE_PREPROC)
-    set(${DEFINITION_MAP_NAME} ${${DEFINITION_MAP_NAME}} "-D${__CPM_LAST_MODULE_PREPROC}=${__CPM_FULL_UNID}")
-    set(__CPM_LAST_MODULE_PREPROC)
+    # Note: We don't add the preprocessor name to the list of exported
+    #       definitions. We extract the module's name from the source added map.
+    ## Add the preprocessor definition to our list of definitions.
+    #_cpm_build_preproc_name(${CPM_LAST_MODULE_NAME} __CPM_LAST_MODULE_PREPROC)
+    #set(${DEFINITION_MAP_NAME} ${${DEFINITION_MAP_NAME}} "-D${__CPM_LAST_MODULE_PREPROC}=${__CPM_FULL_UNID}")
+    #set(__CPM_LAST_MODULE_PREPROC)
 
     # Ensure we log that we have added this source directory.
     # Otherwise CMake will error out and tell us we can't use the same binary
     # directory for two source directories. We always start in the parent scope.
-    set(CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID} ${CPM_LAST_MODULE_NAME} PARENT_SCOPE)
-    set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} ${__CPM_FULL_UNID} PARENT_SCOPE)
+    set(CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID} ${CPM_LAST_MODULE_NAME})
+    set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} ${__CPM_FULL_UNID})
 
     set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}")
 
@@ -985,14 +1003,29 @@ function(CPM_AddModule name)
 
         set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
         set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
+
+        # Find what the module named itself, and add that definition to our
+        # definitions.
+        if (DEFINED CPM_KV_SOURCE_ADDED_MAP_${module})
+          set(module_specified_name ${CPM_KV_SOURCE_ADDED_MAP_${module}})
+          _cpm_check_and_add_preproc(${name} ${module_specified_name} ${module})
+        else()
+          message(FATAL_ERROR "Logic error: All exported modules must be in the source map: ${module}")
+        endif()
       endforeach()
     endif()
+
+    # Reset the exported modules to its value before we made the add_subdirectory call.
+    set(CPM_EXPORTED_MODULES ${CPM_SAVE_EXPORTED_MODULES})
 
     # Make sure there are entries for us in the include and definition lists.
     set(CPM_KV_LIST_INCLUDE_MAP ${CPM_KV_LIST_INCLUDE_MAP} ${__CPM_FULL_UNID})
     set(CPM_KV_LIST_DEFINITION_MAP ${CPM_KV_LIST_DEFINITION_MAP} ${__CPM_FULL_UNID})
 
   else()
+    # Set the name the module is using to setup its namespaces.
+    set(CPM_LAST_MODULE_NAME ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}})
+
     # We don't need the following line since we are adding the preprocessor definition in the definition map.
     #_cpm_check_and_add_preproc(${name} ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}} ${__CPM_FULL_UNID})
 
@@ -1001,9 +1034,11 @@ function(CPM_AddModule name)
       set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${INCLUDE_MAP_NAME}})
     endif()
 
-    if (DEFINED ${DEFINITION_MAP_NAME})
-      set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${DEFINITION_MAP_NAME}})
-    endif()
+    #if (DEFINED ${DEFINITION_MAP_NAME})
+    #  set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${DEFINITION_MAP_NAME}})
+    #endif()
+
+    # Extract the module's name from 
 
     if (DEFINED CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
       foreach(module IN LISTS ${CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID}})
@@ -1012,6 +1047,15 @@ function(CPM_AddModule name)
 
         set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
         set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
+
+        # Find what the module named itself, and add that definition to our
+        # definitions.
+        if (DEFINED CPM_KV_SOURCE_ADDED_MAP_${module})
+          set(module_specified_name ${CPM_KV_SOURCE_ADDED_MAP_${module}})
+          _cpm_check_and_add_preproc(${name} ${module_specified_name} ${module})
+        else()
+          message(FATAL_ERROR "Logic error: All exported modules must be in the source map.")
+        endif()
       endforeach()
     endif()
 
@@ -1020,6 +1064,13 @@ function(CPM_AddModule name)
   # If we are exporting this module, be sure the parent knows.
   if ((DEFINED _CPM_EXPORT_MODULE) AND (_CPM_EXPORT_MODULE))
     set(CPM_EXPORTED_MODULES ${CPM_EXPORTED_MODULES} ${__CPM_FULL_UNID} PARENT_SCOPE)
+
+    # Also be sure to add our module specific name to additional definitions
+    # if our name for the module differs from what the module itself used.
+    if (NOT ${name} STREQUAL ${CPM_LAST_MODULE_NAME})
+      _cpm_build_preproc_name(${name} __CPM_LAST_MODULE_PREPROC)
+      set(CPM_ADDITIONAL_DEFINITIONS ${CPM_PARENT_ADDITIONAL_DEFINITIONS} "-D${__CPM_LAST_MODULE_PREPROC}=${__CPM_FULL_UNID}" PARENT_SCOPE)
+    endif()
   endif()
 
   # Append target to pre-existing libraries.
@@ -1035,11 +1086,15 @@ function(CPM_AddModule name)
     #message(WARNING "See: add_custom_target")
   endif()
 
-  # Set the appropriate preprocessor definition for this module and populate 
-  # our namespace header file.
-  _cpm_check_and_add_preproc(${name} ${name} ${__CPM_FULL_UNID})
+  # Set the appropriate preprocessor definition for how *we* named the module.
+  # This is different than the preprocessor definition that the module itself
+  # used in its name. But only do this if our name differs from what the
+  # module named itself.
+  if (NOT ${name} STREQUAL ${CPM_LAST_MODULE_NAME})
+    _cpm_check_and_add_preproc(${name} ${name} ${__CPM_FULL_UNID})
+  endif()
 
-  # TODO: Remove the following two lines when we upgrade SCIRun.
+  # TODO: Remove the following line when we upgrade SCIRun.
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/3rdParty")
   set(CPM_DEFINITIONS ${CPM_DEFINITIONS} PARENT_SCOPE)
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} PARENT_SCOPE)

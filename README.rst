@@ -440,3 +440,9 @@ On the command line this would look something like
 
   cmake -DCPM_SHOW_HIERARCHY=TRUE ...
 
+My namespace isn't declared but I included its definition!
+----------------------------------------------------------
+
+This is most likely due to use of conflicting header guards. Rename the header
+guard whose namespace is not visible.
+
