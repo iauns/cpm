@@ -1,6 +1,6 @@
 #!/bin/bash
-# We start in the bin directory which we should call CMake from.
-# Our source directory is given on the command line in $1.
+# We start in the CMake bin directory.
+# Our source directory is given on the command line ($1).
 
 SOURCE_DIR=$1
 
