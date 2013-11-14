@@ -1,5 +1,5 @@
 #include <iostream>
-#include "module1/module1.hpp"
+#include "module1/module.hpp"
 
 int main(int argc, char* av[])
 {
