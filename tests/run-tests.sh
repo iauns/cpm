@@ -20,10 +20,19 @@ do
   echo "RUNNING: ${dirOnly}"
   echo ""
   pushd ${binDir} > /dev/null
-    cmake ../${dirOnly}
-    VERBOSE=1 make
-    #make
-    ./cpm-test
+    if [ -f ../${dirOnly}/test.sh ]; then
+      ../${dirOnly}/test.sh ../${dirOnly}
+      set -e
+    else
+      cmake ../${dirOnly}
+      VERBOSE=1 make
+    fi
+    if [ -f ./cpm-test ]; then
+      echo ""
+      echo "COMMAND OUTPUT: "
+      ./cpm-test
+      echo ""
+    fi
   popd > /dev/null
 
   # Remove the bin directory.

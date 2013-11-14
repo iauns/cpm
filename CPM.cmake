@@ -590,29 +590,17 @@ endmacro()
 
 # We use this code in multiple places to check that we don't have preprocessor
 # conflicts, and if we don't, then add the appropriate defintion.
-macro(_cpm_check_and_add_preproc moduleName defShortName fullUNID)
+macro(_cpm_check_and_add_preproc defShortName fullUNID)
   _cpm_build_preproc_name(${defShortName} __CPM_LAST_MODULE_PREPROC)
 
   # Ensure that we don't have a name conflict
-  if (DEFINED CPM_KV_PREPROC_NS_MAP_${fullUNID})
-    foreach(preproc IN LISTS CPM_KV_PREPROC_NS_MAP_${fullUNID})
-      if (${preproc} STREQUAL "${__CPM_LAST_MODULE_PREPROC}")
-        message(FATAL_ERROR "Namespace preprocessor conflict. Current module: ${moduleName}. Preprocessor definition: ${__CPM_LAST_MODULE_PREPROC}.")
-      endif()
-    endforeach()
+  if (DEFINED CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC})
+    message(FATAL_ERROR "Namespace preprocessor conflict. Current module name: ${name}. UNID: ${__CPM_FULL_UNID} . Preprocessor definition: ${__CPM_LAST_MODULE_PREPROC}.")
   else()
-    # Check the list we are currently building (just in the funciton namespace
-    # this won't leak over into parent or subdirectory namespace).
-    set(CPM_LOCAL_PREPROC_LIST ${CPM_LOCAL_PREPROC_LIST} ${__CPM_LAST_MODULE_PREPROC})
+    set(CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC} ${__CPM_LAST_MODULE_PREPROC} PARENT_SCOPE)
 
-    # Add our definition to the list of pre-existing preproc items.
-    # We use this list to clear out existing entries in our subdirectories.
-    set(CPM_KV_PREPROC_NS_MAP_${fullUNID} ${CPM_LOCAL_PREPROC_LIST} PARENT_SCOPE)
-
-    # We don't keep a list of added entries to the preproc list, since we
-    # will only be adding one. This takes out the duplicates when calling
-    # this macro multiple times.
-    set(CPM_KV_LIST_PREPROC_NS_MAP ${CPM_KV_LIST_PREPROC_NS_MAP} ${fullUNID} PARENT_SCOPE)
+    set(CPM_KV_LIST_PREPROC_NS_MAP ${CPM_KV_LIST_PREPROC_NS_MAP} ${__CPM_LAST_MODULE_PREPROC} PARENT_SCOPE)
+    set(CPM_KV_LIST_PREPROC_NS_MAP ${CPM_KV_LIST_PREPROC_NS_MAP} ${__CPM_LAST_MODULE_PREPROC})
   endif()
 
   # Add the interface definition to our list of preprocessor definitions.
@@ -971,17 +959,10 @@ function(CPM_AddModule name)
     # Setup module interface definition. This is the name the module is using
     # to identify itself in it's headers.
     if (DEFINED CPM_LAST_MODULE_NAME)
-      _cpm_check_and_add_preproc(${name} ${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
+      _cpm_check_and_add_preproc(${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
     else()
       message(FATAL_ERROR "A module (${name}) failed to define its name!")
     endif()
-
-    # Note: We don't add the preprocessor name to the list of exported
-    #       definitions. We extract the module's name from the source added map.
-    ## Add the preprocessor definition to our list of definitions.
-    #_cpm_build_preproc_name(${CPM_LAST_MODULE_NAME} __CPM_LAST_MODULE_PREPROC)
-    #set(${DEFINITION_MAP_NAME} ${${DEFINITION_MAP_NAME}} "-D${__CPM_LAST_MODULE_PREPROC}=${__CPM_FULL_UNID}")
-    #set(__CPM_LAST_MODULE_PREPROC)
 
     # Ensure we log that we have added this source directory.
     # Otherwise CMake will error out and tell us we can't use the same binary
@@ -1008,7 +989,7 @@ function(CPM_AddModule name)
         # definitions.
         if (DEFINED CPM_KV_SOURCE_ADDED_MAP_${module})
           set(module_specified_name ${CPM_KV_SOURCE_ADDED_MAP_${module}})
-          _cpm_check_and_add_preproc(${name} ${module_specified_name} ${module})
+          _cpm_check_and_add_preproc(${module_specified_name} ${module})
         else()
           message(FATAL_ERROR "Logic error: All exported modules must be in the source map: ${module}")
         endif()
@@ -1026,19 +1007,10 @@ function(CPM_AddModule name)
     # Set the name the module is using to setup its namespaces.
     set(CPM_LAST_MODULE_NAME ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}})
 
-    # We don't need the following line since we are adding the preprocessor definition in the definition map.
-    #_cpm_check_and_add_preproc(${name} ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}} ${__CPM_FULL_UNID})
-
     # Lookup the module by full unique ID and pull their definitions and additional include directories.
     if (DEFINED ${INCLUDE_MAP_NAME})
       set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${INCLUDE_MAP_NAME}})
     endif()
-
-    #if (DEFINED ${DEFINITION_MAP_NAME})
-    #  set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${DEFINITION_MAP_NAME}})
-    #endif()
-
-    # Extract the module's name from 
 
     if (DEFINED CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
       foreach(module IN LISTS ${CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID}})
@@ -1052,7 +1024,7 @@ function(CPM_AddModule name)
         # definitions.
         if (DEFINED CPM_KV_SOURCE_ADDED_MAP_${module})
           set(module_specified_name ${CPM_KV_SOURCE_ADDED_MAP_${module}})
-          _cpm_check_and_add_preproc(${name} ${module_specified_name} ${module})
+          _cpm_check_and_add_preproc(${module_specified_name} ${module})
         else()
           message(FATAL_ERROR "Logic error: All exported modules must be in the source map.")
         endif()
@@ -1091,7 +1063,7 @@ function(CPM_AddModule name)
   # used in its name. But only do this if our name differs from what the
   # module named itself.
   if (NOT ${name} STREQUAL ${CPM_LAST_MODULE_NAME})
-    _cpm_check_and_add_preproc(${name} ${name} ${__CPM_FULL_UNID})
+    _cpm_check_and_add_preproc(${name} ${__CPM_FULL_UNID})
   endif()
 
   # TODO: Remove the following line when we upgrade SCIRun.
