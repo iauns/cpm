@@ -1,5 +1,5 @@
-#ifndef MODULE1_H
-#define MODULE1_H
+#ifndef MODULE2_H
+#define MODULE2_H
 
 #include <string>
 
