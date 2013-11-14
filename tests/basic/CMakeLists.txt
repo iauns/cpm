@@ -16,6 +16,6 @@ file (GLOB source
   "*.hpp"
   )
 
-set(EXE_NAME basicTest)
+set(EXE_NAME cpm-test)
 add_executable(${EXE_NAME} ${source})
 target_link_libraries(${EXE_NAME} ${CPM_LIBRARIES})

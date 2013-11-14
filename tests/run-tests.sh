@@ -21,7 +21,9 @@ do
   echo ""
   pushd ${binDir} > /dev/null
     cmake ../${dirOnly}
-    VERBOSE=1 make
+    #VERBOSE=1 make
+    make
+    ./cpm-test
   popd > /dev/null
 
   # Remove the bin directory.
