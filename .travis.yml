@@ -11,3 +11,4 @@ script: "./tests/run-tests.sh"
 branches:
   only:
     - master
+    - dev

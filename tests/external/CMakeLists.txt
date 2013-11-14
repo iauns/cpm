@@ -4,7 +4,7 @@ project (Foo)
 #------------------------------------------------------------------------------
 # Required CPM Setup - See: http://github.com/iauns/cpm
 #------------------------------------------------------------------------------
-include(${CPM_DIR}/../../CPM.cmake)
+include(../../CPM.cmake)
 
 # Include modules and externals. All modules must come before any project
 # specific setup such as setting compiler flags. See the github readme for
