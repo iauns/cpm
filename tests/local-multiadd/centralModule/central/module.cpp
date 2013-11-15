@@ -1,11 +1,11 @@
 #include "module.hpp"
 #include <sstream>
-#include "central_sub/module.hpp"
+#include "sub/module.hpp"
 #include "central_exp/module.hpp"
 
 namespace CPM_CENTRAL_NS {
 
-std::string centralFunction(CPM_CENTRAL_EXP_NS::CentralSubExportedStruct& myStruct)
+std::string centralFunction(CPM_CENTRAL_EXP_NS::CentralExportedClass& myStruct)
 {
   myStruct.str += "= centralFunction was here =";
 

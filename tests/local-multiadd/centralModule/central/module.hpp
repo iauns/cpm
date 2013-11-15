@@ -9,7 +9,7 @@
 
 namespace CPM_CENTRAL_NS {
 
-std::string centralFunction(CPM_CENTRAL_EXP_NS::CentralSubExportedStruct& myStruct);
+std::string centralFunction(CPM_CENTRAL_EXP_NS::CentralExportedClass& myStruct);
 std::string centralFunction2(int num);
 
 } // namespace CPM_CENTRAL_NS 

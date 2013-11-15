@@ -7,7 +7,7 @@ namespace CPM_SUBBED_NS {
 
 std::string subbedFunction(const std::string& str);
 
-} // namespace CPM_E1M1_NS 
+} // namespace CPM_SUBBED_NS 
 
 #endif
 

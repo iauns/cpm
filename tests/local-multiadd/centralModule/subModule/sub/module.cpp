@@ -6,7 +6,7 @@ namespace CPM_SUBBED_NS {
 std::string subbedFunction(const std::string& str)
 {
   std::stringstream ss;
-  ss << "e1m1: (" << myStruct.num1 << "," << myStruct.num2 << ")";
+  ss << "subbed string: (" << str << ")";
   return ss.str();
 }
 

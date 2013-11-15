@@ -227,6 +227,9 @@ set(CPM_DEFINITIONS)
 # Clear out any include directories.
 set(CPM_INCLUDE_DIRS)
 
+# Clear out exported modules from the parent.
+set(CPM_EXPORTED_MODULES)
+
 # Increment the module hierarchy level if it exists.
 if (NOT DEFINED CPM_HIERARCHY_LEVEL)
   set(CPM_HIERARCHY_LEVEL 0)
@@ -1007,13 +1010,16 @@ function(CPM_AddModule name)
     # Set the name the module is using to setup its namespaces.
     set(CPM_LAST_MODULE_NAME ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}})
 
+    # Ensure our module's preprocessor definition is present.
+    _cpm_check_and_add_preproc(${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
+
     # Lookup the module by full unique ID and pull their definitions and additional include directories.
     if (DEFINED ${INCLUDE_MAP_NAME})
       set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${INCLUDE_MAP_NAME}})
     endif()
 
     if (DEFINED CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
-      foreach(module IN LISTS ${CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID}})
+      foreach(module IN LISTS CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
         set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
         set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
 

@@ -17,7 +17,9 @@ do
   mkdir ${binDir}
 
   echo ""
-  echo "RUNNING: ${dirOnly}"
+  echo " -- "
+  echo " == RUNNING: ${dirOnly}"
+  echo " -- "
   echo ""
   pushd ${binDir} > /dev/null
     if [ -f ../${dirOnly}/test.sh ]; then

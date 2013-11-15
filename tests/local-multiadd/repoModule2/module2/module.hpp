@@ -2,7 +2,7 @@
 #define MODULE2_H
 
 #include <string>
-#include "central_exp/module.hpp"
+#include "central/module.hpp"
 
 namespace CPM_MYMODULE2_NS {
 

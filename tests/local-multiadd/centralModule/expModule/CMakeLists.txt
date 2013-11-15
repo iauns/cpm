@@ -17,9 +17,6 @@ endif()
 CPM_AddModule("central_subbed"
   SOURCE_DIR "../subModule")
 
-CPM_AddModule("module2"
-  SOURCE_DIR "../../repoModule2")
-
 CPM_InitModule(${CPM_MODULE_NAME})
 
 file (GLOB source

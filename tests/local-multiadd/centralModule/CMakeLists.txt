@@ -24,10 +24,11 @@ CPM_AddModule("central_exp"
 CPM_InitModule(${CPM_MODULE_NAME})
 
 file (GLOB source
-  "module1/*.cpp"
-  "module1/*.hpp"
+  "central/*.cpp"
+  "central/*.hpp"
   )
 
 add_library(${CPM_LIB_TARGET_NAME} ${source})
+message("Libraries: ${CPM_LIBRARIES}")
 target_link_libraries(${CPM_LIB_TARGET_NAME} ${CPM_LIBRARIES})
 
