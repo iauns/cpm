@@ -1,6 +1,7 @@
-===
 CPM
 ===
+
+[![Build Status](https://travis-ci.org/iauns/cpm.png)](https://travis-ci.org/iauns/cpm)
 
 C++ Package Manager based on CMake.
 
@@ -22,8 +23,9 @@ versions of these external modules.
 Below is a simple example of a CMakeLists.txt file that uses 3 different
 modules. The modules are simple OpenGL wrapper library name Spire, MongoDB's C
 library, and G-truc's vector math library. See the next section for a full
-explanation of how to use CPM and work with the namespaces it creates. Example::
+explanation of how to use CPM and work with the namespaces it creates. Example:
 
+```cmake
   cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
   project(Viewer)
   
@@ -79,13 +81,16 @@ explanation of how to use CPM and work with the namespaces it creates. Example::
   add_executable(${EXE_NAME} ${Sources})
   target_link_libraries(${EXE_NAME} ${CPM_LIBRARIES})
 
+```
+
 
 Using CPM
 =========
 
 To use CPM in your C++ project include the following at the top of your
-CMakeLists.txt::
+CMakeLists.txt:
 
+```cmake
   #------------------------------------------------------------------------------
   # Required CPM Setup - See: http://github.com/iauns/cpm
   #------------------------------------------------------------------------------
@@ -115,13 +120,17 @@ CMakeLists.txt::
   
   CPM_Finish()
 
+```
+
 Then add the ``${CPM_LIBRARIES}`` variable to your ``target_link_libraries``.
 That's it. You will be able to start using CPM modules right away by adding
-something like::
+something like:
 
+```cmake
   CPM_AddModule("spire"
     GIT_REPOSITORY "https://github.com/SCIInstitute/spire"
     GIT_TAG "v0.7.0")
+```
 
 This snippet will automatically download, build, and link version 0.7.0 of a
 thin OpenGL client named Spire. A new namespace is generated for 'spire' and a
@@ -138,8 +147,9 @@ class through this namespace like so: ``CPM_SPIRE_NS::Interface``. In general
 you will want to rename the namespace to something more appropriate:
 ``namespace spire = CPM_SPIRE_NS;``. It has been our experience that building a
 header containing all of your module namespaces is quite useful. Something like
-the following::
+the following:
 
+```cpp
   #ifndef __MY_NAMESPACES_H
   #define __MY_NAMESPACES_H
 
@@ -155,9 +165,10 @@ the following::
   }
 
   #endif
+```
 
-Also be sure to place your calls to CPM_AddModule before your call to
-CPM_Finish. The ``# Include any modules here...`` section mentioned in the
+Also be sure to place your calls to `CPM_AddModule` before your call to
+`CPM_Finish`. The ``# Include any modules here...`` section mentioned in the
 first snippet indicates where you should place calls to ``CPM_AddModule``.
 
 Remember not to expose your namespaces.h header file in your public interface.
@@ -172,7 +183,7 @@ If the library you are interested in isn't a CPM module, try browsing through
 the CPM externals listed on http://cpmcpp.com. While you won't be able to
 statically link against multiple versions of the library, you can quickly
 include it if there is already CPM external formula for it. Just use
-CPM_AddModule as you would with any other module.
+`CPM_AddModule` as you would with any other module.
 
 If you don't find a formula for your favorite library, kindly consider
 contributing one to our CPM externals repository. We're always looking to
@@ -211,8 +222,9 @@ CMakeLists.txt file must contain all relevant CPM directives and code (see
 below). Do not use issue calls to CPM (``CPM_*``) in a subdirectory
 (``add_subdirectory``).
 
-Add the following to the top of the CMakeLists.txt for your module:: 
+Add the following to the top of the CMakeLists.txt for your module:
 
+```cmake
   #-----------------------------------------------------------------------
   # CPM configuration
   #-----------------------------------------------------------------------
@@ -245,28 +257,33 @@ Add the following to the top of the CMakeLists.txt for your module::
   # Include CPM modules or externals here (with CPM_AddModule).
   
   CPM_InitModule(${CPM_MODULE_NAME})
+```
 
 Be sure to update the ``<name>`` at the beginning of the snippet. ``<name>`` 
 is placed in the namespace preprocessor definition for your module. For example,
 if ``<name>`` is 'spire' then the preprocessor definition that will be added
 to your project will be ``CPM_SPIRE_NS``. Use this definition as a wrapper
 around your code and namespaces. Don't worry about users using the same name in
-their call to CPM_AddModule as the name you choose in your call to
-CPM_InitModule. CPM will automatically handle this for you. Also use
-``CPM_LIB_TARGET_NAME`` as the name of your library in add_library and include
-``CPM_LIBRARIES`` in target_link_libraries for your static library. Example::
+their call to `CPM_AddModule` as the name you choose in your call to
+`CPM_InitModule`. CPM will automatically handle this for you. Also use
+``CPM_LIB_TARGET_NAME`` as the name of your library in `add_library` and include
+``CPM_LIBRARIES`` in `target_link_libraries` for your static library. Example:
 
+```cmake
   # Our CPM module library
   add_library(${CPM_LIB_TARGET_NAME} ${Source})
   target_link_libraries(${CPM_LIB_TARGET_NAME} ${CPM_LIBRARIES})
+```
 
-Here is an example class that demonstrates the namespace wrapping::
+Here is an example class that demonstrates the namespace wrapping:
 
+```cpp
   namespace CPM_SPIRE_NS {
 
   ... code here ...
 
   } // namespace CPM_SPIRE_NS
+```
 
 Library target name
 -------------------
@@ -281,17 +298,19 @@ Wrapping Namespace
 CPM allows multiple different versions of the same module to be used in the
 same static linkage unit. As such, when you are building a module for CPM (not
 when you are using CPM modules!), you should either surround your top-level
-namespaces in CPM_[module name]_NS tags or use CPM_[module name]_NS as your top
-level namespace, like so::
+namespaces in `CPM_[module name]_NS` tags or use `CPM_[module name]_NS` as your top
+level namespace, like so:
 
+```cpp
   namespace CPM_[module name]_NS {
 
     ...  
 
   } // namespace CPM_[module name]_NS
+```
 
 The ``[module name]`` part of the preprocessor definition's name comes from
-your call to CPM_AddModule. The first argument given to CPM_InitModule becomes
+your call to `CPM_AddModule`. The first argument given to `CPM_InitModule` becomes
 ``[module name]`` in your application.
 
 Note that this is *not* required but it is *heavily* recommended when you are
@@ -309,8 +328,9 @@ Directory Structure
 -------------------
 
 In order to avoid header name conflicts CPM modules adhere to the directory
-following structure::
+following structure:
 
+```
   Root of [module name]
     |-> CMakeLists.txt
     |-> test
@@ -318,10 +338,13 @@ following structure::
       |-> [public headers go here]  
       |-> src
         |-> [private headers and source code]
+```
 
-Using this structure users would include your public headers using::
+Using this structure users would include your public headers using:
 
+```
   #include <[module name]/interface.h>
+```
 
 Include Path
 ------------
@@ -338,9 +361,11 @@ Definitions
 -----------
 
 Just as with the include paths above you can set preprocessor definitions for
-the consumer. Use the function ``CPM_ExportAdditionalDefinition``, like below::
+the consumer. Use the function ``CPM_ExportAdditionalDefinition``, like below:
 
+```
   CPM_ExportAdditionalDefinition("-DMONGO_HAVE_STDINT")
+```
 
 Registering Your Module
 -----------------------
@@ -354,9 +379,11 @@ Building Externals
 ------------------
 
 If you are wrapping non-CPM code then you are likely building a CPM external.
-Building an external is just like building a module except for a call to::
+Building an external is just like building a module except for a call to:
 
+```
   CPM_ForceOnlyOneModuleVersion()
+```
 
 somewhere in your module's CMakeLists.txt file. This function ensures exactly
 one (and only one) version of your module is ever statically linked.
@@ -376,14 +403,16 @@ Exposing foreign module interfaces
 
 Some modules require the ability to expose classes from other included modules.
 This is allowed by tagging the module that you plan on exporting with
-``EXPORT_MODULE TRUE`` just like:: 
+``EXPORT_MODULE TRUE`` just like:
 
+```
   CPM_AddModule("GLM"
     GIT_REPOSITORY "https://github.com/iauns/cpm-glm"
     GIT_TAG "origin/master"
     USE_EXISTING_VER TRUE
     EXPORT_MODULE TRUE    # Use EXPORT_MODULE sparingly. We expose GLM's interface
     )                     # through our own interface hence why we export it.
+```
 
 In this case, GLM's definitions and include paths will be exported to the
 direct consumer of your module. It will not export this module to any parents
@@ -412,7 +441,7 @@ calling ``CPM_InitModule``.
 FAQ
 ===
 
-Why add_subdirectory instead of ExternalProject?
+Why `add_subdirectory` instead of ExternalProject?
 ------------------------------------------------
 
 CPM was initially built using external projects but the external project
@@ -438,7 +467,9 @@ When building your project define: ``CPM_SHOW_HIERARCHY=TRUE``.
 
 On the command line this would look something like
 
+```
   cmake -DCPM_SHOW_HIERARCHY=TRUE ...
+```
 
 My namespace isn't declared but I included its definition!
 ----------------------------------------------------------
