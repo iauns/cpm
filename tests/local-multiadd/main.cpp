@@ -24,6 +24,6 @@ int main(int argc, char* av[])
   std::cout << "Module 2-a: " << CPM_MODULE_2_NS::module2Function(67, 91) << std::endl;
   std::cout << "Module 2-b: " << CPM_MODULE_2_NS::module2CentralCall(myClass1) << std::endl;
   std::cout << "Module 3  : " << CPM_MODULE_3_NS::module3Function("From Main", 42) << std::endl;
-  std::cout << "Central   : " << CPM_CENTRAL_NS::centralFunction(myClass2);
+  std::cout << "Central   : " << CPM_CENTRAL_NS::centralFunction(myClass2) << std::endl;
   return 0;
 }

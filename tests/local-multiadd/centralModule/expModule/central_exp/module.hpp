@@ -2,6 +2,8 @@
 #define CENTRAL_EXP_H
 
 #include <string>
+#include "inc1.hpp"
+#include "inc2.hpp"
 
 namespace CPM_CENTRAL_EXP_NS {
 

@@ -18,7 +18,7 @@ std::string centralFunction2(int num)
 {
   std::stringstream ss;
   ss << "Central number: "<< num;
-  return CPM_CENTRAL_SUB_NS::subbedFunction(ss.str());
+  return CPM_CENTRAL_SUB_NS::subbedFunction(ss.str()) + DEF_INC1 + DEF_INC2;
 }
 
 

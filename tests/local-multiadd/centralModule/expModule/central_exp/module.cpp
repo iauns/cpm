@@ -17,7 +17,7 @@ std::string centralExpFunction(const CentralExportedClass& myStruct)
   CentralExportedClass ret;
   ret.num1 = myStruct.num1 + 10;
   ret.num2 = myStruct.num2;
-  ret.str = CPM_CENTRAL_SUBBED_NS::subbedFunction(myStruct.str);
+  ret.str = CPM_CENTRAL_SUBBED_NS::subbedFunction(myStruct.str) + DEF_INC1 + DEF_INC2;
   
   std::stringstream ss;
   ss << "Central Function [" << ret.render() << "]";

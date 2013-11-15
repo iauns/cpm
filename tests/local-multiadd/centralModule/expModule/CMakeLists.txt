@@ -17,6 +17,18 @@ endif()
 CPM_AddModule("central_subbed"
   SOURCE_DIR "../subModule")
 
+CPM_ExportAdditionalIncludeDir("${CMAKE_CURRENT_SOURCE_DIR}/incdir1")
+CPM_ExportAdditionalIncludeDir("${CMAKE_CURRENT_SOURCE_DIR}/incdir2")
+
+CPM_ExportAdditionalDefinition("-DINCDIR1_TEST")
+CPM_ExportAdditionalDefinition("-DINCDIR2_TEST")
+
+add_definitions(-DINCDIR1_TEST)
+add_definitions(-DINCDIR2_TEST)
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/incdir1")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/incdir2")
+
 CPM_InitModule(${CPM_MODULE_NAME})
 
 file (GLOB source

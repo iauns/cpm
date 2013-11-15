@@ -579,8 +579,9 @@ endmacro()
 # definition to the direct consumer of the module. None of the consumer's
 # parents.
 macro(CPM_ExportAdditionalIncludeDir dir)
-  set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${dir}" PARENT_SCOPE)
-  set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${dir}")
+  get_filename_component(tmp_src_dir ${dir} ABSOLUTE)
+  set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${tmp_src_dir}" PARENT_SCOPE)
+  set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${tmp_src_dir}")
 endmacro()
 
 # This macro allows modules to expose additional definitions.
@@ -1056,12 +1057,8 @@ function(CPM_AddModule name)
     set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
     set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
   else()
-    #set(CPM_LIBRARIES ${CPM_LIBRARIES} "" PARENT_SCOPE)
     add_custom_target(${CPM_TARGET_NAME})
     set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} ${CPM_TARGET_NAME} PARENT_SCOPE)
-    #message(WARNING "Module ${name} did not produce a target. add_dependencies may fail.")
-    #message(WARNING "All modules should produce a target, even header only libraries.")
-    #message(WARNING "See: add_custom_target")
   endif()
 
   # Set the appropriate preprocessor definition for how *we* named the module.
