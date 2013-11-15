@@ -917,6 +917,7 @@ function(CPM_AddModule name)
     # up to us. We don't want to clear our parent's variable. So we save it
     # and reset it later on.
     set(CPM_SAVE_EXPORTED_MODULES ${CPM_EXPORTED_MODULES})
+    set(CPM_EXPORTED_MODULES)
 
     # Add the module's code.
     add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
