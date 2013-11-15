@@ -25,7 +25,8 @@ do
       set -e
     else
       cmake ../${dirOnly}
-      VERBOSE=1 make
+      #VERBOSE=1 make
+      make
     fi
     if [ -f ./cpm-test ]; then
       echo ""

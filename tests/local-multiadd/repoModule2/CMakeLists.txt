@@ -14,6 +14,10 @@ else()
   include(../../../CPM.cmake)
 endif()
 
+CPM_AddModule("central"
+  SOURCE_DIR "../centralModule"
+  EXPORT_MODULE TRUE)
+
 CPM_InitModule(${CPM_MODULE_NAME})
 
 file (GLOB source
