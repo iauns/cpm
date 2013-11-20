@@ -19,7 +19,6 @@ endif()
 CPM_AddModule("central_exp"
   SOURCE_DIR "./expModule"
   EXPORT_MODULE TRUE)
-CPM_PrintVariables()
 
 # Ensure only the expected directories are present in our include map.
 set(EXPECTED_INCLUDE_DIRS 
