@@ -1,0 +1,6 @@
+This test tests our ability to use the same repository multiple different times
+at different levels in the hierarchy. Even exporting this repository in some
+circumstances.
+
+Contains a circular reference between central/expModule and repoModule2.
+

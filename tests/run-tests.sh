@@ -6,9 +6,11 @@ cd "$(dirname "$0")"
 # Terminate the script as soon as any command fails.
 set -e
 
-for dir in ./*/
-do
-  dir=${dir%*/}
+TESTNAME=$1
+
+function RunTest
+{
+  dir=$1
 
   # Strips off ./ at the beginning.
   dirOnly=${dir##*/}
@@ -22,20 +24,20 @@ do
   echo " -- "
   echo ""
   pushd ${binDir} > /dev/null
-    if [ -f ../${dirOnly}/test.sh ]; then
-      ../${dirOnly}/test.sh ../${dirOnly}
-      set -e
-    else
-      cmake ../${dirOnly}
-      #VERBOSE=1 make
-      make
-    fi
-    if [ -f ./cpm-test ]; then
-      echo ""
-      echo "COMMAND OUTPUT: "
-      ./cpm-test
-      echo ""
-    fi
+  if [ -f ../${dirOnly}/test.sh ]; then
+    ../${dirOnly}/test.sh ../${dirOnly}
+    set -e
+  else
+    cmake ../${dirOnly}
+    #VERBOSE=1 make
+    make
+  fi
+  if [ -f ./cpm-test ]; then
+    echo ""
+    echo "COMMAND OUTPUT: "
+    ./cpm-test
+    echo ""
+  fi
   popd > /dev/null
 
   # Remove the bin directory.
@@ -45,4 +47,15 @@ do
   # by CPM when running the test since we use the root directory as the CPM
   # directory.
   rm -rf ../modules
-done
+}
+
+if [[ -z "$TESTNAME" ]]; then
+  for dir in ./*/
+  do
+    dir=${dir%*/}
+
+    RunTest $dir
+  done
+else
+  RunTest $TESTNAME
+fi
