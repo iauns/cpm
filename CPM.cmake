@@ -682,7 +682,7 @@ function(CPM_EnsureRepoIsCurrent)
   set(dir ${_CPM_REPO_TARGET_DIR})
 
   if (NOT EXISTS "${dir}/")
-    message(STATUS "Cloning repo (${repo})")
+    message(STATUS "Cloning repo (${repo} @ ${tag})")
 
     # Much of this clone code is taken from external project's generation
     # of its *gitclone.cmake files.
