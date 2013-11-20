@@ -33,6 +33,16 @@ CPM_VerifyListEquality(
   CPM_KV_INCLUDE_MAP_${CPM_LAST_MODULE_FULL_UNID}
   "CMAKE UNIT TESTING - include directory error: ")
 
+set(EXPECTED_DEFINITIONS
+  "-DINCDIR1_TEST"
+  "-DINCDIR2_TEST"
+  )
+
+CPM_VerifyListEquality(
+  EXPECTED_DEFINITIONS 
+  CPM_KV_DEFINITION_MAP_${CPM_LAST_MODULE_FULL_UNID}
+  "CMAKE UNIT TESTING - definition error: ")
+
 CPM_AddModule("central_sub"
   SOURCE_DIR "./subModule")
 
