@@ -599,9 +599,16 @@ macro(_cpm_check_and_add_preproc defShortName fullUNID)
 
   # Ensure that we don't have a name conflict
   if (DEFINED CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC})
-    message(FATAL_ERROR "Namespace preprocessor conflict. Current module name: ${name}. UNID: ${__CPM_FULL_UNID} . Preprocessor definition: ${__CPM_LAST_MODULE_PREPROC}.")
+    if (NOT ${CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC}} STREQUAL ${fullUNID})
+      message("CPM namespace conflict.")
+      message("  Current module name: ${name}.")
+      message("  Conflicting propressor macro: ${__CPM_LAST_MODULE_PREPROC}.")
+      message("  Current module UNID: ${__CPM_FULL_UNID}.")
+      message("  Conflicting module UNID: ${CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC}}.")
+      message(FATAL_ERROR "CPM cannot continue without resolving namespace conflict.")
+    endif()
   else()
-    set(CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC} ${__CPM_LAST_MODULE_PREPROC} PARENT_SCOPE)
+    set(CPM_KV_PREPROC_NS_MAP_${__CPM_LAST_MODULE_PREPROC} ${fullUNID} PARENT_SCOPE)
 
     set(CPM_KV_LIST_PREPROC_NS_MAP ${CPM_KV_LIST_PREPROC_NS_MAP} ${__CPM_LAST_MODULE_PREPROC} PARENT_SCOPE)
     set(CPM_KV_LIST_PREPROC_NS_MAP ${CPM_KV_LIST_PREPROC_NS_MAP} ${__CPM_LAST_MODULE_PREPROC})
