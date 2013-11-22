@@ -11,19 +11,22 @@ same static library so that you can include other C++ modules that may depend
 on older or newer versions of the same modules you are using. CPM will also
 automatically download and build these C++ modules for you. CPM's goal is to
 help support the growth of a "do one thing and do it well" module ecosystem in
-C++. To explore the ecosystem in it's current state, head on over to the CPM
-website: http://cpmcpp.com (or http://cmakepm.org).
+C++. To explore the ecosystem head on over to the CPM website:
+http://cpmcpp.com (or http://cmakepm.org).
 
 Using CPM, you can also manage C or C++ libraries that do not use CPM. A number
 of what we call 'external' modules are already in the cpm-modules repository.
 These modules abstract away the details of writing a CMake external project for
 you. Just be aware that you cannot statically link against multiple different
-versions of these external modules.
+versions of these external modules because they are not built as CPM modules.
+Although the changes necessary to convert a code base to a CPM module are
+minor mostly dealing with namespace names.
 
 Below is a simple example of a CMakeLists.txt file that uses 3 different
-modules. The modules are simple OpenGL wrapper library name Spire, MongoDB's C
-library, and G-truc's vector math library. See the next section for a full
-explanation of how to use CPM and work with the namespaces it creates. Example:
+modules. The modules are a simple OpenGL wrapper library name Spire, MongoDB's
+C library, and G-truc's GLSL vector math library. See the next section for a
+full explanation of how to use CPM and work with the namespaces it creates.
+Example:
 
 ```cmake
   cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
@@ -374,6 +377,11 @@ Once you have finished writing your module, fork
 http://github.com/iauns/cpm-modules.git and submit your module via a pull
 request. You only have to do this once per module, and your module will be
 registered with the cpm website.
+
+Note that this step is *not* mandatory. You can use your module without
+registering it by just pointing CPM to the URL of your git repository.
+Although module registration is recommended because registering your
+repository makes it easier for others to find.
 
 Building Externals
 ------------------
