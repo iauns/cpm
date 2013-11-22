@@ -438,24 +438,29 @@ CPM allows you the flexibility of selecting the most recently used version of a
 particular module instead of the version you requested. This is useful when you
 are working with externals or modules that require you to only use one version.
 Simply add ``USE_EXISTING_VER TRUE`` in your call to ``CPM_AddModule``. An
-example of this is given above in the section on exposing foregin module
+example of this is given above in the section on exposing foreign module
 interfaces.
 
-For example, if you were to request version `v0.9.1` of module `A`, and a
-module you added requests `v0.9.5` of the same module `A`, then your version
-would be upgraded to `v0.9.5` to comply with the pre-existing version of the
-module. It is considered best practice to set `USE_EXSTING_VER` to `TRUE` when
-using externals, even when building modules for others to use.
+For example, if a module you added (module `B`) requested version `v0.9.1` of
+module `A`, and you subsequently requested `v0.9.5` of module `A`, then your
+version would be upgraded to `v0.9.5` to comply with the pre-existing version
+of the module. It is considered best practice to set `USE_EXSTING_VER` to
+`TRUE` when using *externals* (not regular modules), especially when building
+modules for others to use.
+
+For regular modules, you can consider using this option to reduce the size of
+your executable if multiple different versions of the same module are being
+used. Just be weary of compiler errors due to version conflicts.
 
 Force only one module version
 -----------------------------
 
 As pointed out in the externals section you may force all consumers, indirect
-or direct, of your module to use only one version. Most users won't need to
-worry about this corner case, but it is required that all externals use this.
-Include a call to ``CPM_ForceOnlyOneModuleVersion`` anywhere in your module's
-CMakeLists.txt file to enforce this. Usually this call is made directly after
-calling ``CPM_InitModule``.
+or direct, of your module to use only one version. Most module creators won't
+need to worry about this corner case, but it is required that all externals
+use this. Include a call to ``CPM_ForceOnlyOneModuleVersion`` anywhere in
+your module's CMakeLists.txt file to enforce this. Usually this call is made
+directly after calling ``CPM_InitModule``.
 
 FAQ
 ===
