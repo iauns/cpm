@@ -441,6 +441,12 @@ Simply add ``USE_EXISTING_VER TRUE`` in your call to ``CPM_AddModule``. An
 example of this is given above in the section on exposing foregin module
 interfaces.
 
+For example, if you were to request version `v0.9.1` of module `A`, and a
+module you added requests `v0.9.5` of the same module `A`, then your version
+would be upgraded to `v0.9.5` to comply with the pre-existing version of the
+module. It is considered best practice to set `USE_EXSTING_VER` to `TRUE` when
+using externals, even when building modules for others to use.
+
 Force only one module version
 -----------------------------
 
