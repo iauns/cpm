@@ -33,7 +33,7 @@ Example:
   project(Viewer)
   
   #------------------------------------------------------------------------------
-  # Required CPM Setup - See: http://github.com/iauns/cpm
+  # CPM Setup - See: http://github.com/iauns/cpm
   #------------------------------------------------------------------------------
   set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm_packages" CACHE TYPE STRING)
   find_package(Git)
@@ -51,6 +51,10 @@ Example:
     endif()
   endif()
   include(${CPM_DIR}/CPM.cmake)
+
+  #------------------------------------------------------------------------------
+  # Add CPM Modules
+  #------------------------------------------------------------------------------
   
   # ++ MODULE: Spire
   CPM_AddModule("spire"
