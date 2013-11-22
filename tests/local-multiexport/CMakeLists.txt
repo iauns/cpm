@@ -10,9 +10,33 @@ set(CPM_NO_UPDATE TRUE)
 include(../../CPM.cmake)
 
 CPM_AddModule("module_1" SOURCE_DIR "./repoModule1")
+CPM_GetSourceDir("module_1" LAST_SOURCE_DIR)
+get_filename_component(tmp_src_dir "./repoModule1" ABSOLUTE)
+if (NOT ${tmp_src_dir} STREQUAL ${LAST_SOURCE_DIR})
+  message(FATAL_ERROR "Source directory is not correct!")
+endif()
+
 CPM_AddModule("module_2" SOURCE_DIR "./repoModule2")
+CPM_GetSourceDir("module_2" LAST_SOURCE_DIR)
+get_filename_component(tmp_src_dir "./repoModule2" ABSOLUTE)
+if (NOT ${tmp_src_dir} STREQUAL ${LAST_SOURCE_DIR})
+  message(FATAL_ERROR "Source directory is not correct!")
+endif()
+
 CPM_AddModule("module_3" SOURCE_DIR "./repoModule3")
+CPM_GetSourceDir("module_3" LAST_SOURCE_DIR)
+get_filename_component(tmp_src_dir "./repoModule3" ABSOLUTE)
+if (NOT ${tmp_src_dir} STREQUAL ${LAST_SOURCE_DIR})
+  message(FATAL_ERROR "Source directory is not correct!")
+endif()
+
 CPM_AddModule("central" SOURCE_DIR "./centralModule")
+CPM_GetSourceDir("central" LAST_SOURCE_DIR)
+get_filename_component(tmp_src_dir "./centralModule" ABSOLUTE)
+if (NOT ${tmp_src_dir} STREQUAL ${LAST_SOURCE_DIR})
+  message(FATAL_ERROR "Source directory is not correct!")
+endif()
+
 CPM_PrintVariables()
 # Exp module has been exported to us. So we ensure that we can see its 
 # definitions and includesc

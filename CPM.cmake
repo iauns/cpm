@@ -114,6 +114,20 @@
 #                                        in particular, their unique ids with version.
 #  CPM_KV_LIST_EXPORT_MAP       - List of values from exported module map.
 #
+#  CPM_KV_UNID_MAP_*            - Map of full unique IDs. This map is cleared
+#                                 everytime CPM is included.
+#                                 Key: User defined name of the module.
+#                                 Value: Unique ID of the module.
+#  CPM_KV_LIST_UNID_MAP         - List of user defined module names that have
+#                                 been added to the unid map.
+#
+#  CPM_KV_SOURCEDIR_MAP_*       - Map of source directories. This map is cleared
+#                                 everytime CPM is included.
+#                                 Key: User defined name of the module.
+#                                 Value: Source directory.
+#  CPM_KV_LIST_SOURCEDIR_MAP    - List of user defined module names that have
+#                                 been added to the sourcedir map.
+#
 #  CPM_EXPORTED_MODULES         - Used to determine what modules are exported.
 #
 #  CPM_HIERARCHY_LEVEL          - Contains current CPM hierarchy level.
@@ -142,6 +156,10 @@
 #     version of that module throughout our static linkage. This is mandatory
 #     for modules which import code not written as a CPM module. Such as
 #     code built with CMake's ExternalProject.
+#
+#  CPM_GetSourceDir <name> <variable_to_set>
+#
+#     Retrieves the source directory for the module.
 #
 #-------------------------------------------------------------------------------
 # Pre-compute a regex to match documented keywords for each command.
@@ -249,6 +267,22 @@ foreach(_cpm_kvName IN LISTS CPM_KV_LIST_PREPROC_NS_MAP)
 endforeach()
 # Clear out both the list, and the 'for' variable
 set(CPM_KV_LIST_PREPROC_NS_MAP)
+set(_cpm_kvName)
+
+# Clear out the old CPM_KV_UNID_MAP
+foreach(_cpm_kvName IN LISTS CPM_KV_LIST_UNID_MAP)
+  set(CPM_KV_UNID_MAP_${_cpm_kvName})
+endforeach()
+# Clear out both the list, and the 'for' variable
+set(CPM_KV_LIST_UNID_MAP)
+set(_cpm_kvName)
+
+# Clear out the old CPM_KV_SOURCEDIR_MAP
+foreach(_cpm_kvName IN LISTS CPM_KV_LIST_SOURCEDIR_MAP)
+  set(CPM_KV_SOURCEDIR_MAP_${_cpm_kvName})
+endforeach()
+# Clear out both the list, and the 'for' variable
+set(CPM_KV_LIST_SOURCEDIR_MAP)
 set(_cpm_kvName)
 
 set(CPM_ADDITIONAL_INCLUDE_DIRS)
@@ -819,6 +853,19 @@ function(CPM_EnsureRepoIsCurrent)
 endfunction()
 
 
+macro(_cpm_get_base_directory VARIABLE_TO_SET)
+  # Determine base module directory and target directory for module.
+  set(${VARIABLE_TO_SET} "${CPM_DIR_OF_CPM}/modules")
+endmacro()
+
+function(CPM_GetSourceDir name VARIABLE_TO_SET)
+  if (DEFINED CPM_KV_SOURCEDIR_MAP_${name})
+    set(${VARIABLE_TO_SET} CPM_KV_SOURCEDIR_MAP_${name} PARENT_SCOPE)
+  else()
+    message(FATAL_ERROR "${name} is not recognized as a module name")
+  endif()
+endfunction()
+
 # name - Required as this name determines what preprocessor definition will
 #        be generated for this module.
 function(CPM_AddModule name)
@@ -830,7 +877,8 @@ function(CPM_AddModule name)
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
 
   # Determine base module directory and target directory for module.
-  set(__CPM_BASE_MODULE_DIR "${CPM_DIR_OF_CPM}/modules")
+  # This function places its result into __CPM_BASE_MODULE_DIR.
+  _cpm_get_base_directory(__CPM_BASE_MODULE_DIR)
 
   if ((NOT DEFINED _CPM_GIT_REPOSITORY) AND (NOT DEFINED _CPM_SOURCE_DIR))
     message(FATAL_ERROR "CPM: You must specify either a git repository or source directory.")
@@ -876,6 +924,16 @@ function(CPM_AddModule name)
       GIT_TAG         ${__CPM_NEW_GIT_TAG}
       )
   endif(__CPM_USING_GIT)
+
+  # Both of the following Key/Value maps use PARENT_SCOPE directly and do
+  # not need propogation upwards.
+  # Add UNID to lookup table (mostly to assit users in finding source directory).
+  set(CPM_KV_UNID_MAP_${name} ${__CPM_FULL_UNID} PARENT_SCOPE)
+  set(CPM_KV_LIST_UNID_MAP ${CPM_KV_LIST_UNID_MAP} ${name} PARENT_SCOPE)
+
+  # Add source directory.
+  set(CPM_KV_SOURCEDIR_MAP_${name} ${__CPM_MODULE_SOURCE_DIR} PARENT_SCOPE)
+  set(CPM_KV_LIST_SOURCEDIR_MAP ${CPM_KV_LIST_SOURCEDIR_MAP} ${name} PARENT_SCOPE)
 
   # We are either using the git clone or we are using a user supplied source
   # directory. We are ready to set our target variables and proceed with
