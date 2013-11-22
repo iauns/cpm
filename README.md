@@ -69,7 +69,8 @@ Example:
   # ++ EXTERNAL-MODULE: GLM
   CPM_AddModule("glm"
     GIT_REPOSITORY "https://github.com/iauns/cpm-glm"
-    GIT_TAG "0.9.4.6")
+    GIT_TAG "0.9.4.6"
+    USE_EXISTING_VER TRUE)
   
   CPM_Finish()
   
