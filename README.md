@@ -465,8 +465,10 @@ use this. Include a call to ``CPM_ForceOnlyOneModuleVersion`` anywhere in
 your module's CMakeLists.txt file to enforce this. Usually this call is made
 directly after calling ``CPM_InitModule``.
 
-If you do this, you should indicate it in your module's JSON file. It is
-important to separate these modules from 'regular' modules.
+If you do this, you should indicate that your module is an 'external' in your
+module's JSON file. Even if you don't use any external code. It is important
+to separate these modules from 'regular' modules, and the nomenclature we have
+chosen for these types of modules are 'externals'.
 
 FAQ
 ===
