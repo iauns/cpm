@@ -441,16 +441,19 @@ Simply add ``USE_EXISTING_VER TRUE`` in your call to ``CPM_AddModule``. An
 example of this is given above in the section on exposing foreign module
 interfaces.
 
-For example, if a module you added (module `B`) requested version `v0.9.1` of
-module `A`, and you subsequently requested `v0.9.5` of module `A`, then your
-version would be upgraded to `v0.9.5` to comply with the pre-existing version
-of the module. It is considered best practice to set `USE_EXSTING_VER` to
-`TRUE` when using *externals* (not regular modules), especially when building
-modules for others to use.
+For example, if a module you added (lets call this module `B`) requested
+version `v0.9.1` of module `A`, and you subsequently requested `v0.9.5` of
+module `A`, then your version would be upgraded to `v0.9.5` to comply with the
+pre-existing version of the module if you specified `USE_EXISTING_VER TRUE`
+when adding module `A`. It is considered best practice to set
+`USE_EXSTING_VER` to `TRUE` when adding *externals* (not regular modules) to
+your project. Especially when building modules for others to use.
 
-For regular modules, you can consider using this option to reduce the size of
-your executable if multiple different versions of the same module are being
-used. Just be weary of compiler errors due to version conflicts.
+When adding regular non-external modules, you may consider using this
+option to reduce the size of your executable if multiple different versions of
+the same module are being used. Just be weary of compiler errors due to
+version conflicts. In most cases, this option should be avoided when using
+regular, non-external, CPM modules.
 
 Force only one module version
 -----------------------------
@@ -461,6 +464,9 @@ need to worry about this corner case, but it is required that all externals
 use this. Include a call to ``CPM_ForceOnlyOneModuleVersion`` anywhere in
 your module's CMakeLists.txt file to enforce this. Usually this call is made
 directly after calling ``CPM_InitModule``.
+
+If you do this, you should indicate it in your module's JSON file. It is
+important to separate these modules from 'regular' modules.
 
 FAQ
 ===
