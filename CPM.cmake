@@ -49,8 +49,11 @@
 #
 #  CPM_EnsureRepoIsCurrent(
 #    [TARGET_DIR dir]             # Required - Directory to place repository.
-#    [GIT_REPOSITORY repo]        # Required - Git repository to clone and update in TARGET_DIR.
+#    [GIT_REPOSITORY repo]        # Git repository to clone and update in TARGET_DIR.
 #    [GIT_TAG tag]                # Git tag to checkout.
+#    [SVN_REPOSITORY repo]        # SVN repository to checkout.
+#    [SVN_REVISION rev]           # SVN revision.
+#    [SVN_TRUST_CERT 1]           # Trust the Subversion server site certificate
 #    )
 #
 # CPM also adds the following variables to the global namespace for CPM script
@@ -709,9 +712,7 @@ macro(_cpm_obtain_version_from_params parentVar)
   endif()
 endmacro()
 
-function(CPM_EnsureRepoIsCurrent)
-  _cpm_parse_arguments(CPM_EnsureRepoIsCurrent _CPM_REPO_ "${ARGN}")
-
+macro(_cpm_ensure_git_repo_is_current)
   # Tag with a sane default if not present.
   if (DEFINED _CPM_REPO_GIT_TAG)
     set(tag ${_CPM_REPO_GIT_TAG})
@@ -850,8 +851,80 @@ function(CPM_EnsureRepoIsCurrent)
       message("Failed to update submodules in: '${dir}'. Skipping submodule update.")
     endif()
   endif()
-endfunction()
+endmacro()
 
+macro(_cpm_ensure_svn_repo_is_current)
+  # Tag with a sane default if not present.
+  if (DEFINED _CPM_REPO_SVN_REVISION)
+    set(revision ${_CPM_REPO_SVN_REVISION})
+  else()
+    set(revision "HEAD")
+  endif()
+
+  find_package(Subversion)
+  if(NOT Subversion_SVN_EXECUTABLE)
+    message(FATAL_ERROR "error: could not find svn for checkout of ${_CPM_REPO_SVN_REPOSITORY}")
+  endif()
+
+  set(repo ${_CPM_REPO_GIT_REPOSITORY})
+  set(dir ${_CPM_REPO_TARGET_DIR})
+
+  if ((DEFINED _CPM_REPO_SVN_TRUST_CERT) AND (_CPM_REPO_TRUST_CERT))
+    set(trustCert "--trust-server-cert")
+  endif()
+
+  set(svn_user_pw_args "")
+  if((DEFINED _CPM_REPO_SVN_USERNAME) AND (_CPM_REPO_SVN_USERNAME))
+    set(svn_user_pw_args ${svn_user_pw_args} "--username=${_CPM_REPO_SVN_USERNAME}")
+  endif()
+  if((DEFINED _CPM_REPO_SVN_PASSWORD) AND (_CPM_REPO_SVN_PASSWORD))
+    set(svn_user_pw_args ${svn_user_pw_args} "--password=${_CPM_REPO_SVN_PASSWORD}")
+  endif()
+
+  if (NOT EXISTS "${dir}/")
+    message(STATUS "SVN checking out repo (${repo} @ revision ${revision})")
+    set(cmd "${Subversion_SVN_EXECUTABLE} co ${repo} -r ${revision}
+      --non-interactive ${trustCert} ${svn_user_pw_args} ${dir}")
+    execute_process(
+      COMMAND ${cmd}
+      RESULT_VARIABLE result
+      OUTPUT_QUIET
+      ERROR_QUIET)
+    if (result)
+      set(msg "Command failed: ${result}\n")
+      set(msg "${msg} '${cmd}'")
+      message(FATAL_ERROR "${msg}")
+    endif()
+  endif()
+
+  # Update the SVN repo.
+  set(cmd "${Subversion_SVN_EXECUTABLE} up -r ${revision}
+    --non-interactive ${trustCert} ${svn_user_pw_args}")
+  execute_process(
+    COMMAND ${cmd}
+    RESULT_VARIABLE result
+    WORKING_DIRECTORY "${dir}"
+    OUTPUT_QUIET
+    ERROR_QUIET)
+  if (result)
+    set(msg "Command failed: ${result}\n")
+    set(msg "${msg} '${cmd}'")
+    message(FATAL_ERROR "${msg}")
+  endif()
+endmacro()
+
+function(CPM_EnsureRepoIsCurrent)
+  _cpm_parse_arguments(CPM_EnsureRepoIsCurrent _CPM_REPO_ "${ARGN}")
+
+  if (DEFINED _CPM_REPO_GIT_REPOSITORY)
+    _cpm_ensure_git_repo_is_current()
+  elseif(DEFINED _CPM_REPO_SVN_REPOSITORY)
+    _cpm_ensure_svn_repo_is_current()
+  else()
+    message(FATAL_ERROR "CPM_EnsureRepoIsCurrent: You must specify an SVN or GIT repository.")
+  endif()
+
+endfunction()
 
 macro(_cpm_get_base_directory VARIABLE_TO_SET)
   # Determine base module directory and target directory for module.
