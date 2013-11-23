@@ -1120,7 +1120,12 @@ function(CPM_AddModule name)
 
   # Append target to pre-existing libraries.
   if (TARGET ${CPM_TARGET_NAME})
-    set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
+    get_target_property(TARGET_TYPE ${CPM_TARGET_NAME} TYPE)
+    if (("${TARGET_TYPE}" STREQUAL "STATIC_LIBRARY")
+      OR ("${TARGET_TYPE}" STREQUAL "MODULE_LIBRARY")
+      OR ("${TARGET_TYPE}" STREQUAL "SHARED_LIBRARY"))
+      set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
+    endif()
     set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
   else()
     message(STATUS "${name} module did not generate a target. Building custom.")
