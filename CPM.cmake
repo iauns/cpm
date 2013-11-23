@@ -860,7 +860,7 @@ endmacro()
 
 function(CPM_GetSourceDir name VARIABLE_TO_SET)
   if (DEFINED CPM_KV_SOURCEDIR_MAP_${name})
-    set(${VARIABLE_TO_SET} CPM_KV_SOURCEDIR_MAP_${name} PARENT_SCOPE)
+    set(${VARIABLE_TO_SET} ${CPM_KV_SOURCEDIR_MAP_${name}} PARENT_SCOPE)
   else()
     message(FATAL_ERROR "${name} is not recognized as a module name")
   endif()
