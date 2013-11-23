@@ -157,7 +157,7 @@
 #     for modules which import code not written as a CPM module. Such as
 #     code built with CMake's ExternalProject.
 #
-#  CPM_GetSourceDir <name> <variable_to_set>
+#  CPM_GetSourceDir <variable_to_set> <name>
 #
 #     Retrieves the source directory for the module.
 #
@@ -858,7 +858,7 @@ macro(_cpm_get_base_directory VARIABLE_TO_SET)
   set(${VARIABLE_TO_SET} "${CPM_DIR_OF_CPM}/modules")
 endmacro()
 
-function(CPM_GetSourceDir name VARIABLE_TO_SET)
+function(CPM_GetSourceDir VARIABLE_TO_SET name)
   if (DEFINED CPM_KV_SOURCEDIR_MAP_${name})
     set(${VARIABLE_TO_SET} ${CPM_KV_SOURCEDIR_MAP_${name}} PARENT_SCOPE)
   else()
