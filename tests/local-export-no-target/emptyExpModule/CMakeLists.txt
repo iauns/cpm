@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.9)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.7)
 
 #------------------------------------------------------------------------------
 # Custom CPM setup (for tests). See https://github.com/iauns/cpm for real setup
