@@ -1085,7 +1085,7 @@ function(CPM_AddModule name)
 
   set(INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${__CPM_FULL_UNID})
   set(DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${__CPM_FULL_UNID})
-  set(TARGET_LIB_MAP_NAME CPM_KV_TARGET_LIB_MAP_${__CPM_FULL_UNID})
+  set(TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${__CPM_FULL_UNID})
 
   # Save variables that get overwritten by subdirectory.
   set(CPM_PARENT_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS})
@@ -1169,7 +1169,7 @@ function(CPM_AddModule name)
       foreach(module IN LISTS CPM_EXPORTED_MODULES)
         set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
         set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
-        set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_TARGET_LIB_MAP_${module})
+        set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${module})
 
         set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
         set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
@@ -1195,7 +1195,7 @@ function(CPM_AddModule name)
     # Make sure there are entries for us in the include and definition lists.
     set(CPM_KV_LIST_INCLUDE_MAP ${CPM_KV_LIST_INCLUDE_MAP} ${__CPM_FULL_UNID})
     set(CPM_KV_LIST_DEFINITION_MAP ${CPM_KV_LIST_DEFINITION_MAP} ${__CPM_FULL_UNID})
-    set(CPM_KV_LIST_TARGET_LIB_MAP ${CPM_KV_LIST_TARGET_LIB_MAP} ${__CPM_FULL_UNID})
+    set(CPM_KV_LIST_LIB_TARGET_MAP ${CPM_KV_LIST_LIB_TARGET_MAP} ${__CPM_FULL_UNID})
 
   else()
     # Set the name the module is using to setup its namespaces.
@@ -1213,7 +1213,7 @@ function(CPM_AddModule name)
       foreach(module IN LISTS CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
         set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
         set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
-        set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_TARGET_LIB_MAP_${module})
+        set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${module})
 
         set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
         set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
