@@ -1,4 +1,4 @@
-# CPM - CMake Package Manager
+# CPM - Cmake based C++ Package Manager
 #
 # A CMake module for managing external dependencies.
 # CPM can be used to build traditional C/C++ libraries and CPM modules.
@@ -110,6 +110,14 @@
 #                                 associated with an exported module.
 #  CPM_KV_LIST_DEFINITION_MAP   - A list of values in the definition map.
 #
+#  CPM_KV_LIB_TARGET_MAP_*      - A key/value mapping from unique id to
+#                                 additional targets to link against.
+#                                 Key: unique path (with version).
+#                                 Value: List of additional targets.
+#                                 Used to determine the list of additional
+#                                 targets associated with an exported module.
+#  CPM_KV_LIST_LIB_TARGET_MAP   - A list of all key values in the library
+#                                 target map (CPM_KV_LIB_TARGET_MAP_*).
 #  CPM_KV_EXPORT_MAP_*          - A key/value mapping of all exported modules
 #                                 from a module.
 #                                 Key: unique path (with version).
@@ -153,6 +161,14 @@
 #     Use sparingly. Primarily used to expose external project directories
 #     to module consumers.
 #
+#  CPM_ExportAdditionalLibraryTarget <target>
+#
+#     This function is mostly used to avoid having to name targets
+#     per the ${CPM_TARGET_NAME} convention in CPM. For an example of its use
+#     see http://github.com/iauns/cpm-google-test. Google test generates 
+#     its own target name when included as a subdirectory, so we must use
+#     that name.
+#
 #  CPM_ForceOnlyOneModuleVersion
 #
 #     When called from a module, this function ensures that we use only one
@@ -163,6 +179,11 @@
 #  CPM_GetSourceDir <variable_to_set> <name>
 #
 #     Retrieves the source directory for the module.
+#
+#
+#
+# TODO: Consolidate the definitions, includes, and target_lib map lists.
+# TODO: Add ability to patch source directories after we download them.
 #
 #-------------------------------------------------------------------------------
 # Pre-compute a regex to match documented keywords for each command.
@@ -508,6 +529,22 @@ macro(_cpm_propogate_definition_map_up)
   endif()
 endmacro()
 
+# Propogates target library map up.
+macro(_cpm_propogate_target_lib_map_up)
+  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
+  # parent CPM_AddModule function's namespace. CPM_AddModule will
+  # propogate the versioning information up again to it's parent's namespace.
+  if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    foreach(_cpm_kvName IN LISTS CPM_KV_LIST_LIB_TARGET_MAP)
+      set(CPM_KV_LIB_TARGET_MAP_${_cpm_kvName} ${CPM_KV_LIB_TARGET_MAP_${_cpm_kvName}} PARENT_SCOPE)
+    endforeach()
+    set(_cpm_kvName) # Clear kvName
+
+    # Now propogate the list itself upwards.
+    set(CPM_KV_LIST_LIB_TARGET_MAP ${CPM_KV_LIST_LIB_TARGET_MAP} PARENT_SCOPE)
+  endif()
+endmacro()
+
 # Propogates export module map up.
 macro(_cpm_propogate_export_map_up)
   # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
@@ -562,6 +599,7 @@ macro(CPM_InitModule name)
   _cpm_propogate_version_map_up()
   _cpm_propogate_include_map_up()
   _cpm_propogate_definition_map_up()
+  _cpm_propogate_target_lib_map_up()
   _cpm_propogate_export_map_up()
 
   # Setup the module with appropriate definitions and includes.
@@ -627,6 +665,11 @@ endmacro()
 macro(CPM_ExportAdditionalDefinition def)
   set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${def} PARENT_SCOPE)
   set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${def})
+endmacro()
+
+macro(CPM_ExportAdditionalLibraryTarget def)
+  set(CPM_ADDITIONAL_TARGET_LIBS ${CPM_ADDITIONAL_TARGET_LIBS} ${def} PARENT_SCOPE)
+  set(CPM_ADDITIONAL_TARGET_LIBS ${CPM_ADDITIONAL_TARGET_LIBS} ${def})
 endmacro()
 
 # We use this code in multiple places to check that we don't have preprocessor
@@ -1042,6 +1085,7 @@ function(CPM_AddModule name)
 
   set(INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${__CPM_FULL_UNID})
   set(DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${__CPM_FULL_UNID})
+  set(TARGET_LIB_MAP_NAME CPM_KV_TARGET_LIB_MAP_${__CPM_FULL_UNID})
 
   # Save variables that get overwritten by subdirectory.
   set(CPM_PARENT_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS})
@@ -1073,6 +1117,7 @@ function(CPM_AddModule name)
     # Add these additional include directories and definitions to our maps...
     set(${INCLUDE_MAP_NAME} ${CPM_ADDITIONAL_INCLUDE_DIRS})
     set(${DEFINITION_MAP_NAME} ${CPM_ADDITIONAL_DEFINITIONS})
+    set(${TARGET_LIB_MAP_NAME} ${CPM_ADDITIONAL_TARGET_LIBS})
 
     # Parse the arguments once again after adding the subdirectory (since we
     # cleared them all).
@@ -1124,9 +1169,14 @@ function(CPM_AddModule name)
       foreach(module IN LISTS CPM_EXPORTED_MODULES)
         set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
         set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
+        set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_TARGET_LIB_MAP_${module})
 
         set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
         set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
+        set(CPM_LIBRARIES ${CPM_LIBRARIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
+        set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
+        set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
+        set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} PARENT_SCOPE)
 
         # Find what the module named itself, and add that definition to our
         # definitions.
@@ -1145,6 +1195,7 @@ function(CPM_AddModule name)
     # Make sure there are entries for us in the include and definition lists.
     set(CPM_KV_LIST_INCLUDE_MAP ${CPM_KV_LIST_INCLUDE_MAP} ${__CPM_FULL_UNID})
     set(CPM_KV_LIST_DEFINITION_MAP ${CPM_KV_LIST_DEFINITION_MAP} ${__CPM_FULL_UNID})
+    set(CPM_KV_LIST_TARGET_LIB_MAP ${CPM_KV_LIST_TARGET_LIB_MAP} ${__CPM_FULL_UNID})
 
   else()
     # Set the name the module is using to setup its namespaces.
@@ -1162,9 +1213,14 @@ function(CPM_AddModule name)
       foreach(module IN LISTS CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
         set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
         set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
+        set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_TARGET_LIB_MAP_${module})
 
         set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
         set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
+        set(CPM_LIBRARIES ${CPM_LIBRARIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
+        set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
+        set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
+        set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} PARENT_SCOPE)
 
         # Find what the module named itself, and add that definition to our
         # definitions.
@@ -1227,6 +1283,7 @@ function(CPM_AddModule name)
   # Export the rest of the maps for exported modules and the like.
   _cpm_propogate_include_map_up()
   _cpm_propogate_definition_map_up()
+  _cpm_propogate_target_lib_map_up()
   _cpm_propogate_export_map_up()
 
   if (COMMAND CPM_PostModuleExecCallback)
