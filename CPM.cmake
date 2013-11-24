@@ -1114,6 +1114,13 @@ function(CPM_AddModule name)
       set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${CPM_ADDITIONAL_DEFINITIONS})
     endif()
 
+    if(DEFINED CPM_ADDITIONAL_TARGET_LIBS)
+      set(CPM_LIBRARIES ${CPM_LIBRARIES} ${CPM_ADDITIONAL_TARGET_LIBS})
+      set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
+      set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} ${CPM_ADDITIONAL_TARGET_LIBS})
+      set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} PARENT_SCOPE)
+    endif()
+
     # Add these additional include directories and definitions to our maps...
     set(${INCLUDE_MAP_NAME} ${CPM_ADDITIONAL_INCLUDE_DIRS})
     set(${DEFINITION_MAP_NAME} ${CPM_ADDITIONAL_DEFINITIONS})
@@ -1207,6 +1214,17 @@ function(CPM_AddModule name)
     # Lookup the module by full unique ID and pull their definitions and additional include directories.
     if (DEFINED ${INCLUDE_MAP_NAME})
       set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${INCLUDE_MAP_NAME}})
+    endif()
+
+    if (DEFINED ${DEFINITION_MAP_NAME})
+      set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${DEFINITION_MAP_NAME}})
+    endif()
+
+    if(DEFINED ${TARGET_LIB_MAP_NAME})
+      set(CPM_LIBRARIES ${CPM_LIBRARIES} ${${TARGET_LIB_MAP_NAME}})
+      set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
+      set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} ${${TARGET_LIB_MAP_NAME}})
+      set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} PARENT_SCOPE)
     endif()
 
     if (DEFINED CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
