@@ -866,7 +866,7 @@ macro(_cpm_ensure_svn_repo_is_current)
     message(FATAL_ERROR "error: could not find svn for checkout of ${_CPM_REPO_SVN_REPOSITORY}")
   endif()
 
-  set(repo ${_CPM_REPO_GIT_REPOSITORY})
+  set(repo ${_CPM_REPO_SVN_REPOSITORY})
   set(dir ${_CPM_REPO_TARGET_DIR})
 
   if ((DEFINED _CPM_REPO_SVN_TRUST_CERT) AND (_CPM_REPO_TRUST_CERT))
