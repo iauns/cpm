@@ -883,8 +883,8 @@ macro(_cpm_ensure_svn_repo_is_current)
 
   if (NOT EXISTS "${dir}/")
     message(STATUS "SVN checking out repo (${repo} @ revision ${revision})")
-    set(cmd "${Subversion_SVN_EXECUTABLE} co ${repo} -r ${revision}
-      --non-interactive ${trustCert} ${svn_user_pw_args} ${dir}")
+    set(cmd ${Subversion_SVN_EXECUTABLE} co ${repo} -r ${revision}
+      --non-interactive ${trustCert} ${svn_user_pw_args} ${dir})
     execute_process(
       COMMAND ${cmd}
       RESULT_VARIABLE result
@@ -898,8 +898,8 @@ macro(_cpm_ensure_svn_repo_is_current)
   endif()
 
   # Update the SVN repo.
-  set(cmd "${Subversion_SVN_EXECUTABLE} up -r ${revision}
-    --non-interactive ${trustCert} ${svn_user_pw_args}")
+  set(cmd ${Subversion_SVN_EXECUTABLE} up -r ${revision}
+    --non-interactive ${trustCert} ${svn_user_pw_args})
   execute_process(
     COMMAND ${cmd}
     RESULT_VARIABLE result
