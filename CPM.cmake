@@ -1015,7 +1015,9 @@ function(CPM_AddModule name)
 
     set(__CPM_USING_GIT TRUE)
     set(__CPM_PATH_UNID ${_CPM_GIT_REPOSITORY})
+    string(TOLOWER ${__CPM_PATH_UNID} __CPM_PATH_UNID)
     set(__CPM_PATH_UNID_VERSION "${__CPM_NEW_GIT_TAG}")
+    string(TOLOWER ${__CPM_PATH_UNID_VERSION} __CPM_PATH_UNID_VERSION)
   endif()
 
   # Check to see if the source is stored locally.
