@@ -10,8 +10,10 @@ include(../../CPM.cmake)
 CPM_AddModule("module1" SOURCE_DIR "./repoModule1")
 CPM_AddModule("module2" SOURCE_DIR "./repoModule2")
 
+# Purposefully added .git onto the end of this repo name. It will be removed
+# by CPM.
 CPM_AddModule("test_01"
-  GIT_REPOSITORY "https://github.com/iauns/cpm-test"
+  GIT_REPOSITORY "https://github.com/iauns/cpm-test.git"
   GIT_TAG "origin/master")
 
 CPM_Finish()

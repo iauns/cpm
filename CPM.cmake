@@ -1009,6 +1009,10 @@ function(CPM_AddModule name)
   # Check to see if we should use git to download the source.
   set(__CPM_USING_GIT FALSE)
   if (DEFINED _CPM_GIT_REPOSITORY)
+    # Remove the .git extension if it exists. This causes the url to not
+    # be a unique ID in a number of situations.
+    string(REGEX REPLACE "\\.git$" "" _CPM_GIT_REPOSITORY ${_CPM_GIT_REPOSITORY})
+
     set(__CPM_USING_GIT TRUE)
     set(__CPM_PATH_UNID ${_CPM_GIT_REPOSITORY})
     set(__CPM_PATH_UNID_VERSION "${__CPM_NEW_GIT_TAG}")
