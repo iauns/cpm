@@ -480,11 +480,11 @@ Downloading repos without external projects
 -------------------------------------------
 
 CPM provides a utility function that allows you to download repositories at
-configuration time and blocking the CMakeLists.txt execution. This function
-is: `CPM_EnsureRepoIsCurrent` and will also ensure the tag you specify is 
-up to date. You can download both git repositories and SVN repositories using
-this function. For a reference regarding the function's parameters, see the
-comments at the top of CPM.cmake.
+configuration time. This function is: `CPM_EnsureRepoIsCurrent`. This function
+will also ensure the tag you specify is up to date and the repo is present
+before continuing execution of CMakeLists.txt. You can download both git
+repositories and SVN repositories using this function. For a reference
+regarding the function's parameters, see the comments at the top of CPM.cmake.
 
 For examples of using this function, see the
 [google test](https://github.com/iauns/cpm-google-test) CPM external.
