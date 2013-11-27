@@ -92,6 +92,8 @@ Example:
 
 ```
 
+Each module's github webpage will tell you what files to `#include` in your
+project.
 
 Using CPM
 =========
@@ -152,51 +154,40 @@ preprocessor definitions.
 For example, in the 'spire' snippet above, the preprocessor definition
 ``CPM_SPIRE_NS`` would be added to our project. This declares the namepsace
 under which CPM has bound the 'Spire' module. You can access spire's interface
-class through this namespace like so: ``CPM_SPIRE_NS::Interface``. In general
-you will want to rename the namespace to something more appropriate:
-``namespace spire = CPM_SPIRE_NS;``. It has been our experience that building a
-header containing all of your module namespaces is quite useful. Something like
-the following:
+class through this namespace like so: ``CPM_SPIRE_NS::Interface``. You may 
+want to rename the namespace to something more appropriate: ``namespace spire
+= CPM_SPIRE_NS;``. But that's entirely up to you. Depending on your needs,
+using the CPM namespace as-is may be all you need.
 
-```cpp
-  #ifndef __MY_NAMESPACES_H
-  #define __MY_NAMESPACES_H
-
-  // 'Forward declaration' of CPM module namespaces.
-  namespace CPM_SPIRE_NS {}
-  namespace CPM_SPIRE_SCIRUN_NS {}
-  ... (more forward declarations) ...
-  
-  // Renaming the namespaces in our top level namespace.
-  namespace my_namespace {
-    namespace spire     = CPM_SPIRE_NS;
-    namespace spire_sr  = CPM_SPIRE_SCIRUN_NS;
-  }
-
-  #endif
-```
-
-Also be sure to place your calls to `CPM_AddModule` before your call to
+Be sure to place all calls to `CPM_AddModule` before the call to
 `CPM_Finish`. The ``# Include any modules here...`` section mentioned in the
 first snippet indicates where you should place calls to ``CPM_AddModule``.
 
-Remember not to expose your namespaces.h header file in your public interface.
-Use the preprocessor definitions in your public interface. If you absolutely
-must include the namespaces header file in your public interface, then ensure
-you give the include guard for your namespaces header a unique name.
+Includes
+--------
+
+Every module's root directory will be added to your include path. It is common
+that every module's github page describes what file or files you should
+include in your project. The paths to these files will be relative to the
+module's root directory. So you can copy the include directory directly from
+the module's github page into your code. For example, to access Spire's
+functionality we would include its interface header file like so:
+
+```
+#include <spire/Interface.h>
+```
 
 CPM Externals
 -------------
 
-If the library you are interested in isn't a CPM module, try browsing through
+If the library you are interested in isn't a CPM module try browsing through
 the CPM externals listed on http://cpmcpp.com. While you won't be able to
-statically link against multiple versions of the library, you can quickly
-include it if there is already CPM external formula for it. Just use
-`CPM_AddModule` as you would with any other module.
+statically link against multiple versions of an external library, you can
+quickly include it. Just use `CPM_AddModule` as you would with any other
+module.
 
 If you don't find a formula for your favorite library, kindly consider
-contributing one to our CPM externals repository. We're always looking to
-expand these formulae.
+contributing one to our CPM modules repository.
 
 Advantages
 ----------
@@ -509,4 +500,36 @@ My namespace isn't declared but I included its definition!
 
 This is most likely due to use of conflicting header guards. Rename the header
 guard whose namespace is not visible.
+
+
+How do I Manage CPM Namespaces?
+-------------------------------
+
+If the `CPM_<NAME>_NS` namespace declarations are hurting your eyes, it has
+been our experience that building a header that renames all of the module
+namespaces is quite useful. Something akin to the following:
+
+```cpp
+  #ifndef __MY_NAMESPACES_H
+  #define __MY_NAMESPACES_H
+
+  // 'Forward declaration' of CPM module namespaces.
+  namespace CPM_SPIRE_NS {}
+  namespace CPM_SPIRE_SCIRUN_NS {}
+  ... (more forward declarations) ...
+  
+  // Renaming the namespaces in our top level namespace.
+  namespace my_namespace {
+    namespace spire     = CPM_SPIRE_NS;
+    namespace spire_sr  = CPM_SPIRE_SCIRUN_NS;
+  }
+
+  #endif
+```
+
+Remember not to expose your namespaces.h header file in your public interface.
+Use the preprocessor definitions in your public interface. If you absolutely
+must include the namespaces header file in your public interface, then ensure
+you give the include guard for your namespaces header a unique name.
+
 
