@@ -982,6 +982,12 @@ function(CPM_GetSourceDir VARIABLE_TO_SET name)
   endif()
 endfunction()
 
+macro(_cpm_generate_map_names)
+  set(INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${__CPM_FULL_UNID})
+  set(DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${__CPM_FULL_UNID})
+  set(TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${__CPM_FULL_UNID})
+endmacro()
+
 # name - Required as this name determines what preprocessor definition will
 #        be generated for this module.
 function(CPM_AddModule name)
@@ -1069,18 +1075,6 @@ function(CPM_AddModule name)
   # Set target output directories.
   _cpm_set_target_output_dirs(_ep_output_bin_dirs "${__CPM_MODULE_BIN_DIR}")
 
-  # Clear out the arguments so the child instances of CPM don't pick them up.
-  # !!!!! NOTE !!!!!  If you want access to the _CPM arguments after this point,
-  #                   you must reparse them using _cpm_parse_arguments
-  _cpm_clear_arguments(CPM_AddModule _CPM_ "${ARGN}")
-
-  # Clear out other variables we set in the function that may interfer
-  # with further calls to CPM.
-  #set(__CPM_USING_GIT)
-  set(__CPM_BASE_MODULE_DIR)
-  set(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
-  set(__CPM_NEW_GIT_TAG)
-
   if ((DEFINED CPM_SHOW_HIERARCHY) AND (CPM_SHOW_HIERARCHY))
     if(__CPM_USING_GIT)
       _cpm_print_with_hierarchy_level("${name} - GIT - Tag: ${__CPM_NEW_GIT_TAG} - Unid: ${__CPM_FULL_UNID}")
@@ -1088,10 +1082,6 @@ function(CPM_AddModule name)
       _cpm_print_with_hierarchy_level("${name} - Source - Unid: ${__CPM_FULL_UNID}")
     endif()
   endif()
-
-  set(INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${__CPM_FULL_UNID})
-  set(DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${__CPM_FULL_UNID})
-  set(TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${__CPM_FULL_UNID})
 
   # Save variables that get overwritten by subdirectory.
   set(CPM_PARENT_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS})
@@ -1107,8 +1097,21 @@ function(CPM_AddModule name)
     set(CPM_SAVE_EXPORTED_MODULES ${CPM_EXPORTED_MODULES})
     set(CPM_EXPORTED_MODULES)
 
+    # Clear out the arguments so the child instances of CPM don't pick them up.
+    # !!!!! NOTE !!!!!  If you want access to the _CPM arguments after this point,
+    #                   you must reparse them using _cpm_parse_arguments
+    _cpm_clear_arguments(CPM_AddModule _CPM_ "${ARGN}")
+
+    # Clear out other variables we set in the function that may interfer
+    # with further calls to CPM.
+    set(__CPM_BASE_MODULE_DIR)
+    set(CPM_FORCE_ONLY_ONE_MODULE_VERSION)
+    set(__CPM_NEW_GIT_TAG)
+
     # Add the module's code.
     add_subdirectory("${__CPM_MODULE_SOURCE_DIR}" "${__CPM_MODULE_BIN_DIR}")
+
+    _cpm_generate_map_names()
 
     # Add any includes the module wants to expose in the parent's scope.
     if(DEFINED CPM_ADDITIONAL_INCLUDE_DIRS)
@@ -1214,6 +1217,8 @@ function(CPM_AddModule name)
     # Set the name the module is using to setup its namespaces.
     set(CPM_LAST_MODULE_NAME ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}})
 
+    _cpm_generate_map_names()
+
     # Ensure our module's preprocessor definition is present.
     _cpm_check_and_add_preproc(${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
 
@@ -1262,6 +1267,7 @@ function(CPM_AddModule name)
   # If we are exporting this module, be sure the parent knows.
   if ((DEFINED _CPM_EXPORT_MODULE) AND (_CPM_EXPORT_MODULE))
     set(CPM_EXPORTED_MODULES ${CPM_EXPORTED_MODULES} ${__CPM_FULL_UNID} PARENT_SCOPE)
+    set(CPM_EXPORTED_MODULES ${CPM_EXPORTED_MODULES} ${__CPM_FULL_UNID})
 
     # Also be sure to add our module specific name to additional definitions
     # if our name for the module differs from what the module itself used.
