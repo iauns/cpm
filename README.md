@@ -169,7 +169,7 @@ Includes
 Every module's root directory will be added to your include path. It is common
 that every module's github page describes what file or files you should
 include in your project. The paths to these files will be relative to the
-module's root directory. So you can copy the include directory directly from
+module's root directory. So you can copy the include directive directly from
 the module's github page into your code. For example, to access Spire's
 functionality we would include its interface header file like so:
 
