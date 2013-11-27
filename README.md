@@ -479,7 +479,7 @@ chosen for these types of modules are 'externals'.
 FAQ
 ===
 
-Why `add_subdirectory` instead of ExternalProject?
+Why not CMake external projects?
 ------------------------------------------------
 
 CPM was initially built using external projects but the external project
@@ -490,8 +490,8 @@ build sequence, so we couldn't use external projects as-is.
 
 After working on CPM it became clear that ``add_subdirectory`` was the right
 choice. ``add_subdirectory`` allows us to easily enforce configuration
-constraints, such as only allowing one version of a library to be statically
-linked, without needing to read/write to files and use the akward double
+constraints such as only allowing one version of a library to be statically
+linked without needing to read/write to files and use the akward double
 configure and build cycle.
 
 Another advantage of ``add_subdirectory`` is that it include's the module's
@@ -509,12 +509,11 @@ On the command line this would look something like
   cmake -DCPM_SHOW_HIERARCHY=TRUE ...
 ```
 
-My namespace isn't declared but I included its definition!
+A module's namespace isn't declared!
 ----------------------------------------------------------
 
-This is most likely due to use of conflicting header guards. Rename the header
-guard whose namespace is not visible.
-
+If you know for certain the the module's header file has been included, then
+this is most likely due to the use of conflicting header guards.
 
 How do I Manage CPM Namespaces?
 -------------------------------
