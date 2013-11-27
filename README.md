@@ -493,7 +493,7 @@ FAQ
 ===
 
 Why not CMake external projects?
-------------------------------------------------
+--------------------------------
 
 CPM was initially built using external projects but the external project
 mechanism proved to be too restrictive. When using external projects, a
@@ -522,8 +522,26 @@ On the command line this would look something like
   cmake -DCPM_SHOW_HIERARCHY=TRUE ...
 ```
 
+I get errors regarding reused binary directories?
+-------------------------------------------------
+
+If you get errors similar to:
+
+```
+  The binary directory
+
+    /Users/jhughes/me/cpp/cpm/modules/ ... /bin
+
+  is already used to build a source directory.  It cannot be used to build
+  source directory.
+```
+
+This means that there exists a circular module reference which is not allowed
+in CPM. The module graph must not contain cycles. For example, if Module A
+adds Module B, and Module B adds Module A, you will get this error.
+
 A module's namespace isn't declared!
-----------------------------------------------------------
+------------------------------------
 
 If you know for certain the the module's header file has been included, then
 this is most likely due to the use of conflicting header guards.

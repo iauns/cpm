@@ -990,8 +990,17 @@ endmacro()
 
 # This recursive function will ensure all modules, including modules exported
 # by the target module, are exported to the current level.
-macro(_cpm_handle_exports_for_module recUNID)
+macro(_cpm_handle_exports_for_module_rec recUNID)
   if (DEFINED CPM_KV_EXPORT_MAP_${recUNID})
+    # Search _CPM_REC_MOD_VAR to ensure we haven't attempted to export recUNID
+    # before.
+    foreach(existingExport IN LISTS _CPM_REC_MOD_VAR)
+      if (${existingExport} STREQUAL ${recUNID})
+        message("Conflicting circular UNID: ${recUNID}")
+        message(FATAL_ERROR "CPM circular export references. Stopping build.")
+      endif()
+    endforeach()
+    # Export all necessary includes, definitions, and targets.
     foreach(module IN LISTS CPM_KV_EXPORT_MAP_${recUNID})
       set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
       set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
@@ -1013,10 +1022,27 @@ macro(_cpm_handle_exports_for_module recUNID)
         message(FATAL_ERROR "Logic error: All exported modules must be in the source map.")
       endif()
 
+      # Ensure we don't attempt to handle exports for a module we've already
+      # covered.
+      set(_CPM_SAVE_REC_MOD_VAR_${recUNID} ${_CPM_REC_MOD_VAR})
+      set(_CPM_REC_MOD_VAR ${_CPM_REC_MOD_VAR} ${recUNID})
+
       # Recurse into the module we exported.
       _cpm_handle_exports_for_module(${module})
+
+      # Remove our item from the list. We don't care if our module is added
+      # in different parts of the hierarchy. We only care about circular
+      # references.
+      set(_CPM_REC_MOD_VAR ${_CPM_SAVE_REC_MOD_VAR_${recUNID}})
+      set(_CPM_SAVE_REC_MOD_VAR_${recUNID})
     endforeach()
   endif()
+endmacro()
+
+macro(_cpm_handle_exports_for_module recUNID)
+  set(_CPM_REC_MOD_VAR)
+  _cpm_handle_exports_for_module_rec(${recUNID})
+  set(_CPM_REC_MOD_VAR)
 endmacro()
 
 # name - Required as this name determines what preprocessor definition will
