@@ -988,6 +988,37 @@ macro(_cpm_generate_map_names)
   set(TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${__CPM_FULL_UNID})
 endmacro()
 
+# This recursive function will ensure all modules, including modules exported
+# by the target module, are exported to the current level.
+macro(_cpm_handle_exports_for_module recUNID)
+  if (DEFINED CPM_KV_EXPORT_MAP_${recUNID})
+    foreach(module IN LISTS CPM_KV_EXPORT_MAP_${recUNID})
+      set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
+      set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
+      set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${module})
+
+      set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
+      set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
+      set(CPM_LIBRARIES ${CPM_LIBRARIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
+      set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
+      set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
+      set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} PARENT_SCOPE)
+
+      # Find what the module named itself, and add that definition to our
+      # definitions.
+      if (DEFINED CPM_KV_SOURCE_ADDED_MAP_${module})
+        set(module_specified_name ${CPM_KV_SOURCE_ADDED_MAP_${module}})
+        _cpm_check_and_add_preproc(${module_specified_name} ${module})
+      else()
+        message(FATAL_ERROR "Logic error: All exported modules must be in the source map.")
+      endif()
+
+      # Recurse into the module we exported.
+      _cpm_handle_exports_for_module(${module})
+    endforeach()
+  endif()
+endmacro()
+
 # name - Required as this name determines what preprocessor definition will
 #        be generated for this module.
 function(CPM_AddModule name)
@@ -1179,31 +1210,35 @@ function(CPM_AddModule name)
     # Add ${__CPM_MODULE_SOURCE_DIR} to our include directory map.
     set(${INCLUDE_MAP_NAME} ${${INCLUDE_MAP_NAME}} "${__CPM_MODULE_SOURCE_DIR}")
 
-    # Check to see if the module exported any of its modules. If so, then export each
-    # of the exported modules into our parents includes / definitions.
-    if (DEFINED CPM_EXPORTED_MODULES)
-      foreach(module IN LISTS CPM_EXPORTED_MODULES)
-        set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
-        set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
-        set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${module})
+    # Our exports should have been added to the appropriate map in our scope.
+    # So we ignore CPM_EXPORTED_MODULES (which should not be placed in our
+    # scope by the modules).
+    _cpm_handle_exports_for_module(${__CPM_FULL_UNID})
+    ## Check to see if the module exported any of its modules. If so, then export each
+    ## of the exported modules into our parents includes / definitions.
+    #if (DEFINED CPM_EXPORTED_MODULES)
+    #  foreach(module IN LISTS CPM_EXPORTED_MODULES)
+    #    set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
+    #    set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
+    #    set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${module})
 
-        set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
-        set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
-        set(CPM_LIBRARIES ${CPM_LIBRARIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
-        set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
-        set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
-        set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} PARENT_SCOPE)
+    #    set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
+    #    set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
+    #    set(CPM_LIBRARIES ${CPM_LIBRARIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
+    #    set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
+    #    set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
+    #    set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} PARENT_SCOPE)
 
-        # Find what the module named itself, and add that definition to our
-        # definitions.
-        if (DEFINED CPM_KV_SOURCE_ADDED_MAP_${module})
-          set(module_specified_name ${CPM_KV_SOURCE_ADDED_MAP_${module}})
-          _cpm_check_and_add_preproc(${module_specified_name} ${module})
-        else()
-          message(FATAL_ERROR "Logic error: All exported modules must be in the source map: ${module}")
-        endif()
-      endforeach()
-    endif()
+    #    # Find what the module named itself, and add that definition to our
+    #    # definitions.
+    #    if (DEFINED CPM_KV_SOURCE_ADDED_MAP_${module})
+    #      set(module_specified_name ${CPM_KV_SOURCE_ADDED_MAP_${module}})
+    #      _cpm_check_and_add_preproc(${module_specified_name} ${module})
+    #    else()
+    #      message(FATAL_ERROR "Logic error: All exported modules must be in the source map: ${module}")
+    #    endif()
+    #  endforeach()
+    #endif()
 
     # Reset the exported modules to its value before we made the add_subdirectory call.
     set(CPM_EXPORTED_MODULES ${CPM_SAVE_EXPORTED_MODULES})
@@ -1238,29 +1273,30 @@ function(CPM_AddModule name)
       set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} PARENT_SCOPE)
     endif()
 
-    if (DEFINED CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
-      foreach(module IN LISTS CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
-        set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
-        set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
-        set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${module})
+    _cpm_handle_exports_for_module(${__CPM_FULL_UNID})
+    #if (DEFINED CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
+    #  foreach(module IN LISTS CPM_KV_EXPORT_MAP_${__CPM_FULL_UNID})
+    #    set(IMPORT_INCLUDE_MAP_NAME    CPM_KV_INCLUDE_MAP_${module})
+    #    set(IMPORT_DEFINITION_MAP_NAME CPM_KV_DEFINITION_MAP_${module})
+    #    set(IMPORT_TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${module})
 
-        set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
-        set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
-        set(CPM_LIBRARIES ${CPM_LIBRARIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
-        set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
-        set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
-        set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} PARENT_SCOPE)
+    #    set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} ${${IMPORT_INCLUDE_MAP_NAME}})
+    #    set(CPM_DEFINITIONS ${CPM_DEFINITIONS} ${${IMPORT_DEFINITION_MAP_NAME}})
+    #    set(CPM_LIBRARIES ${CPM_LIBRARIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
+    #    set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
+    #    set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} ${${IMPORT_TARGET_LIB_MAP_NAME}})
+    #    set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} PARENT_SCOPE)
 
-        # Find what the module named itself, and add that definition to our
-        # definitions.
-        if (DEFINED CPM_KV_SOURCE_ADDED_MAP_${module})
-          set(module_specified_name ${CPM_KV_SOURCE_ADDED_MAP_${module}})
-          _cpm_check_and_add_preproc(${module_specified_name} ${module})
-        else()
-          message(FATAL_ERROR "Logic error: All exported modules must be in the source map.")
-        endif()
-      endforeach()
-    endif()
+    #    # Find what the module named itself, and add that definition to our
+    #    # definitions.
+    #    if (DEFINED CPM_KV_SOURCE_ADDED_MAP_${module})
+    #      set(module_specified_name ${CPM_KV_SOURCE_ADDED_MAP_${module}})
+    #      _cpm_check_and_add_preproc(${module_specified_name} ${module})
+    #    else()
+    #      message(FATAL_ERROR "Logic error: All exported modules must be in the source map.")
+    #    endif()
+    #  endforeach()
+    #endif()
 
   endif()
 
