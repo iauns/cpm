@@ -180,7 +180,7 @@ functionality we would include its interface header file like so:
 CPM Externals
 -------------
 
-If the library you are interested in isn't a CPM module try browsing through
+If the library you are interested in isn't a CPM module, try browsing through
 the CPM externals listed on http://cpmcpp.com. While you won't be able to
 statically link against multiple versions of an external library, you can
 quickly include it. Just use `CPM_AddModule` as you would with any other
@@ -366,6 +366,20 @@ the consumer. Use the function ``CPM_ExportAdditionalDefinition``, like below:
 ```
   CPM_ExportAdditionalDefinition("-DMONGO_HAVE_STDINT")
 ```
+
+Targets
+-------
+
+If you have additional targets, or don't want to use the target name that
+CPM generates for you, you can use the `CPM_ExportAdditionalLibraryTarget`
+function that comes with CPM.
+
+```
+  CPM_ExportAdditionaLibraryTarget("MyTargetName")
+```
+
+This target will be added to the `target_link_libraries` call issued by the
+consumer of your module.
 
 Registering Your Module
 -----------------------
