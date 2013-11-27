@@ -476,6 +476,18 @@ module's JSON file. Even if you don't use any external code. It is important
 to separate these modules from 'regular' modules, and the nomenclature we have
 chosen for these types of modules are 'externals'.
 
+Downloading repos without external projects
+-------------------------------------------
+
+CPM provides a utility function that allows you to download repositories at
+configuration time and blocking the CMakeLists.txt execution. This function
+is: `CPM_EnsureRepoIsCurrent`. You can download git repositories and SVN
+repositories using this function. For a reference regarding the function's
+parameters, see the comments at the top of CPM.cmake.
+
+For examples of using this function, see the
+[google test](https://github.com/iauns/cpm-google-test) CPM external.
+
 FAQ
 ===
 
