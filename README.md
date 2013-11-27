@@ -522,8 +522,8 @@ On the command line this would look something like
   cmake -DCPM_SHOW_HIERARCHY=TRUE ...
 ```
 
-I get errors regarding reused binary directories?
--------------------------------------------------
+I get errors regarding reused binary directories
+------------------------------------------------
 
 If you get errors similar to:
 
