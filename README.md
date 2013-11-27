@@ -15,8 +15,9 @@ C++. To explore the ecosystem head on over to the CPM website:
 http://cpmcpp.org (or http://cmakepm.org).
 
 Using CPM, you can also manage C or C++ libraries that do not use CPM. A number
-of what we call 'external' modules are already in the cpm-modules repository.
-These modules abstract away the details of writing a CMake external project for
+of what we call 'external' modules are already in the
+[cpm-modules](https://github.com/iauns/cpm-modules.git) repository.  These
+modules abstract away the details of writing a CMake external project for
 you. Just be aware that you cannot statically link against multiple different
 versions of these external modules because they are not built as CPM modules.
 Although the changes necessary to convert a code base to a CPM module are
