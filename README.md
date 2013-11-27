@@ -420,9 +420,9 @@ Below are some common issues users encounter and solutions to them.
 Exposing foreign module interfaces
 ----------------------------------
 
-Some modules require the ability to expose classes from other included modules.
-This is allowed by tagging the module that you plan on exporting with
-``EXPORT_MODULE TRUE`` just like:
+Some modules require the ability to expose classes from other modules through
+public headers. This is allowed by tagging the module that you plan on
+exporting with ``EXPORT_MODULE TRUE`` just like:
 
 ```
   CPM_AddModule("GLM"
