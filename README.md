@@ -412,8 +412,8 @@ cpm-modules JSON file by adding the 'external' key/value pair. The key being
 'external' and the value being be a URL locating the repository for which you
 have created this external. 
 
-Common Issues
-=============
+Miscellaneous Issues and Questions
+==================================
 
 Below are some common issues users encounter and solutions to them.
 
@@ -488,9 +488,6 @@ regarding the function's parameters, see the comments at the top of CPM.cmake.
 
 For examples of using this function, see the
 [google test](https://github.com/iauns/cpm-google-test) CPM external.
-
-FAQ
-===
 
 Why not CMake external projects?
 --------------------------------
