@@ -22,16 +22,24 @@
 #
 # Add module function reference:
 #  CPM_AddModule(<name>           # Required - Module target name.
-#    [SOURCE_DIR dir]             # Uses 'dir' as the source directory as opposed to downloading.
 #    [GIT_TAG tag]                # Git tag to checkout when repository is downloaded. Tags, shas, and branches all work.
 #    [GIT_REPOSITORY repo]        # Git repository to fetch source data from.
 #    [USE_EXISTING_VER truth]     # If set to true then the module will attempt to use a pre-existing version of the module.
-#    [PREPROCESSOR_POSTFIX post]  # Adds "_${PREPROCESSOR_POSTFIX}" onto all C preprocessor definitions.
+#    [SOURCE_DIR dir]             # Uses 'dir' as the source directory as opposed to downloading.
+#    [SOURCE_GHOST_GIT_REPO repo] # Ghost repository when using SOURCE_DIR.
+#    [SOURCE_GHOST_GIT_TAG tag]   # Ghost git tag when using SOURCE_DIR.
 #    [EXPORT_MODULE truth]        # If true, then the module's definitions and includes will be exported to the parent.
 #    )
 #
-# Define CPM_SHOW_HIERARCHY to see all modules and their dependencies in
-# a hierarchical fashion. The output from defining this is usually best viewed
+# When using SOURCE_DIR, SOURCE_GHOST_GIT_REPO and SOURCE_GHOST_GIT_TAG are used
+# only when generating unique identifiers for the module. In this way, you can
+# use GHOST repositories and tags to ensure CPM generates consistent unique IDs.
+# For an example of using these parameters (mostly in testing), see
+# https://github.com/SCIInstitute/spire. Particularly the batch renderer's
+# CMakeLists.txt file.
+#
+# Define CPM_SHOW_HIERARCHY to see all modules and their dependencies in a
+# hierarchical fashion. The output from defining this is usually best viewed
 # after all of the modules have cloned their source.
 #
 # Many settings are automatically applied for modules. Setting SOURCE_DIR is
@@ -1086,9 +1094,24 @@ function(CPM_AddModule name)
   # Check to see if the source is stored locally.
   if (DEFINED _CPM_SOURCE_DIR)
     get_filename_component(tmp_src_dir ${_CPM_SOURCE_DIR} ABSOLUTE)
-    set(__CPM_PATH_UNID ${tmp_src_dir})
-    set(__CPM_PATH_UNID_VERSION "")
+
+    if (DEFINED _CPM_SOURCE_GHOST_GIT_REPO)
+      set (source_ghost_tag)
+      if (DEFINED _CPM_SOURCE_GHOST_GIT_TAG)
+        set (source_ghost_tag ${_CPM_SOURCE_GHOST_GIT_TAG})
+      else()
+        set (source_ghost_tag "origin/master")
+      endif()
+      string(REGEX REPLACE "\\.git$" "" _CPM_SOURCE_GHOST_GIT_REPO ${_CPM_SOURCE_GHOST_GIT_REPO})
+      set(__CPM_PATH_UNID ${_CPM_SOURCE_GHOST_GIT_REPO})
+      set(__CPM_PATH_UNID_VERSION ${source_ghost_tag})
+    else()
+      set(__CPM_PATH_UNID ${tmp_src_dir})
+      set(__CPM_PATH_UNID_VERSION "")
+    endif()
     set(__CPM_MODULE_SOURCE_DIR "${tmp_src_dir}")
+    message("Source dir: ${tmp_src_dir}")
+    message("Source dir2: ${_CPM_SOURCE_DIR}")
   endif()
 
   # Cunstruct full UNID
