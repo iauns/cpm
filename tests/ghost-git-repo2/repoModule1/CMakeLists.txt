@@ -17,7 +17,8 @@ endif()
 CPM_AddModule("test_01"
   GIT_REPOSITORY "https://github.com/iauns/cpm-test"
   GIT_TAG "v0.1"
-  EXPORT_MODULE TRUE)
+  EXPORT_MODULE TRUE
+  USE_EXISTING_VER TRUE)
 
 CPM_InitModule(${CPM_MODULE_NAME})
 
