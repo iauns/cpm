@@ -1110,8 +1110,6 @@ function(CPM_AddModule name)
       set(__CPM_PATH_UNID_VERSION "")
     endif()
     set(__CPM_MODULE_SOURCE_DIR "${tmp_src_dir}")
-    message("Source dir: ${tmp_src_dir}")
-    message("Source dir2: ${_CPM_SOURCE_DIR}")
   endif()
 
   # Cunstruct full UNID
