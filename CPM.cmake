@@ -756,6 +756,11 @@ macro(_cpm_obtain_version_from_params parentVar)
         set(${parentVar} ${CPM_KV_MOD_VERSION_MAP_${__CPM_TMP_VAR}})
       endif()
       set(__CPM_TMP_VAR)
+    #elseif(DEFINED _CPM_SOURCE_DIR)
+      # TODO: Make case for this when ghost repository is set.
+      # I'm not sure there is much more to this case...
+      # The system will generate a unique ID from our ghost data and realize
+      # that our component has already been included and use that instead.
     endif()
   endif()
 
@@ -1108,9 +1113,6 @@ function(CPM_AddModule name)
   # Check to see if the source is stored locally.
   if (DEFINED _CPM_SOURCE_DIR)
     get_filename_component(tmp_src_dir ${_CPM_SOURCE_DIR} ABSOLUTE)
-    if ((DEFINED _CPM_USE_EXISTING_VER) AND (_CPM_USE_EXISTING_VER))
-      message(FATAL_ERROR "CPM does not allow you to use existing versions if you use SOURCE_DIR.")
-    endif()
 
     if (DEFINED _CPM_SOURCE_GHOST_GIT_REPO)
       set (source_ghost_tag)
@@ -1147,13 +1149,17 @@ function(CPM_AddModule name)
 
   if (__CPM_USING_GIT)
     set(__CPM_MODULE_SOURCE_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_FULL_UNID}/src")
-    # Download the code if it doesn't already exist. Otherwise make sure
-    # the code is updated (on the latest branch or tag).
-    CPM_EnsureRepoIsCurrent(
-      TARGET_DIR      ${__CPM_MODULE_SOURCE_DIR}
-      GIT_REPOSITORY  ${_CPM_GIT_REPOSITORY}
-      GIT_TAG         ${__CPM_NEW_GIT_TAG}
-      )
+    # Do not attempt to download the source if we have already processed
+    # this unique ID. This is for a corner case involving USE_EXISTING_VER.
+    if (NOT DEFINED CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID})
+      # Download the code if it doesn't already exist. Otherwise make sure
+      # the code is updated (on the latest branch or tag).
+      CPM_EnsureRepoIsCurrent(
+        TARGET_DIR      ${__CPM_MODULE_SOURCE_DIR}
+        GIT_REPOSITORY  ${_CPM_GIT_REPOSITORY}
+        GIT_TAG         ${__CPM_NEW_GIT_TAG}
+        )
+    endif()
   endif(__CPM_USING_GIT)
 
   # Both of the following Key/Value maps use PARENT_SCOPE directly and do
