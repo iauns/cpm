@@ -1122,11 +1122,19 @@ function(CPM_AddModule name)
       string(REGEX REPLACE "\\.git$" "" _CPM_SOURCE_GHOST_GIT_REPO ${_CPM_SOURCE_GHOST_GIT_REPO})
       set(__CPM_PATH_UNID ${_CPM_SOURCE_GHOST_GIT_REPO})
       set(__CPM_PATH_UNID_VERSION ${source_ghost_tag})
+
+      # Ensure all lower case. This string is used when testing preprocessor
+      # name collisions.
+      string(TOLOWER ${__CPM_PATH_UNID} __CPM_PATH_UNID)
+      string(TOLOWER ${__CPM_PATH_UNID_VERSION} __CPM_PATH_UNID_VERSION)
     else()
       set(__CPM_PATH_UNID ${tmp_src_dir})
       set(__CPM_PATH_UNID_VERSION "")
+
+      string(TOLOWER ${__CPM_PATH_UNID} __CPM_PATH_UNID)
     endif()
     set(__CPM_MODULE_SOURCE_DIR "${tmp_src_dir}")
+
   endif()
 
   # Cunstruct full UNID
