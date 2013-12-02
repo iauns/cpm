@@ -10,7 +10,7 @@ include(../../CPM.cmake)
 set(source_dir "./v01")
 CPM_AddModule("test_01"
   SOURCE_DIR ${source_dir}
-  SOURCE_GHOST_GIT_REPO "https://github.com/iauns/cpm-test"
+  SOURCE_GHOST_GIT_REPO "https://github.com/iauns/CPM-test"
   SOURCE_GHOST_GIT_TAG "v0.1")
 
 CPM_AddModule("module1" SOURCE_DIR "./repoModule1")
