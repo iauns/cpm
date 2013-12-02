@@ -126,11 +126,22 @@
 #                                 targets associated with an exported module.
 #  CPM_KV_LIST_LIB_TARGET_MAP   - A list of all key values in the library
 #                                 target map (CPM_KV_LIB_TARGET_MAP_*).
+#  CPM_KV_FORWARD_DECL_MAP_*    - A key/value mapping of unique id to forward
+#                                 declaration pairs. This map is also used
+#                                 during the export module process to determine
+#                                 what the module was named by the exporter
+#                                 module.
+#                                 Key: unique path (with version)
+#                                 Value: Pairs consisting of the following:
+#                                        (unique_id_for_fwd_decl, new_name).
+#  CPM_KV_LIST_FORWARD_DECL_MAP - A list of entries in CPM_KV_FORWARD_DECL_MAP.
+#
 #  CPM_KV_EXPORT_MAP_*          - A key/value mapping of all exported modules
 #                                 from a module.
 #                                 Key: unique path (with version).
-#                                 Value: A list of modules that have been exported.
-#                                        in particular, their unique ids with version.
+#                                 Value: A list of modules that have been 
+#                                        exported. In particular, this value is
+#                                        their full unique id.
 #  CPM_KV_LIST_EXPORT_MAP       - List of values from exported module map.
 #
 #  CPM_KV_UNID_MAP_*            - Map of full unique IDs. This map is cleared
@@ -497,9 +508,6 @@ endmacro()
 
 # Propogates the list of directories we have sourced upwards.
 macro(_cpm_propogate_source_added_map_up)
-  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
-  # parent CPM_AddModule function's namespace. CPM_AddModule will
-  # propogate the versioning information up again to it's parent's namespace.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_SOURCE_ADDED_MAP)
       set(CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName} ${CPM_KV_SOURCE_ADDED_MAP_${_cpm_kvName}} PARENT_SCOPE)
@@ -513,9 +521,6 @@ endmacro()
 
 # Propogates include map up.
 macro(_cpm_propogate_include_map_up)
-  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
-  # parent CPM_AddModule function's namespace. CPM_AddModule will
-  # propogate the versioning information up again to it's parent's namespace.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_INCLUDE_MAP)
       set(CPM_KV_INCLUDE_MAP_${_cpm_kvName} ${CPM_KV_INCLUDE_MAP_${_cpm_kvName}} PARENT_SCOPE)
@@ -529,9 +534,6 @@ endmacro()
 
 # Propogates definition map up.
 macro(_cpm_propogate_definition_map_up)
-  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
-  # parent CPM_AddModule function's namespace. CPM_AddModule will
-  # propogate the versioning information up again to it's parent's namespace.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_DEFINITION_MAP)
       set(CPM_KV_DEFINITION_MAP_${_cpm_kvName} ${CPM_KV_DEFINITION_MAP_${_cpm_kvName}} PARENT_SCOPE)
@@ -543,11 +545,21 @@ macro(_cpm_propogate_definition_map_up)
   endif()
 endmacro()
 
+# Propogates forward declaration map up.
+macro(_cpm_propogate_forward_decl_map_up)
+  if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    foreach(_cpm_kvName IN LISTS CPM_KV_LIST_FORWARD_DECL_MAP)
+      set(CPM_KV_FORWARD_DECL_MAP_${_cpm_kvName} ${CPM_KV_FORWARD_DECL_MAP_${_cpm_kvName}} PARENT_SCOPE)
+    endforeach()
+    set(_cpm_kvName) # Clear kvName
+
+    # Now propogate the list itself upwards.
+    set(CPM_KV_LIST_FORWARD_DECL_MAP ${CPM_KV_LIST_FORWARD_DECL_MAP} PARENT_SCOPE)
+  endif()
+endmacro()
+
 # Propogates target library map up.
 macro(_cpm_propogate_target_lib_map_up)
-  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
-  # parent CPM_AddModule function's namespace. CPM_AddModule will
-  # propogate the versioning information up again to it's parent's namespace.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_LIB_TARGET_MAP)
       set(CPM_KV_LIB_TARGET_MAP_${_cpm_kvName} ${CPM_KV_LIB_TARGET_MAP_${_cpm_kvName}} PARENT_SCOPE)
@@ -561,9 +573,6 @@ endmacro()
 
 # Propogates export module map up.
 macro(_cpm_propogate_export_map_up)
-  # Use CPM_KV_LIST_MOD_VERSION_MAP to propogate constraints up into the
-  # parent CPM_AddModule function's namespace. CPM_AddModule will
-  # propogate the versioning information up again to it's parent's namespace.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
     foreach(_cpm_kvName IN LISTS CPM_KV_LIST_EXPORT_MAP)
       set(CPM_KV_EXPORT_MAP_${_cpm_kvName} ${CPM_KV_EXPORT_MAP_${_cpm_kvName}} PARENT_SCOPE)
@@ -615,6 +624,7 @@ macro(CPM_InitModule name)
   _cpm_propogate_definition_map_up()
   _cpm_propogate_target_lib_map_up()
   _cpm_propogate_export_map_up()
+  _cpm_propogate_forward_decl_map_up()
 
   # Setup the module with appropriate definitions and includes.
   # We can do this because we are not in a new scope; instead, we are in a macro
@@ -1045,6 +1055,10 @@ macro(_cpm_handle_exports_for_module_rec recUNID)
         message(FATAL_ERROR "Logic error: All exported modules must be in the source map.")
       endif()
 
+      # TODO: Add forward declarations for the module. All forward declarations
+      #       should add another preprocessor element to the
+      #       _cpm_check_and_add_preproc function.
+
       # Ensure we don't attempt to handle exports for a module we've already
       # covered.
       set(_CPM_SAVE_REC_MOD_VAR_${recUNID} ${_CPM_REC_MOD_VAR})
@@ -1380,6 +1394,7 @@ function(CPM_AddModule name)
   _cpm_propogate_definition_map_up()
   _cpm_propogate_target_lib_map_up()
   _cpm_propogate_export_map_up()
+  _cpm_propogate_forward_decl_map_up()
 
   if (COMMAND CPM_PostModuleExecCallback)
     CPM_PostModuleExecCallback()
