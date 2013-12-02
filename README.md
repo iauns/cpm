@@ -177,6 +177,13 @@ functionality we would include its interface header file like so:
 #include <spire/Interface.h>
 ```
 
+Compiler Flags
+--------------
+
+If you have compiler flags you wish to apply to all modules, then add them
+directly before the CPM section. Since each module uses `add_subdirectory`
+they will inherit your compiler flags.
+
 CPM Externals
 -------------
 
