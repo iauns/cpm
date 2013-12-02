@@ -264,6 +264,12 @@ if(NOT GIT_FOUND)
   message(FATAL_ERROR "CPM requires Git.")
 endif()
 
+macro(_cpm_debug_log debug)
+  if ((DEFINED _CPM_DEBUG_LOG) AND (_CPM_DEBUG_LOG))
+    message("== ${debug}")
+  endif()
+endmacro()
+
 # Record where this list file is located. We pass this directory into our
 # modules so they can also include SpirePM.
 # We do NOT want to access CMAKE_CURRENT_LIST_DIR from a function invokation.
@@ -1060,6 +1066,10 @@ endmacro()
 # name - Required as this name determines what preprocessor definition will
 #        be generated for this module.
 function(CPM_AddModule name)
+
+  _cpm_debug_log("Beginning module: ${name}")
+  _cpm_debug_log("Hierarchy level: ${CPM_HIERARCHY_LEVEL}")
+
   # Increase the hierarchy level by 1. Mandatory for propogate calls to work
   # at the top level.
   math(EXPR CPM_HIERARCHY_LEVEL "${CPM_HIERARCHY_LEVEL}+1")
@@ -1360,5 +1370,8 @@ function(CPM_AddModule name)
   if (COMMAND CPM_PostModuleExecCallback)
     CPM_PostModuleExecCallback()
   endif()
+
+  _cpm_debug_log("Ending module: ${name}")
+
 endfunction()
 
