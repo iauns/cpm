@@ -28,7 +28,8 @@
 #    [SOURCE_DIR dir]             # Uses 'dir' as the source directory as opposed to downloading.
 #    [SOURCE_GHOST_GIT_REPO repo] # Ghost repository when using SOURCE_DIR.
 #    [SOURCE_GHOST_GIT_TAG tag]   # Ghost git tag when using SOURCE_DIR.
-#    [EXPORT_MODULE truth]        # If true, then the module's definitions and includes will be exported to the parent.
+#    [EXPORT_MODULE truth]        # If true, then the module's definitions and includes will be exported to the consumer.
+#    [FORWARD_DECLARE truth]      # If true, then only the module's preprocessor definition (that the <name> argument above is used to generate) is exported to the consumer of the module. This is useful for situations where you only need to forward declare a module's classes in your interface classes and not actually include any of the target module's interface headers. This is preferred over EXPORT_MODULE as it is much lighter.
 #    )
 #
 # When using SOURCE_DIR, SOURCE_GHOST_GIT_REPO and SOURCE_GHOST_GIT_TAG are used
@@ -296,6 +297,10 @@ set(CPM_INCLUDE_DIRS)
 
 # Clear out exported modules from the parent.
 set(CPM_EXPORTED_MODULES)
+
+# Ensure we add an entry in the forward declaration map list for ourselves
+# (even if we don't even add a forward declaration).
+set(CPM_KV_LIST_FORWARD_DECL_MAP ${CPM_KV_LIST_FORWARD_DECL_MAP} ${CPM_UNIQUE_ID})
 
 # Increment the module hierarchy level if it exists.
 if (NOT DEFINED CPM_HIERARCHY_LEVEL)
@@ -1021,6 +1026,22 @@ macro(_cpm_generate_map_names)
   set(TARGET_LIB_MAP_NAME CPM_KV_LIB_TARGET_MAP_${__CPM_FULL_UNID})
 endmacro()
 
+macro(_cpm_apply_forward_declarations moduleUNID)
+  if (DEFINED CPM_KV_FORWARD_DECL_MAP_${moduleUNID})
+    set(fwd_decl_unid)
+    foreach(item IN LISTS CPM_KV_FORWARD_DECL_MAP_${moduleUNID})
+      if (DEFINED fwd_decl_unid)
+        set(module_specified_name ${item})
+        _cpm_check_and_add_preproc(${module_specified_name} ${fwd_decl_unid})
+        set(fwd_decl_unid)
+      else()
+        # The unid's module name is coming up next.
+        set(fwd_decl_unid ${item})
+      endif()
+    endforeach()
+  endif()
+endmacro()
+
 # This recursive function will ensure all modules, including modules exported
 # by the target module, are exported to the current level.
 macro(_cpm_handle_exports_for_module_rec recUNID)
@@ -1055,9 +1076,10 @@ macro(_cpm_handle_exports_for_module_rec recUNID)
         message(FATAL_ERROR "Logic error: All exported modules must be in the source map.")
       endif()
 
-      # TODO: Add forward declarations for the module. All forward declarations
-      #       should add another preprocessor element to the
-      #       _cpm_check_and_add_preproc function.
+      # Apply the forward declarations being used. There is always one forward
+      # declaration in use for the parents of exported modules: one is required
+      # for the name that the parent module gave the exported module.
+      _cpm_apply_forward_declarations(${module})
 
       # Ensure we don't attempt to handle exports for a module we've already
       # covered.
@@ -1177,12 +1199,13 @@ function(CPM_AddModule name)
   endif(__CPM_USING_GIT)
 
   # Both of the following Key/Value maps use PARENT_SCOPE directly and do
-  # not need propogation upwards.
-  # Add UNID to lookup table (mostly to assit users in finding source directory).
+  # not need propagation upwards.
+  # Add UNID to lookup table (mostly to assist users in finding source directory).
   set(CPM_KV_UNID_MAP_${name} ${__CPM_FULL_UNID} PARENT_SCOPE)
   set(CPM_KV_LIST_UNID_MAP ${CPM_KV_LIST_UNID_MAP} ${name} PARENT_SCOPE)
 
-  # Add source directory.
+  # Add source directory. This is only used for looking up source directories
+  # given the user's name for the module.
   set(CPM_KV_SOURCEDIR_MAP_${name} ${__CPM_MODULE_SOURCE_DIR} PARENT_SCOPE)
   set(CPM_KV_LIST_SOURCEDIR_MAP ${CPM_KV_LIST_SOURCEDIR_MAP} ${name} PARENT_SCOPE)
 
@@ -1191,6 +1214,9 @@ function(CPM_AddModule name)
   # the add subdirectory.
 
   # Set variables CPM will use inside of the library target.
+  if (DEFINED CPM_UNIQUE_ID)
+    set(CPM_SAVED_PARENT_UNIQUE_ID ${CPM_UNIQUE_ID})
+  endif()
   set(CPM_UNIQUE_ID ${__CPM_FULL_UNID})
   set(CPM_TARGET_NAME "${__CPM_FULL_UNID}")
   set(CPM_DIR ${CPM_DIR_OF_CPM})
@@ -1344,17 +1370,24 @@ function(CPM_AddModule name)
 
   endif()
 
+  # Build forward declarations.
+  if (DEFINED CPM_SAVED_PARENT_UNIQUE_ID)
+    if (((DEFINED _CPM_FORWARD_DECLARE) AND (_CPM_FORWARD_DECLARE)) OR ((DEFINED _CPM_EXPORT_MODULE) AND (_CPM_EXPORT_MODULE)))
+      # Populate our parent's forward decl map with the name they have
+      # chosen for us. Remember, this is a map of pairs.
+      set(map_name CPM_KV_FORWARD_DECL_MAP_${CPM_SAVED_PARENT_UNIQUE_ID})
+      set(${map_name} ${${map_name}} ${__CPM_FULL_UNID})
+      set(${map_name} ${${map_name}} ${name})
+    endif()
+  endif()
+
+  # Apply forward declarations for the module.
+  _cpm_apply_forward_declarations(${__CPM_FULL_UNID})
+
   # If we are exporting this module, be sure the parent knows.
   if ((DEFINED _CPM_EXPORT_MODULE) AND (_CPM_EXPORT_MODULE))
     set(CPM_EXPORTED_MODULES ${CPM_EXPORTED_MODULES} ${__CPM_FULL_UNID} PARENT_SCOPE)
     set(CPM_EXPORTED_MODULES ${CPM_EXPORTED_MODULES} ${__CPM_FULL_UNID})
-
-    # Also be sure to add our module specific name to additional definitions
-    # if our name for the module differs from what the module itself used.
-    if (NOT ${name} STREQUAL ${CPM_LAST_MODULE_NAME})
-      _cpm_build_preproc_name(${name} __CPM_LAST_MODULE_PREPROC)
-      set(CPM_ADDITIONAL_DEFINITIONS ${CPM_PARENT_ADDITIONAL_DEFINITIONS} "-D${__CPM_LAST_MODULE_PREPROC}=${__CPM_FULL_UNID}" PARENT_SCOPE)
-    endif()
   endif()
 
   # Append target to pre-existing libraries.
