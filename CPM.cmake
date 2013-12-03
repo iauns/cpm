@@ -29,7 +29,7 @@
 #    [SOURCE_GHOST_GIT_REPO repo] # Ghost repository when using SOURCE_DIR.
 #    [SOURCE_GHOST_GIT_TAG tag]   # Ghost git tag when using SOURCE_DIR.
 #    [EXPORT_MODULE truth]        # If true, then the module's definitions and includes will be exported to the consumer.
-#    [FORWARD_DECLARE truth]      # If true, then only the module's preprocessor definition (that the <name> argument above is used to generate) is exported to the consumer of the module. This is useful for situations where you only need to forward declare a module's classes in your interface classes and not actually include any of the target module's interface headers. This is preferred over EXPORT_MODULE as it is much lighter.
+#    [FORWARD_DECLARATION truth]  # If true, then only the module's preprocessor definition (that the <name> argument above is used to generate) is exported to the consumer of the module. This is useful for situations where you only need to forward declare a module's classes in your interface classes and not actually include any of the target module's interface headers. This is preferred over EXPORT_MODULE as it is much lighter.
 #    )
 #
 # When using SOURCE_DIR, SOURCE_GHOST_GIT_REPO and SOURCE_GHOST_GIT_TAG are used
@@ -1372,7 +1372,8 @@ function(CPM_AddModule name)
 
   # Build forward declarations.
   if (DEFINED CPM_SAVED_PARENT_UNIQUE_ID)
-    if (((DEFINED _CPM_FORWARD_DECLARE) AND (_CPM_FORWARD_DECLARE)) OR ((DEFINED _CPM_EXPORT_MODULE) AND (_CPM_EXPORT_MODULE)))
+    if (((DEFINED _CPM_FORWARD_DECLARATION) AND (_CPM_FORWARD_DECLARATION)) OR
+        ((DEFINED _CPM_EXPORT_MODULE) AND (_CPM_EXPORT_MODULE)))
       # Populate our parent's forward decl map with the name they have
       # chosen for us. Remember, this is a map of pairs.
       set(map_name CPM_KV_FORWARD_DECL_MAP_${CPM_SAVED_PARENT_UNIQUE_ID})
