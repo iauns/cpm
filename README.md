@@ -557,7 +557,7 @@ There are a number of options here. You could rename the `CPM_<NAME>_NS` at
 the top of your implementation files:
 
 ```cpp
-namespace spire = CPM_SPIRE_NS;
+namespace Spire = CPM_SPIRE_NS;
 ```
 
 Or you can build a header that renames all of the module namespaces for you.
@@ -574,8 +574,8 @@ Something akin to the following:
   
   // Renaming the namespaces in our top level namespace.
   namespace my_namespace {
-    namespace spire     = CPM_SPIRE_NS;
-    namespace spire_sr  = CPM_SPIRE_SCIRUN_NS;
+    namespace Spire     = CPM_SPIRE_NS;
+    namespace SpireSR   = CPM_SPIRE_SCIRUN_NS;
   }
 
   #endif
