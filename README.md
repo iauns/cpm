@@ -553,9 +553,15 @@ this is most likely due to the use of conflicting header guards.
 How do I Manage CPM Namespaces?
 -------------------------------
 
-If the `CPM_<NAME>_NS` namespace declarations are hurting your eyes, it has
-been our experience that building a header that renames all of the module
-namespaces is quite useful. Something akin to the following:
+There are a number of options here. You could rename the `CPM_<NAME>_NS` at
+the top of your implementation files:
+
+```cpp
+namespace spire = CPM_SPIRE_NS;
+```
+
+Or you can build a header that renames all of the module namespaces for you.
+Something akin to the following:
 
 ```cpp
   #ifndef __MY_NAMESPACES_H
@@ -575,9 +581,8 @@ namespaces is quite useful. Something akin to the following:
   #endif
 ```
 
-Remember not to expose your namespaces.h header file in your public interface.
-Use the preprocessor definitions in your public interface. If you absolutely
-must include the namespaces header file in your public interface, then ensure
-you give the include guard for your namespaces header a unique name.
-
+Be careful with the latter header based approach since there are some
+pitfalls. For example, the increased possibility of header guard confilcts
+and namespace conflicts. In general, renaming the namespace at the source
+level is the recommended way to go.
 
