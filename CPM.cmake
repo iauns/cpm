@@ -742,7 +742,7 @@ function(_cpm_print_with_hierarchy_level msg)
       set(spacing "${spacing}  ")
       math( EXPR number "${number} + 1" ) # decrement number
     endwhile()
-    message("${spacing}| ${CPM_HIERARCHY_LEVEL} - ${msg}")
+    message("${spacing}| ${msg}")
   else()
     message(msg)
   endif()
