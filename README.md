@@ -196,6 +196,17 @@ module.
 If you don't find a formula for your favorite library, kindly consider
 contributing one to our CPM modules repository.
 
+Tag Advice
+----------
+
+While it may be tempting to use the `origin/master` tag to track the most
+recent changes to a module, it is not recommended. Using version tags of a
+module (such as `1.0.2`) and upgrading modules when necessary will save you
+time in the long run. If you track `origin/master` and upstream decides to
+release a major new version which includes significant API changes, then your
+builds will likely break immediately. However, if you use versioned tags, then
+you will maintain your build integrity even through upstream version upgrades.
+
 Advantages
 ----------
 
