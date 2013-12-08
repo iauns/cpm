@@ -526,6 +526,9 @@ On the command line this would look something like
   cmake -DCPM_SHOW_HIERARCHY=TRUE ...
 ```
 
+It is best to run this command after you have successfully built your project
+so the output is not muddied by status messages.
+
 I get errors regarding reused binary directories
 ------------------------------------------------
 
