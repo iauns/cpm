@@ -736,13 +736,13 @@ endmacro()
 function(_cpm_print_with_hierarchy_level msg)
   # while ${number} is between 0 and 11
   if (DEFINED CPM_HIERARCHY_LEVEL)
-    set(number 0)
+    set(number 1)
     set(spacing "  ")
     while( number GREATER 0 AND number LESS ${CPM_HIERARCHY_LEVEL} )
       set(spacing "${spacing}  ")
-      math( EXPR number "${number} - 1" ) # decrement number
+      math( EXPR number "${number} + 1" ) # decrement number
     endwhile()
-    message("${spacing}| ${msg}")
+    message("${spacing}| ${CPM_HIERARCHY_LEVEL} - ${msg}")
   else()
     message(msg)
   endif()
