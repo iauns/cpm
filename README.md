@@ -3,38 +3,63 @@ CPM
 
 [![Build Status](https://travis-ci.org/iauns/cpm.png)](https://travis-ci.org/iauns/cpm)
 
-C++ Package Manager based on CMake.
+A C++ Package Manager based on CMake.
 
-CPM is designed to save you time and promote small, well-tested, and composable
-C++ modules. It allows you to link against multiple different versions of the
-same static library so that you can include other C++ modules that may depend
-on older or newer versions of the same modules you are using. CPM will also
-automatically download and build these C++ modules for you. CPM's goal is to
-help support the growth of a "do one thing and do it well" module ecosystem in
-C++. To explore the ecosystem head on over to the CPM website:
-http://cpmcpp.org (or http://cmakepm.org).
+CPM is designed to promote small, well-tested, and composable C++ modules. It
+allows you to link against multiple different versions of the same statically
+linked library / module so that you can include other C++ modules that may
+depend on older or newer versions of the same modules you are using. CPM will
+automatically download and build these C++ modules for you. To explore CPM's
+ecosystem head over to the CPM website: http://cpmcpp.org (or
+http://cmakepm.org).
 
-Using CPM, you can also manage C or C++ libraries that do not use CPM. A number
-of what we call 'external' modules are already in the
+You can also manage C or C++ libraries that do not use CPM. A number of
+'external' modules are already in the
 [cpm-modules](https://github.com/iauns/cpm-modules.git) repository.  These
-modules abstract away the details of writing a CMake external project for
-you. Just be aware that you cannot statically link against multiple different
-versions of these external modules because they are not built as CPM modules.
-Although the changes necessary to convert a code base to a CPM module are
-minor mostly dealing with namespace names.
+modules abstract away the details of downloading, building, and linking
+against various projects. Just be aware that you cannot statically link
+against multiple different versions of these 'external' modules because they
+are not built as CPM modules.
 
-Below is a simple example of a CMakeLists.txt file that uses 3 different
-modules. The modules are a simple OpenGL wrapper library name Spire, MongoDB's
-C library, and G-truc's GLSL vector math library. See the next section for a
-full explanation of how to use CPM and work with the namespaces it creates.
-Example:
+**Table of Contents**
+
+- [Brief Example](#brief-example)
+- [Using CPM](#using-cpm)
+  - [Quick Setup](#quick-setup)
+  - [Includes](#includes)
+  - [Compiler Flags](#compiler-flags)
+  - [CPM Externals](#cpm-externals)
+  - [Tag Advice](#tag-advice)
+  - [Advantages](#advantages)
+  - [Limitations](#limitations)
+- [Building CPM Modules](#building-cpm-modules)
+  - [CMakeLists.txt Entry](#cmakeliststxt-entry)
+  - [Library target name](#library-target-name)
+  - [Wrapping Namespace](#wrapping-namespace)
+  - [Directory Structure](#directory-structure)
+  - [Include Path](#include-path)
+  - [Definitions](#definitions)
+  - [Targets](#targets)
+  - [Registering Your Module](#registering-your-module)
+  - [Building Externals](#building-externals)
+- [CPM Function Reference](#cpm-function-reference)
+- [Miscellaneous Issues and Questions](#miscellaneous-issues-and-questions)
+
+Brief Example
+=============
+
+Below is a sample of a CMakeLists.txt file that uses 4 modules. The modules
+are a module to include platform specific OpenGL headers, an OpenGL wrapper
+module named Spire, MongoDB's legacy C library, and G-truc's GLSL vector math
+library. See the next section for a full explanation of how to use CPM and
+work with the namespaces it creates.  Example:
 
 ```cmake
-  cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)
+  cmake_minimum_required(VERSION 2.8.7 FATAL_ERROR)
   project(Viewer)
   
   #------------------------------------------------------------------------------
-  # CPM Setup - See: http://github.com/iauns/cpm
+  # Required CPM Setup - no need to modify - See: https://github.com/iauns/cpm
   #------------------------------------------------------------------------------
   set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm_packages" CACHE TYPE STRING)
   find_package(Git)
@@ -54,23 +79,28 @@ Example:
   include(${CPM_DIR}/CPM.cmake)
 
   #------------------------------------------------------------------------------
-  # Add CPM Modules
+  # CPM Modules
   #------------------------------------------------------------------------------
   
+  # ++ MODULE: OpenGL platform
+  CPM_AddModule("gl_platform"
+    GIT_REPOSITORY "https://github.com/iauns/cpm-gl-platform"
+    GIT_TAG "1.1.1")
+
   # ++ MODULE: Spire
   CPM_AddModule("spire"
     GIT_REPOSITORY "https://github.com/SCIInstitute/spire"
-    GIT_TAG "v0.7.0")
+    GIT_TAG "0.7.1")
 
   # ++ EXTERNAL-MODULE: MongoDB
-  CPM_AddModule("mongodb"
-    GIT_REPOSITORY "https://github.com/iauns/cpm-mongoc"
-    GIT_TAG "origin/master")
+  CPM_AddModule("mongodb_legacy"
+    GIT_REPOSITORY "https://github.com/iauns/cpm-mongoc-legacy"
+    GIT_TAG "1.0.0")
 
   # ++ EXTERNAL-MODULE: GLM
   CPM_AddModule("glm"
     GIT_REPOSITORY "https://github.com/iauns/cpm-glm"
-    GIT_TAG "0.9.4.6"
+    GIT_TAG "1.0.1"
     USE_EXISTING_VER TRUE)
   
   CPM_Finish()
@@ -92,25 +122,20 @@ Example:
 
 ```
 
-Each module's github webpage will tell you what files to `#include` in your
-project.
-
 Using CPM
 =========
 
-To use CPM in your C++ project include the following at the top of your
+Quick Setup
+-----------
+
+To use CPM in your C++ project, include the following at the top of your
 CMakeLists.txt:
 
 ```cmake
   #------------------------------------------------------------------------------
-  # Required CPM Setup - See: http://github.com/iauns/cpm
+  # Required CPM Setup - no need to modify - See: https://github.com/iauns/cpm
   #------------------------------------------------------------------------------
-  # You may set CPM_DIR to any path you want. Outside of the binary directory,
-  # or anywhere on your harddrive. Any project that wants to use the same
-  # version of any module can benefit immediately from the built packages.
-  # Just be careful of pre-project settings for modules.
   set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
-  
   find_package(Git)
   if(NOT GIT_FOUND)
     message(FATAL_ERROR "CPM requires Git.")
@@ -127,41 +152,53 @@ CMakeLists.txt:
   endif()
   include(${CPM_DIR}/CPM.cmake)
   
-  # Include any modules and externals here...
+  #------------------------------------------------------------------------------
+  # CPM Modules
+  #------------------------------------------------------------------------------
+
+  # TODO: Include any modules here...
   
   CPM_Finish()
 
 ```
 
-Then add the ``${CPM_LIBRARIES}`` variable to your ``target_link_libraries``.
-That's it. You will be able to start using CPM modules right away by adding
-something like:
+Then add the ``${CPM_LIBRARIES}`` variable to your ``target_link_libraries``
+similar to the following:
 
 ```cmake
-  CPM_AddModule("spire"
-    GIT_REPOSITORY "https://github.com/SCIInstitute/spire"
-    GIT_TAG "v0.7.0")
+target_link_libraries(my_project ${CPM_LIBRARIES}) 
 ```
 
-This snippet will automatically download, build, and link version 0.7.0 of a
-thin OpenGL client named Spire. A new namespace is generated for 'spire' and a
-preprocessor definition for this namespace is automatically added to your
-project. The namespace preprocessor definition always follows the form
-"``CPM_<NAME>_NS``" where ``<NAME>`` is the first argument of your call to
-``CPM_AddModule``. The name is always capitalized before being added to your
-preprocessor definitions.
+And you're done. You will be able to start using CPM modules right away by
+adding the following snippet the the CPM Modules section of your
+CMakeLists.txt:
 
-For example, in the 'spire' snippet above, the preprocessor definition
-``CPM_SPIRE_NS`` would be added to our project. This declares the namepsace
-under which CPM has bound the 'Spire' module. You can access spire's interface
-class through this namespace like so: ``CPM_SPIRE_NS::Interface``. You may 
-want to rename the namespace to something more appropriate: ``namespace spire
-= CPM_SPIRE_NS;``. But that's entirely up to you. Depending on your needs,
-using the CPM namespace as-is may be all you need.
+```cmake
+  CPM_AddModule("aabb"
+    GIT_REPOSITORY "https://github.com/iauns/cpm-glm-aabb"
+    GIT_TAG "1.0.2")
+```
 
-Be sure to place all calls to `CPM_AddModule` before the call to
-`CPM_Finish`. The ``# Include any modules here...`` section mentioned in the
-first snippet indicates where you should place calls to ``CPM_AddModule``.
+This snippet will automatically download, build, and link version 1.0.2 of a
+simple axis aligned bounding box implementation named `aabb`. A new namespace
+is generated for `aabb` and a preprocessor definition for this namespace is
+automatically added to your project. The preprocessor namespace definition
+always follows the form ``CPM_<NAME>_NS`` where ``<NAME>`` is the capitalized
+first argument of your call to ``CPM_AddModule``.
+
+For example, in the 'aabb' snippet above, the first argument to
+`CPM_AddModule` was "aabb" so the preprocessor definition ``CPM_AABB_NS``
+would be added to our project. This declares the namepsace under which CPM has
+bound the 'aabb' module. For instance, aabb's only class is named `AABB`. So
+the fully qualified name for the `AABB` class would be: `CPM_AABB_NS::AABB`.
+You may want to rename the namespace to something more appropriate:
+``namespace glm_aabb = CPM_AABB_NS;``. But that's entirely up to you.
+Depending on your needs, using the CPM namespace as-is may be all you need.
+
+Be sure to place all calls to `CPM_AddModule` before your call to
+`CPM_Finish`. The ``# TODO: Include any modules here...``
+section mentioned in the first snippet indicates where you should place calls
+to ``CPM_AddModule``.
 
 Includes
 --------
@@ -181,17 +218,18 @@ Compiler Flags
 --------------
 
 If you have compiler flags you wish to apply to all modules, then add them
-directly before the CPM section. Since each module uses `add_subdirectory`
-they will inherit your compiler flags.
+directly before the CPM section in your CMakeListst.txt. Since each call to
+`CPM_AddModule` uses `add_subdirectory` internally, every module will inherit
+your compiler flags (for good or bad).
 
 CPM Externals
 -------------
 
 If the library you are interested in isn't a CPM module, try browsing through
-the CPM externals listed on http://cpmcpp.com. While you won't be able to
-statically link against multiple versions of an external library, you can
-quickly include it. Just use `CPM_AddModule` as you would with any other
-module.
+the CPM externals listed on http://cpmcpp.com. Just use `CPM_AddModule` as you
+would with any other module. Note that you will likely want to use the
+`USE_EXISTING_VER` parameter to `CPM_AddModule` in conjunction with external
+modules.
 
 If you don't find a formula for your favorite library, kindly consider
 contributing one to our CPM modules repository.
@@ -200,29 +238,28 @@ Tag Advice
 ----------
 
 While it may be tempting to use the `origin/master` tag to track the most
-recent changes to a module, it is not recommended. Using version tags of a
+recent changes to a module, it is not recommended. Using version tags for a
 module (such as `1.0.2`) and upgrading modules when necessary will save you
 time in the long run. If you track `origin/master` and upstream decides to
-release a major new version which includes significant API changes, then your
-builds will likely break immediately. However, if you use versioned tags, then
-you will maintain your build integrity even through upstream version upgrades.
+release a major version which includes significant API changes then your
+builds will likely break immediately. But if versioned tags are used, you
+will maintain your build integrity even through upstream version upgrades.
 
 Advantages
 ----------
 
-* Automatically manages code retrieval and the building of CPM modules and externals.
+* Automatically manages code retrieval and building of CPM modules and externals.
 * Allows the use of multiple different versions of the same statically linked
   module in the same executable.
 * Built entirely in CMake. Nothing else is required.
-* Encourages small well-tested and composable code modules.
 * All CPM module code will be included in any generated project solution.
-* Will automatically detect naming conflicts based on the names you assign 
-  modules.
+* Will automatically detect preprocessor naming conflicts.
 
 Limitations
 -----------
 
-* Only supports git.
+* Only supports git (with very limited support for SVN).
+
 
 Building CPM Modules
 ====================
@@ -306,18 +343,21 @@ Here is an example class that demonstrates the namespace wrapping:
 Library target name
 -------------------
 
-If you used the code snippet above be sure that your generated library target
+If you used the code snippet above make sure that your generated library target
 name is `${CPM_LIB_TARGET_NAME}`. This will ensure your library target name 
-matches with what CPM is expecting.
+matches with what CPM is expecting. But, if you can't name your target
+`${CPM_LIB_TARGET_NAME}` for any reason, use `CPM_ExportAdditionalLibraryTarget`
+instead in order name your target whatever you would like. See the function
+reference below.
 
 Wrapping Namespace
 ------------------
 
-CPM allows multiple different versions of the same module to be used in the
-same static linkage unit. As such, when you are building a module for CPM (not
-when you are using CPM modules!), you should either surround your top-level
-namespaces in `CPM_[module name]_NS` tags or use `CPM_[module name]_NS` as your top
-level namespace, like so:
+CPM allows multiple different versions of the same module to be statically
+linked into the same target . As such, when you are building a module for CPM
+(not when you are using CPM modules!), you should either surround your
+top-level namespaces in `CPM_[module name]_NS` tags or use `CPM_[module
+name]_NS` as your top level namespace, like so:
 
 ```cpp
   namespace CPM_[module name]_NS {
@@ -429,6 +469,12 @@ In addition to this, you should reference the original repository in your
 cpm-modules JSON file by adding the 'external' key/value pair. The key being
 'external' and the value being be a URL locating the repository for which you
 have created this external. 
+
+CPM Function Reference
+======================
+
+All functions that CPM exposes in CMake are listed below, except for
+`CPM_AddModule` which is explained above.
 
 Miscellaneous Issues and Questions
 ==================================
