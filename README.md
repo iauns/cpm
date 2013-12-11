@@ -364,15 +364,8 @@ your call to `CPM_AddModule`. The first argument given to `CPM_InitModule` becom
 ``[module name]`` in your application.
 
 Note that this is *not* required but it is *heavily* recommended when you are
-building CPM modules. If you want your users to be able to use multiple
-versions of your module within the same static linkage unit you must include
-this.
-
-Why would you want to let users utilize multiple versions of your module?
-Users won't know that they are actually using multiple different versions of
-your module. A more recent version of your module may be included by the user
-and an older version of your module may be pulled in as a dependency of
-another module the user is relying on.
+building CPM modules. You must include this if you want your users to be able
+to use multiple versions of your module within the same static linkage unit.
 
 Directory Structure
 -------------------
