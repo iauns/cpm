@@ -195,6 +195,16 @@ Be sure to place all calls to `CPM_AddModule` before your call to
 section mentioned in the first snippet indicates where you should place calls
 to ``CPM_AddModule``.
 
+Why even bother with these preprocessor namespace definitions? The reason is
+so that we can leverage multiple different versions of a single CPM module in
+the same static linkage unit. Why would we want to let users utilize multiple
+versions of our module in the first place? In many cases, users won't know
+that they are actually using multiple different versions of your module. For
+example, a more recent version of your module may be included directly by the
+user, but an older version of your module may be pulled in as a dependency of
+another module the user is relying on. If you're interested, you can see CPM's
+[dependency graph](#dependency-hierarchy) for your project.
+
 Things To Note
 --------------
 
@@ -651,6 +661,7 @@ regarding the function's parameters, see the comments at the top of CPM.cmake.
 For examples of using this function, see the
 [google test](https://github.com/iauns/cpm-google-test) CPM external.
 
+<a name="dependency-hierarchy"></a>
 How do I see the module dependency hierarchy?
 ---------------------------------------------
 
