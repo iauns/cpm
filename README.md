@@ -26,23 +26,18 @@ are not built as CPM modules.
 - [Brief Example](#brief-example)
 - [Using CPM](#using-cpm)
   - [Quick Setup](#quick-setup)
-  - [Includes](#includes)
-  - [Compiler Flags](#compiler-flags)
-  - [CPM Externals](#cpm-externals)
-  - [Tag Advice](#tag-advice)
-  - [Advantages](#advantages)
-  - [Limitations](#limitations)
+  - [Things to Note](#things-to-note)
 - [Building CPM Modules](#building-cpm-modules)
   - [CMakeLists.txt Entry](#cmakeliststxt-entry)
   - [Library target name](#library-target-name)
   - [Wrapping Namespace](#wrapping-namespace)
   - [Directory Structure](#directory-structure)
-  - [Include Path](#include-path)
-  - [Definitions](#definitions)
-  - [Targets](#targets)
+  - [Exporting Build Info](#exporting-build-info)
   - [Registering Your Module](#registering-your-module)
   - [Building Externals](#building-externals)
 - [CPM Function Reference](#cpm-function-reference)
+  - [General Purpose](#general-purpose)
+  - [Modules Only](#modules-only)
 - [Miscellaneous Issues and Questions](#miscellaneous-issues-and-questions)
 
 Brief Example
@@ -200,8 +195,10 @@ Be sure to place all calls to `CPM_AddModule` before your call to
 section mentioned in the first snippet indicates where you should place calls
 to ``CPM_AddModule``.
 
-Includes
---------
+Things To Note
+--------------
+
+### Includes
 
 Every module's root directory will be added to your include path. It is common
 that every module's github page describes what file or files you should
@@ -214,16 +211,14 @@ functionality we would include its interface header file like so:
 #include <spire/Interface.h>
 ```
 
-Compiler Flags
---------------
+### Compiler Flags
 
 If you have compiler flags you wish to apply to all modules, then add them
 directly before the CPM section in your CMakeListst.txt. Since each call to
 `CPM_AddModule` uses `add_subdirectory` internally, every module will inherit
 your compiler flags (for good or bad).
 
-CPM Externals
--------------
+### CPM Externals
 
 If the library you are interested in isn't a CPM module, try browsing through
 the CPM externals listed on http://cpmcpp.com. Just use `CPM_AddModule` as you
@@ -234,8 +229,7 @@ modules.
 If you don't find a formula for your favorite library, kindly consider
 contributing one to our CPM modules repository.
 
-Tag Advice
-----------
+### Tag Advice
 
 While it may be tempting to use the `origin/master` tag to track the most
 recent changes to a module, it is not recommended. Using version tags for a
@@ -245,8 +239,7 @@ release a major version which includes significant API changes then your
 builds will likely break immediately. But if versioned tags are used, you
 will maintain your build integrity even through upstream version upgrades.
 
-Advantages
-----------
+### Advantages
 
 * Automatically manages code retrieval and building of CPM modules and externals.
 * Allows the use of multiple different versions of the same statically linked
@@ -255,8 +248,7 @@ Advantages
 * All CPM module code will be included in any generated project solution.
 * Will automatically detect preprocessor naming conflicts.
 
-Limitations
------------
+### Limitations
 
 * Only supports git (with very limited support for SVN).
 
@@ -403,9 +395,10 @@ Using this structure users would include your public headers using:
 ```
   #include <[module name]/interface.h>
 ```
+Exporting Build Info
+--------------------
 
-Include Path
-------------
+### Include Paths
 
 By default, the root of your project is added to the include path. If you need
 to expose more directories to the consumer of your module use the
@@ -415,8 +408,7 @@ consumer's include path. The first and only argument to
 path. Be sure to clearly document any changes you make to the include path in
 your module's README.
 
-Definitions
------------
+### Definitions
 
 Just as with the include paths above you can set preprocessor definitions for
 the consumer. Use the function ``CPM_ExportAdditionalDefinition``, like below:
@@ -425,8 +417,7 @@ the consumer. Use the function ``CPM_ExportAdditionalDefinition``, like below:
   CPM_ExportAdditionalDefinition("-DMONGO_HAVE_STDINT")
 ```
 
-Targets
--------
+### Targets
 
 If you have additional targets, or don't want to use the target name that
 CPM generates for you, you can use the `CPM_ExportAdditionalLibraryTarget`
@@ -473,8 +464,122 @@ have created this external.
 CPM Function Reference
 ======================
 
-All functions that CPM exposes in CMake are listed below, except for
-`CPM_AddModule` which is explained above.
+All CMake functions that CPM exposes are listed below.
+
+General Purpose
+---------------
+
+### CPM_AddModule
+
+Adds a CPM module to your project. All arguments except `<name>` are optional.
+Additionally, one of either the `GIT_REPOSITORY` or `SOURCE_DIR` arguments
+must be present in your call to `CPM_AddModule`. Should be called before
+either CPM_Finish or CPM_InitModule
+
+```cmake
+  CPM_AddModule(<name>           # Required - Module target name. Used to generate your 
+                                 # preprocessor definition.
+    [GIT_REPOSITORY repo]        # Git repository that corresponds to a CPM module.
+                                 # If this argument is not specfied, then SOURCE_DIR must be set.
+    [GIT_TAG tag]                # Git tag to checkout. Tags, shas, and branches all work.
+    [USE_EXISTING_VER truth]     # If set to true, and an existing version of this module is 
+                                 # found then the existing version of this module is used
+                                 # instead of the version indicated by GIT_TAG.
+    [SOURCE_DIR dir]             # Uses 'dir' as the source directory instead of cloning
+                                 # from a repo. If this is not specified, then 
+                                 # GIT_REPOSITORY must be specified.
+    [SOURCE_GHOST_GIT_REPO repo] # Ghost repository when using SOURCE_DIR.
+                                 # Used to correctly correlate SOURCE_DIR modules with their 
+                                 # correct upstream repository.
+    [SOURCE_GHOST_GIT_TAG tag]   # Ghost git tag when using SOURCE_DIR.
+    [EXPORT_MODULE truth]        # If true, then this module's (<name>) definitions and includes
+                                 # will be exported to any consumer of your module.
+    [FORWARD_DECLARATION truth]  # If true, then only the module's preprocessor definition 
+                                 # (that the <name> argument above is used to generate) 
+                                 # is exported to the consumer of the module. This is useful 
+                                 # for situations where you only need to forward declare a 
+                                 # module's classes in your interface classes and not actually 
+                                 # include the target module's interface headers. This is 
+                                 # preferred over EXPORT_MODULE.
+    )
+```
+
+### CPM_EnsureRepoIsCurrent
+
+A utility function that allows you to download and ensure that some repository
+is up to date and present on the filesystem before proceeding forward with
+CMakeLists.txt processing. Useful for building CPM externals. You can use this
+function outside of any call to CPM_Finish or CPM_InitModule
+
+```cmake
+  CPM_EnsureRepoIsCurrent(
+    [TARGET_DIR dir]             # Required - Directory in which to place repository.
+    [GIT_REPOSITORY repo]        # Git repository to clone and keep up to date.
+    [GIT_TAG tag]                # Git tag to checkout.
+    [SVN_REPOSITORY repo]        # SVN repository to checkout.
+    [SVN_REVISION rev]           # SVN revision.
+    [SVN_TRUST_CERT 1]           # Trust the Subversion server site certificate
+    )
+```
+
+### CPM_Finish
+
+This function is for the top-level application only. Call when you are
+finished issuing calls to `CPM_AddModule`.
+
+```cmake
+CPM_Finish()
+```
+
+Modules Only
+------------
+
+The functions listed in this section are used exclusively for constructing
+modules. If you use one of these functions in non-module code, a CMake warning
+will be generated and the function call will be ignored.
+
+### CPM_InitModule
+
+This function is the module's counterpart to `CPM_Finish`. Call this to
+indicate to CPM that you have finished issuing calls to `CPM_AddModule`.
+The only argument indicates the name of the module. This name will only be
+used for generating the preprocessor definition you should use for your
+module.
+
+```cmake
+CPM_Finish("my_module")
+```
+
+### CPM_ExportAdditionalDefinition
+
+When building modules, this exports an additional definition in the module
+consumer's scope. Use sparingly. Primarily used to expose mandatory external
+project definitions.
+
+```cmake
+CPM_ExportAdditionalDefinition("-DMY_DEFINITION=42")
+```
+
+### CPM_ExportAdditionalIncludeDir
+
+Exposes an additional include directory to the consumer of a module.
+Use sparingly. Primarily used to expose external project directories
+to module consumers.
+
+```cmake
+CPM_ExportAdditionalIncludeDir("./foo/bar")
+```
+
+### CPM_ExportAdditionalLibraryTarget
+
+This function is mostly used to avoid having to name targets per the
+`${CPM_TARGET_NAME}` convention in CPM. For an example of its use see
+http://github.com/iauns/cpm-google-test. Google test itself generates its own
+target name when included as a subdirectory so we must use that name.
+
+```cmake
+CPM_ExportAdditionalLibraryTarget("my_target")
+```
 
 Miscellaneous Issues and Questions
 ==================================
@@ -533,7 +638,7 @@ or direct, of your module to use only one version. Most module creators won't
 need to worry about this corner case, but it is required that all externals
 use this. Include a call to ``CPM_ForceOnlyOneModuleVersion`` anywhere in
 your module's CMakeLists.txt file to enforce this. Usually this call is made
-directly after calling ``CPM_InitModule``.
+directly before calling ``CPM_InitModule``.
 
 If you do this, you should indicate that your module is an 'external' in your
 module's JSON file. Even if you don't use any external code. It is important
@@ -552,25 +657,6 @@ regarding the function's parameters, see the comments at the top of CPM.cmake.
 
 For examples of using this function, see the
 [google test](https://github.com/iauns/cpm-google-test) CPM external.
-
-Why not CMake external projects?
---------------------------------
-
-CPM was initially built using external projects but the external project
-mechanism proved to be too restrictive. When using external projects, a
-cmake+build+cmake+build cycle was required to detect all static dependencies.
-One of CPM's tenets is to never require a departure from the standard cmake +
-build sequence, so we couldn't use external projects as-is.
-
-After working on CPM it became clear that ``add_subdirectory`` was the right
-choice. ``add_subdirectory`` allows us to easily enforce configuration
-constraints such as only allowing one version of a library to be statically
-linked without needing to read/write to files and use the akward double
-configure and build cycle.
-
-Another advantage of ``add_subdirectory`` is that it include's the module's
-source code as part of any project solution that is generated from CMake. See
-the ``CPM Advantages`` section.
 
 How do I see the module dependency hierarchy?
 ---------------------------------------------
@@ -603,12 +689,6 @@ If you get errors similar to:
 This means that there exists a circular module reference which is not allowed
 in CPM. The module graph must not contain cycles. For example, if Module A
 adds Module B, and Module B adds Module A, you will get this error.
-
-A module's namespace isn't declared!
-------------------------------------
-
-If you know for certain the the module's header file has been included, then
-this is most likely due to the use of conflicting header guards.
 
 How do I Manage CPM Namespaces?
 -------------------------------
