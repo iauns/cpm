@@ -433,8 +433,8 @@ registered with the cpm website.
 
 Note that this step is *not* mandatory. You can use your module without
 registering it by just pointing CPM to the URL of your git repository.
-Module registration is recommended because registering your repository makes
-it easier for others to find.
+Module registration is recommended because it makes it easier for others to
+find.
 
 Building Externals
 ------------------
