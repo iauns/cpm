@@ -753,6 +753,9 @@ macro(_cpm_make_valid_unid_or_path variable)
     string(REGEX REPLACE "https://github.com/" "github_" ${variable} ${${variable}})
     string(REGEX REPLACE "http://github.com/" "github_" ${variable} ${${variable}})
 
+    # Strip off .git extension, if any.
+    string(REGEX REPLACE "\\.git$" "" ${variable} ${${variable}})
+
     string(REGEX REPLACE "/" "_" ${variable} ${${variable}})
     string(REGEX REPLACE "[:/\\.?-]" "" ${variable} ${${variable}})
   endif()
@@ -771,11 +774,15 @@ macro(_cpm_obtain_version_from_params parentVar)
         set(${parentVar} ${CPM_KV_MOD_VERSION_MAP_${__CPM_TMP_VAR}})
       endif()
       set(__CPM_TMP_VAR)
-    #elseif(DEFINED _CPM_SOURCE_DIR)
-      # TODO: Make case for this when ghost repository is set.
-      # I'm not sure there is much more to this case...
-      # The system will generate a unique ID from our ghost data and realize
-      # that our component has already been included and use that instead.
+    elseif(DEFINED _CPM_SOURCE_DIR)
+      if (DEFINED _CPM_SOURCE_GHOST_GIT_REPO)
+        set(__CPM_TMP_VAR ${_CPM_SOURCE_GHOST_GIT_REPO})
+        _cpm_make_valid_unid_or_path(__CPM_TMP_VAR)
+        if (DEFINED CPM_KV_MOD_VERSION_MAP_${__CPM_TMP_VAR})
+          set(${parentVar} ${CPM_KV_MOD_VERSION_MAP_${__CPM_TMP_VAR}})
+        endif()
+        set(__CPM_TMP_VAR)
+      endif()
     endif()
   endif()
 
@@ -1136,7 +1143,9 @@ function(CPM_AddModule name)
   set(__CPM_USING_GIT FALSE)
   if (DEFINED _CPM_GIT_REPOSITORY)
     # Remove the .git extension if it exists. This causes the url to not
-    # be a unique ID in a number of situations.
+    # be a unique ID in a number of situations. _CPM_GIT_REPOSITORY is reused
+    # in a number of situations; so even though _cpm_make_valid_unid_or_path
+    # also removes the post-fix, we want to do it here as well.
     string(REGEX REPLACE "\\.git$" "" _CPM_GIT_REPOSITORY ${_CPM_GIT_REPOSITORY})
 
     set(__CPM_USING_GIT TRUE)
@@ -1151,15 +1160,13 @@ function(CPM_AddModule name)
     get_filename_component(tmp_src_dir ${_CPM_SOURCE_DIR} ABSOLUTE)
 
     if (DEFINED _CPM_SOURCE_GHOST_GIT_REPO)
-      set (source_ghost_tag)
-      if (DEFINED _CPM_SOURCE_GHOST_GIT_TAG)
-        set (source_ghost_tag ${_CPM_SOURCE_GHOST_GIT_TAG})
-      else()
-        set (source_ghost_tag "origin/master")
-      endif()
+      # See comment above regarding removing the .git postfix.
       string(REGEX REPLACE "\\.git$" "" _CPM_SOURCE_GHOST_GIT_REPO ${_CPM_SOURCE_GHOST_GIT_REPO})
       set(__CPM_PATH_UNID ${_CPM_SOURCE_GHOST_GIT_REPO})
-      set(__CPM_PATH_UNID_VERSION ${source_ghost_tag})
+
+      # Ghost tags have been taken into account in _cpm_obtain_version_from_params
+      # So using __CPM_NEW_GIT_TAG here will work as expected with ghost tags.
+      set(__CPM_PATH_UNID_VERSION "${__CPM_NEW_GIT_TAG}")
 
       # Ensure all lower case. This string is used when testing preprocessor
       # name collisions.
