@@ -3,7 +3,7 @@ CPM
 
 [![Build Status](https://travis-ci.org/iauns/cpm.png)](https://travis-ci.org/iauns/cpm)
 
-A C++ Package Manager based on CMake.
+A C++ Package Manager based on CMake and Git.
 
 CPM is designed to promote small, well-tested, and composable C++ modules. It
 allows you to link against multiple different versions of the same statically
@@ -165,7 +165,7 @@ target_link_libraries(my_project ${CPM_LIBRARIES})
 ```
 
 And you're done. You will be able to start using CPM modules right away by
-adding the following snippet the the CPM Modules section of your
+adding the following snippet to the CPM Modules section of your
 CMakeLists.txt:
 
 ```cmake
@@ -214,11 +214,11 @@ Every module's root directory will be added to your include path. It is common
 that every module's github page describes what file or files you should
 include in your project. The paths to these files will be relative to the
 module's root directory. So you can copy the include directive directly from
-the module's github page into your code. For example, to access Spire's
+the module's github page into your code. For example, to access AABB's
 functionality we would include its interface header file like so:
 
 ```
-#include <spire/Interface.h>
+#include <glm-aabb/AABB.hpp>
 ```
 
 ### Compiler Flags
@@ -369,9 +369,8 @@ name]_NS` as your top level namespace, like so:
   } // namespace CPM_[module name]_NS
 ```
 
-The ``[module name]`` part of the preprocessor definition's name comes from
-your call to `CPM_AddModule`. The first argument given to `CPM_InitModule` becomes
-``[module name]`` in your application.
+The first argument given to `CPM_InitModule` becomes ``[module name]`` in your
+application.
 
 Note that this is *not* required but it is *heavily* recommended when you are
 building CPM modules. You must include this if you want your users to be able
@@ -460,9 +459,11 @@ somewhere in your module's CMakeLists.txt file. This function ensures exactly
 one (and only one) version of your module is ever statically linked.
 
 In addition to this, you should reference the original repository in your
-cpm-modules JSON file by adding the 'external' key/value pair. The key being
-'external' and the value being be a URL locating the repository for which you
-have created this external. 
+cpm-modules JSON file by adding the 'externalURL' key/value pair. The key being
+'externalURL' and the value being be a URL locating the repository for which you
+have created this external. Also set the 'external' key to 'true' in your JSON
+file so that the CPM website knows you have built an external. For an example
+see: [CPM External for Google Test](https://github.com/iauns/cpm-modules/blob/master/iauns/google_test.json).
 
 CPM Function Reference
 ======================
@@ -477,7 +478,7 @@ General Purpose
 Adds a CPM module to your project. All arguments except `<name>` are optional.
 Additionally, one of either the `GIT_REPOSITORY` or `SOURCE_DIR` arguments
 must be present in your call to `CPM_AddModule`. Should be called before
-either CPM_Finish or CPM_InitModule
+either `CPM_Finish` or `CPM_InitModule`
 
 ```cmake
   CPM_AddModule(<name>           # Required - Module target name. Used to generate your 
@@ -550,7 +551,7 @@ used for generating the preprocessor definition you should use for your
 module.
 
 ```cmake
-CPM_Finish("my_module")
+CPM_InitModule("my_module")
 ```
 
 ### CPM_ExportAdditionalDefinition
@@ -592,6 +593,12 @@ Miscellaneous Issues and Questions
 
 Below are some common issues users encounter and solutions to them.
 
+When are modules downloaded and updated?
+----------------------------------------
+
+During the CMake configure step. No repository cloning or fetching occurs
+during the build step.
+
 Exposing foreign module interfaces
 ----------------------------------
 
@@ -623,12 +630,15 @@ example of this is given above in the section on exposing foreign module
 interfaces.
 
 For example, if a module you added (lets call this module `B`) requested
-version `v0.9.1` of module `A`, and you subsequently requested `v0.9.5` of
+version `v0.9.5` of module `A`, and you subsequently requested `v0.9.1` of
 module `A`, then your version would be upgraded to `v0.9.5` to comply with the
 pre-existing version of the module if you specified `USE_EXISTING_VER TRUE`
 when adding module `A`. It is considered best practice to set
 `USE_EXSTING_VER` to `TRUE` when adding *externals* (not regular modules) to
-your project. Especially when building modules for others to use.
+your project. Especially when building modules for others to use. But also be
+aware that your version can be *downgraded* in the same manner. You can
+generally avoid being downgraded by re-arranging the order of your calls to
+`CPM_AddModule`.
 
 When adding regular non-external modules, you may consider using this
 option to reduce the size of your executable if multiple different versions of
