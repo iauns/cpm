@@ -692,13 +692,13 @@ endmacro()
 # As with ExportAdditionalIncludeDirectory, this only exposes the definition
 # to the direct consumer of the module. None of the consumer's parents.
 macro(CPM_ExportAdditionalDefinition def)
-  set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${def} PARENT_SCOPE)
-  set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${def})
+  set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} "${def}" PARENT_SCOPE)
+  set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} "${def}")
 endmacro()
 
 macro(CPM_ExportAdditionalLibraryTarget def)
-  set(CPM_ADDITIONAL_TARGET_LIBS ${CPM_ADDITIONAL_TARGET_LIBS} ${def} PARENT_SCOPE)
-  set(CPM_ADDITIONAL_TARGET_LIBS ${CPM_ADDITIONAL_TARGET_LIBS} ${def})
+  set(CPM_ADDITIONAL_TARGET_LIBS ${CPM_ADDITIONAL_TARGET_LIBS} "${def}" PARENT_SCOPE)
+  set(CPM_ADDITIONAL_TARGET_LIBS ${CPM_ADDITIONAL_TARGET_LIBS} "${def}")
 endmacro()
 
 # We use this code in multiple places to check that we don't have preprocessor
