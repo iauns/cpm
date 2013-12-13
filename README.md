@@ -551,7 +551,7 @@ used for generating the preprocessor definition you should use for your
 module.
 
 ```cmake
-CPM_Finish("my_module")
+CPM_InitModule("my_module")
 ```
 
 ### CPM_ExportAdditionalDefinition
