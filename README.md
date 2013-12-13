@@ -369,9 +369,8 @@ name]_NS` as your top level namespace, like so:
   } // namespace CPM_[module name]_NS
 ```
 
-The ``[module name]`` part of the preprocessor definition's name comes from
-your call to `CPM_AddModule`. The first argument given to `CPM_InitModule` becomes
-``[module name]`` in your application.
+The first argument given to `CPM_InitModule` becomes ``[module name]`` in your
+application.
 
 Note that this is *not* required but it is *heavily* recommended when you are
 building CPM modules. You must include this if you want your users to be able
