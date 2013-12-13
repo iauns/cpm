@@ -592,6 +592,12 @@ Miscellaneous Issues and Questions
 
 Below are some common issues users encounter and solutions to them.
 
+When are modules downloaded and updated?
+----------------------------------------
+
+During the CMake configure step. No repository cloning or fetching occurs
+during the build step.
+
 Exposing foreign module interfaces
 ----------------------------------
 
