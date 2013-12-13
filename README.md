@@ -573,6 +573,9 @@ to module consumers.
 CPM_ExportAdditionalIncludeDir("./foo/bar")
 ```
 
+Note, for this function, do not quote lists of include directories. Pass the
+list in as-is.
+
 ### CPM_ExportAdditionalLibraryTarget
 
 This function is mostly used to avoid having to name targets per the
