@@ -3,7 +3,7 @@ CPM
 
 [![Build Status](https://travis-ci.org/iauns/cpm.png)](https://travis-ci.org/iauns/cpm)
 
-A C++ Package Manager based on CMake.
+A C++ Package Manager based on CMake and Git.
 
 CPM is designed to promote small, well-tested, and composable C++ modules. It
 allows you to link against multiple different versions of the same statically
