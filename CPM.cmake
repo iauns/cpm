@@ -682,23 +682,29 @@ endmacro()
 # consumers. This is necessary for externals, and only exposes the include
 # definition to the direct consumer of the module. None of the consumer's
 # parents.
-macro(CPM_ExportAdditionalIncludeDir dir)
-  get_filename_component(tmp_src_dir ${dir} ABSOLUTE)
-  set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${tmp_src_dir}" PARENT_SCOPE)
-  set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${tmp_src_dir}")
+macro(CPM_ExportAdditionalIncludeDir)
+  foreach (item ${ARGV})
+    get_filename_component(tmp_src_dir ${item} ABSOLUTE)
+    set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${tmp_src_dir}" PARENT_SCOPE)
+    set(CPM_ADDITIONAL_INCLUDE_DIRS ${CPM_ADDITIONAL_INCLUDE_DIRS} "${tmp_src_dir}")
+  endforeach()
 endmacro()
 
 # This macro allows modules to expose additional definitions.
 # As with ExportAdditionalIncludeDirectory, this only exposes the definition
 # to the direct consumer of the module. None of the consumer's parents.
-macro(CPM_ExportAdditionalDefinition def)
-  set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${def} PARENT_SCOPE)
-  set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${def})
+macro(CPM_ExportAdditionalDefinition)
+  foreach (item ${ARGV})
+    set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${item} PARENT_SCOPE)
+    set(CPM_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS} ${item})
+  endforeach()
 endmacro()
 
-macro(CPM_ExportAdditionalLibraryTarget def)
-  set(CPM_ADDITIONAL_TARGET_LIBS ${CPM_ADDITIONAL_TARGET_LIBS} ${def} PARENT_SCOPE)
-  set(CPM_ADDITIONAL_TARGET_LIBS ${CPM_ADDITIONAL_TARGET_LIBS} ${def})
+macro(CPM_ExportAdditionalLibraryTarget)
+  foreach (item ${ARGV})
+    set(CPM_ADDITIONAL_TARGET_LIBS ${CPM_ADDITIONAL_TARGET_LIBS} ${item} PARENT_SCOPE)
+    set(CPM_ADDITIONAL_TARGET_LIBS ${CPM_ADDITIONAL_TARGET_LIBS} ${item})
+  endforeach()
 endmacro()
 
 # We use this code in multiple places to check that we don't have preprocessor
