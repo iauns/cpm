@@ -270,7 +270,6 @@ if(_cpm_func)
 endif()
 
 # Include dependencies
-include(ExternalProject)
 find_package(Git)
 if(NOT GIT_FOUND)
   message(FATAL_ERROR "CPM requires Git.")
