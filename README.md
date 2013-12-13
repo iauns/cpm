@@ -630,12 +630,15 @@ example of this is given above in the section on exposing foreign module
 interfaces.
 
 For example, if a module you added (lets call this module `B`) requested
-version `v0.9.1` of module `A`, and you subsequently requested `v0.9.5` of
+version `v0.9.5` of module `A`, and you subsequently requested `v0.9.1` of
 module `A`, then your version would be upgraded to `v0.9.5` to comply with the
 pre-existing version of the module if you specified `USE_EXISTING_VER TRUE`
 when adding module `A`. It is considered best practice to set
 `USE_EXSTING_VER` to `TRUE` when adding *externals* (not regular modules) to
-your project. Especially when building modules for others to use.
+your project. Especially when building modules for others to use. But also be
+aware that your version can be *downgraded* in the same manner. You can
+generally avoid being downgraded by re-arranging the order of your calls to
+`CPM_AddModule`.
 
 When adding regular non-external modules, you may consider using this
 option to reduce the size of your executable if multiple different versions of
