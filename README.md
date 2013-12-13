@@ -459,9 +459,11 @@ somewhere in your module's CMakeLists.txt file. This function ensures exactly
 one (and only one) version of your module is ever statically linked.
 
 In addition to this, you should reference the original repository in your
-cpm-modules JSON file by adding the 'external' key/value pair. The key being
-'external' and the value being be a URL locating the repository for which you
-have created this external. 
+cpm-modules JSON file by adding the 'externalURL' key/value pair. The key being
+'externalURL' and the value being be a URL locating the repository for which you
+have created this external. Also set the 'external' key to 'true' in your JSON
+file so that the CPM website knows you have built an external. For an example
+see: [CPM External for Google Test](https://github.com/iauns/cpm-modules/blob/master/iauns/google_test.json).
 
 CPM Function Reference
 ======================
@@ -476,7 +478,7 @@ General Purpose
 Adds a CPM module to your project. All arguments except `<name>` are optional.
 Additionally, one of either the `GIT_REPOSITORY` or `SOURCE_DIR` arguments
 must be present in your call to `CPM_AddModule`. Should be called before
-either CPM_Finish or CPM_InitModule
+either `CPM_Finish` or `CPM_InitModule`
 
 ```cmake
   CPM_AddModule(<name>           # Required - Module target name. Used to generate your 
