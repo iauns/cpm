@@ -165,7 +165,7 @@ target_link_libraries(my_project ${CPM_LIBRARIES})
 ```
 
 And you're done. You will be able to start using CPM modules right away by
-adding the following snippet the the CPM Modules section of your
+adding the following snippet to the CPM Modules section of your
 CMakeLists.txt:
 
 ```cmake
