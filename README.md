@@ -80,17 +80,17 @@ work with the namespaces it creates.  Example:
   # ++ MODULE: OpenGL platform
   CPM_AddModule("gl_platform"
     GIT_REPOSITORY "https://github.com/iauns/cpm-gl-platform"
-    GIT_TAG "1.1.1")
+    GIT_TAG "1.3.0")
 
-  # ++ MODULE: Spire
-  CPM_AddModule("spire"
-    GIT_REPOSITORY "https://github.com/SCIInstitute/spire"
-    GIT_TAG "0.7.1")
+  # ++ MODULE: aabb
+  CPM_AddModule("aabb"
+    GIT_REPOSITORY "https://github.com/iauns/cpm-glm-aabb"
+    GIT_TAG "1.0.2")
 
   # ++ EXTERNAL-MODULE: MongoDB
   CPM_AddModule("mongodb_legacy"
     GIT_REPOSITORY "https://github.com/iauns/cpm-mongoc-legacy"
-    GIT_TAG "1.0.0")
+    GIT_TAG "1.0.1")
 
   # ++ EXTERNAL-MODULE: GLM
   CPM_AddModule("glm"
@@ -114,7 +114,6 @@ work with the namespaces it creates.  Example:
   set(EXE_NAME myViewer)
   add_executable(${EXE_NAME} ${Sources})
   target_link_libraries(${EXE_NAME} ${CPM_LIBRARIES})
-
 ```
 
 Using CPM
