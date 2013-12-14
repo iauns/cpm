@@ -43,11 +43,11 @@ are not built as CPM modules.
 Brief Example
 =============
 
-Below is a sample of a CMakeLists.txt file that uses 4 modules. The modules
-are a module to include platform specific OpenGL headers, an OpenGL wrapper
-module named Spire, MongoDB's legacy C library, and G-truc's GLSL vector math
-library. See the next section for a full explanation of how to use CPM and
-work with the namespaces it creates.  Example:
+Below is a sample of a CMakeLists.txt file that uses 3 modules. The modules
+are a module to include platform specific OpenGL headers, an axis aligned
+bounding box implementation, and G-truc's GLSL vector math library. See the
+next section for a full explanation of how to use CPM and work with the
+namespaces it creates. Example:
 
 ```cmake
   # Note, this example requires CMake 2.8.9 because of the mongo C module and
@@ -89,11 +89,6 @@ work with the namespaces it creates.  Example:
   CPM_AddModule("aabb"
     GIT_REPOSITORY "https://github.com/iauns/cpm-glm-aabb"
     GIT_TAG "1.0.2")
-
-  # ++ EXTERNAL-MODULE: MongoDB
-  CPM_AddModule("mongodb_legacy"
-    GIT_REPOSITORY "https://github.com/iauns/cpm-mongoc-legacy"
-    GIT_TAG "1.0.1")
 
   # ++ EXTERNAL-MODULE: GLM
   CPM_AddModule("glm"

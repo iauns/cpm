@@ -38,11 +38,6 @@ CPM_AddModule("aabb"
   GIT_REPOSITORY "https://github.com/iauns/cpm-glm-aabb"
   GIT_TAG "1.0.2")
 
-# ++ EXTERNAL-MODULE: MongoDB
-CPM_AddModule("mongodb_legacy"
-  GIT_REPOSITORY "https://github.com/iauns/cpm-mongoc-legacy"
-  GIT_TAG "1.0.1")
-
 # ++ EXTERNAL-MODULE: GLM
 CPM_AddModule("glm"
   GIT_REPOSITORY "https://github.com/iauns/cpm-glm"
