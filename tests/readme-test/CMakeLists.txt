@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 2.8.7 FATAL_ERROR)
+# Note, this example requires CMake 2.8.9 because of the mongo C module and
+# it's ExternalProject dependency. Remove that module and you should be able
+# to compile with earlier versions.
+cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 project(Viewer)
 
 #------------------------------------------------------------------------------

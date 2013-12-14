@@ -50,7 +50,10 @@ library. See the next section for a full explanation of how to use CPM and
 work with the namespaces it creates.  Example:
 
 ```cmake
-  cmake_minimum_required(VERSION 2.8.7 FATAL_ERROR)
+  # Note, this example requires CMake 2.8.9 because of the mongo C module and
+  # it's ExternalProject dependency. Remove that module and you will be able
+  # to compile with earlier versions of CMake.
+  cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
   project(Viewer)
   
   #------------------------------------------------------------------------------
