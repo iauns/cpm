@@ -46,8 +46,8 @@ CPM_Finish()
 #-----------------------------------------------------------------------
 # Setup source
 #-----------------------------------------------------------------------
-# Create main.cpp. This is done to keep this CMakeLists.txt self-contained.
-# Source files should be added to the project in other ways.
+# Create main.cpp instead of relying on main.cpp already being present. This
+# is done only to keep this CMakeLists.txt self-contained.
 file(WRITE src/main.cpp "#include <iostream>\n")
 file(APPEND src/main.cpp "#include <glm-aabb/AABB.hpp>\n")
 file(APPEND src/main.cpp "#include <glm/glm.hpp>\n\n")

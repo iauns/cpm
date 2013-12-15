@@ -47,7 +47,8 @@ Below is a sample of a CMakeLists.txt file that uses 3 modules. The modules
 are a module to include platform specific OpenGL headers, an axis aligned
 bounding box implementation, and G-truc's GLSL vector math library. See the
 next section for a full explanation of how to use CPM and work with the
-namespaces it creates. Example:
+namespaces it creates. The following CMakeLists.txt is self-contained and
+will build as-is. CMakeLists.txt:
 
 ```cmake
   cmake_minimum_required(VERSION 2.8.7 FATAL_ERROR)
@@ -98,8 +99,8 @@ namespaces it creates. Example:
   #-----------------------------------------------------------------------
   # Setup source
   #-----------------------------------------------------------------------
-  # Create main.cpp. This is done to keep this CMakeLists.txt self-contained.
-  # Source files should be added to the project in other ways.
+  # Create main.cpp instead of relying on main.cpp already being present. This
+  # is done only to keep this CMakeLists.txt self-contained.
   file(WRITE src/main.cpp "#include <iostream>\n")
   file(APPEND src/main.cpp "#include <glm-aabb/AABB.hpp>\n")
   file(APPEND src/main.cpp "#include <glm/glm.hpp>\n\n")
