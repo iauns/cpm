@@ -1,8 +1,5 @@
-# Note, this example requires CMake 2.8.9 because of the mongo C module and
-# it's ExternalProject dependency. Remove that module and you should be able
-# to compile with earlier versions.
-cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
-project(Viewer)
+cmake_minimum_required(VERSION 2.8.7 FATAL_ERROR)
+project(foo)
 
 #------------------------------------------------------------------------------
 # Required CPM Setup - no need to modify - See: https://github.com/iauns/cpm
@@ -49,14 +46,26 @@ CPM_Finish()
 #-----------------------------------------------------------------------
 # Setup source
 #-----------------------------------------------------------------------
-file(GLOB Sources
-  "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
-  )
+# Create main.cpp. This is done to keep this CMakeLists.txt self-contained.
+# Source files should be added to the project in other ways.
+file(WRITE src/main.cpp "#include <iostream>\n")
+file(APPEND src/main.cpp "#include <glm-aabb/AABB.hpp>\n")
+file(APPEND src/main.cpp "#include <glm/glm.hpp>\n\n")
+file(APPEND src/main.cpp "namespace glm_aabb = CPM_AABB_NS;\n\n")
+file(APPEND src/main.cpp "int main(int argc, char** av)\n")
+file(APPEND src/main.cpp "{\n")
+file(APPEND src/main.cpp "  glm_aabb::AABB aabb(glm::vec3(-1.0), glm::vec3(1.0));\n")
+file(APPEND src/main.cpp "  aabb.extend(glm::vec3(-2.0, 3.0, -0.5));\n")
+file(APPEND src/main.cpp "  glm_aabb::AABB aabb2(glm::vec3(1.0), 1.0);\n")
+file(APPEND src/main.cpp "  std::cout << \"AABB Interesction: \" << aabb.intersect(aabb2) << std::endl;\n")
+file(APPEND src/main.cpp "  return 0;\n")
+file(APPEND src/main.cpp "}\n")
+
+set(Sources src/main.cpp)
 
 #-----------------------------------------------------------------------
 # Setup executable
 #-----------------------------------------------------------------------
-set(EXE_NAME myViewer)
+set(EXE_NAME cpm-test)
 add_executable(${EXE_NAME} ${Sources})
 target_link_libraries(${EXE_NAME} ${CPM_LIBRARIES})
