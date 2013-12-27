@@ -1254,8 +1254,18 @@ function(CPM_AddModule name)
 
   # Add the project's source code.
   if (NOT DEFINED CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID})
-    # Ensure we do not build dynamic libraries.
-    set(BUILD_SHARED_LIBS OFF)
+    # A curiosity when using emscripten on unix: we want shared libraries, not 
+    # static libraries. Otherwise em++ will complain about an empty library.
+    # Use EMCC_DEBUG=1 to debug emcc or em++ errors.
+    if (UNIX)
+      if (EMSCRIPTEN)
+        set(BUILD_SHARED_LIBS ON)
+      else()
+        set(BUILD_SHARED_LIBS OFF)
+      endif()
+    else()
+      set(BUILD_SHARED_LIBS OFF)
+    endif()
 
     # The following call to add_subdirectory will propogate CPM_EXPORTED_MODULES
     # up to us. We don't want to clear our parent's variable. So we save it
