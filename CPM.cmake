@@ -1650,3 +1650,17 @@ function(CPM_AddModule name)
 
 endfunction()
 
+
+# Check to see if we should cache a copy of CPM in the cache directory.
+if (DEFINED CPM_MODULE_CACHE_DIR)
+  if (NOT EXISTS "${CPM_MODULE_CACHE_DIR}/github_iauns_cpm/")
+    # Clone the CPM repository into cache.
+    CPM_EnsureRepoIsCurrent(
+      TARGET_DIR "${CPM_MODULE_CACHE_DIR}/github_iauns_cpm"
+      GIT_REPOSITORY "https://github.com/iauns/cpm"
+      GIT_TAG "origin/master"
+      USE_CACHING FALSE
+      )
+  endif()
+endif()
+
