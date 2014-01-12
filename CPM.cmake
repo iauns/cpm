@@ -1048,9 +1048,9 @@ macro(_cpm_clone_svn_repo repo dir revision trustCert svn_user_pw_args)
     --non-interactive ${validTrustCert} ${valid_svn_user_pw_args} ${dir})
   execute_process(
     COMMAND ${cmd}
-    RESULT_VARIABLE result)
-    #OUTPUT_QUIET
-    #ERROR_QUIET)
+    RESULT_VARIABLE result
+    OUTPUT_QUIET
+    ERROR_QUIET)
   if (result)
     set(msg "Command failed: ${result}\n")
     set(msg "${msg} '${cmd}'")
