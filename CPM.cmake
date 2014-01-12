@@ -1377,6 +1377,8 @@ function(CPM_AddModule name)
   _cpm_make_valid_unid_or_path(__CPM_PATH_UNID_VERSION)
   set(__CPM_FULL_UNID "${__CPM_PATH_UNID}_${__CPM_PATH_UNID_VERSION}")
 
+  _cpm_debug_log("Module full UNID: ${__CPM_PATH_UNID_VERSION}")
+
   # Construct paths from UNID
   set(__CPM_MODULE_BIN_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_FULL_UNID}/bin")
 
