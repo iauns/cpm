@@ -86,12 +86,12 @@ will build as-is. CMakeLists.txt:
   # ++ MODULE: aabb
   CPM_AddModule("aabb"
     GIT_REPOSITORY "https://github.com/iauns/cpm-glm-aabb"
-    GIT_TAG "1.0.2")
+    GIT_TAG "1.0.3")
 
   # ++ EXTERNAL-MODULE: GLM
   CPM_AddModule("glm"
     GIT_REPOSITORY "https://github.com/iauns/cpm-glm"
-    GIT_TAG "1.0.1"
+    GIT_TAG "1.0.2"
     USE_EXISTING_VER TRUE)
 
   CPM_Finish()

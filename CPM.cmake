@@ -64,6 +64,7 @@
 #    [SVN_REPOSITORY repo]        # SVN repository to checkout.
 #    [SVN_REVISION rev]           # SVN revision.
 #    [SVN_TRUST_CERT 1]           # Trust the Subversion server site certificate
+#    [USE_CACHING 1]              # Enables caching of repositories if the user has specified CPM_MODULE_CACHING_DIR. Not enabled by default.
 #    )
 #
 # CPM also adds the following variables to the global namespace for CPM script
@@ -665,6 +666,7 @@ macro(CPM_Finish)
       TARGET_DIR ${CPM_DIR_OF_CPM}
       GIT_REPOSITORY "https://github.com/iauns/cpm"
       GIT_TAG "origin/master"
+      USE_CACHING FALSE
       )
   endif()
 endmacro()
@@ -947,7 +949,7 @@ macro(_cpm_update_git_repo dir tag)
   endif()
 endmacro()
 
-macro(_cpm_ensure_git_repo_is_current)
+macro(_cpm_ensure_git_repo_is_current use_caching)
   # Tag with a sane default if not present.
   if (DEFINED _CPM_REPO_GIT_TAG)
     set(tag ${_CPM_REPO_GIT_TAG})
@@ -972,7 +974,7 @@ macro(_cpm_ensure_git_repo_is_current)
     #
 
     # All modules will be cached in the cache directory.
-    if (DEFINED CPM_MODULE_CACHE_DIR)
+    if ((DEFINED CPM_MODULE_CACHE_DIR) AND (${use_caching}))
 
       if (NOT EXISTS ${CPM_MODULE_CACHE_DIR})
         file(MAKE_DIRECTORY ${CPM_MODULE_CACHE_DIR})
@@ -1031,7 +1033,7 @@ macro(_cpm_ensure_git_repo_is_current)
 
 endmacro()
 
-macro(_cpm_ensure_svn_repo_is_current)
+macro(_cpm_ensure_svn_repo_is_current use_caching)
   # Tag with a sane default if not present.
   if (DEFINED _CPM_REPO_SVN_REVISION)
     set(revision ${_CPM_REPO_SVN_REVISION})
@@ -1095,10 +1097,15 @@ endmacro()
 function(CPM_EnsureRepoIsCurrent)
   _cpm_parse_arguments(CPM_EnsureRepoIsCurrent _CPM_REPO_ "${ARGN}")
 
+  set(use_caching FALSE)
+  if ((DEFINED _CPM_REPO_USE_CACHING) AND (_CPM_REPO_USE_CACHING))
+    set(use_caching TRUE)
+  endif()
+
   if (DEFINED _CPM_REPO_GIT_REPOSITORY)
-    _cpm_ensure_git_repo_is_current()
+    _cpm_ensure_git_repo_is_current(use_caching)
   elseif(DEFINED _CPM_REPO_SVN_REPOSITORY)
-    _cpm_ensure_svn_repo_is_current()
+    _cpm_ensure_svn_repo_is_current(use_caching)
   else()
     message(FATAL_ERROR "CPM_EnsureRepoIsCurrent: You must specify an SVN or GIT repository.")
   endif()
@@ -1295,6 +1302,7 @@ function(CPM_AddModule name)
         TARGET_DIR      ${__CPM_MODULE_SOURCE_DIR}
         GIT_REPOSITORY  ${_CPM_GIT_REPOSITORY}
         GIT_TAG         ${__CPM_NEW_GIT_TAG}
+        USE_CACHING     TRUE
         )
     endif()
   endif(__CPM_USING_GIT)
