@@ -28,7 +28,7 @@ function RunTest
     ../${dirOnly}/test.sh ../${dirOnly}
     set -e
   else
-    cmake -D_CPM_DEBUG_LOG=1 ../${dirOnly}
+    cmake -DCPM_MODULE_CACHE_DIR=${HOME}/.cpm_cache -D_CPM_DEBUG_LOG=1 ../${dirOnly}
     #VERBOSE=1 make
     make
   fi
