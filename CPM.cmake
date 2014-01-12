@@ -992,6 +992,8 @@ macro(_cpm_ensure_git_repo_is_current use_caching)
         # write to the cache directory.
         message(STATUS "Found cached version of ${repo}.")
 
+        # Todo: We really shouldn't update the tag in the cache directory.
+        #       Simply fetching the contents would suffice.
         if (NOT DEFINED CPM_MODULE_CACHE_NO_WRITE)
           _cpm_update_git_repo(${__CPM_ENSURE_CACHE_DIR} ${tag})
         endif()
@@ -1000,10 +1002,10 @@ macro(_cpm_ensure_git_repo_is_current use_caching)
         # updated. Copy it.
         file(COPY "${__CPM_ENSURE_CACHE_DIR}/" DESTINATION ${dir})
 
-        if (DEFINED CPM_MODULE_CACHE_NO_WRITE)
-          # Update git repo once it is in the target directory.
-          _cpm_update_git_repo(${dir} ${tag})
-        endif()
+        # Update git repo once more when it is in the target directory.
+        # We will need this call to set the correct tag if we fix the todo
+        # item above.
+        _cpm_update_git_repo(${dir} ${tag})
       else()
         message(STATUS "Creating cached version of ${repo}.")
         # If we can write to the cache directory, then clone it, update it,
@@ -1016,6 +1018,7 @@ macro(_cpm_ensure_git_repo_is_current use_caching)
           _cpm_clone_git_repo(${repo} ${__CPM_ENSURE_CACHE_DIR} ${tag})
           _cpm_update_git_repo(${__CPM_ENSURE_CACHE_DIR} ${tag})
           file(COPY "${__CPM_ENSURE_CACHE_DIR}/" DESTINATION ${dir})
+          _cpm_update_git_repo(${dir} ${tag}) # Sanity
         endif()
       endif()
 
@@ -1139,6 +1142,7 @@ macro(_cpm_ensure_svn_repo_is_current use_caching)
         # write to the cache directory.
         message(STATUS "Found cached version of ${repo}.")
 
+        # Update cached version of repo.
         if (NOT DEFINED CPM_MODULE_CACHE_NO_WRITE)
           _cpm_update_svn_repo(${__CPM_ENSURE_CACHE_DIR} ${revision} ${trustCert} ${svn_user_pw_args})
         endif()
@@ -1147,10 +1151,7 @@ macro(_cpm_ensure_svn_repo_is_current use_caching)
         # updated. Copy it.
         file(COPY "${__CPM_ENSURE_CACHE_DIR}/" DESTINATION ${dir})
 
-        if (DEFINED CPM_MODULE_CACHE_NO_WRITE)
-          # Update git repo once it is in the target directory.
-          _cpm_update_svn_repo(${dir} ${revision} ${trustCert} ${svn_user_pw_args})
-        endif()
+        _cpm_update_svn_repo(${dir} ${revision} ${trustCert} ${svn_user_pw_args})
       else()
         message(STATUS "Creating cached version of ${repo}.")
         # If we can write to the cache directory, then clone it, update it,
@@ -1163,6 +1164,7 @@ macro(_cpm_ensure_svn_repo_is_current use_caching)
           _cpm_clone_svn_repo(${repo} ${__CPM_ENSURE_CACHE_DIR} ${revision} ${trustCert} ${svn_user_pw_args})
           _cpm_update_svn_repo(${__CPM_ENSURE_CACHE_DIR} ${revision} ${trustCert} ${svn_user_pw_args})
           file(COPY "${__CPM_ENSURE_CACHE_DIR}/" DESTINATION ${dir})
+          _cpm_update_svn_repo(${dir} ${revision} ${trustCert} ${svn_user_pw_args})
         endif()
       endif()
 
