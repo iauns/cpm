@@ -689,14 +689,14 @@ For examples of using this function, see the
 How do I cache modules?
 -----------------------
 
-CPM supports this feature by setting the `CPM_MODULE_CACHE_DIR` CMake variable
-to a common directory, such as `~/.cpm_cache`. When building a project with
-this variable, a search will be performed in `CPM_MODULE_CACHE_DIR` for all
-modules that don't already exist in your project's build directory. If the
-module is not found in the cache directory, CPM will download the module into
-the cache directory. This is useful if you find yourself with no or limited
-internet access from time to time as your cache directory will be searched
-before attempting to download the repository from the internet.
+CPM supports this by setting the `CPM_MODULE_CACHE_DIR` CMake variable to a
+common directory, such as `~/.cpm_cache`. When building a project with this
+variable, a search will be performed in `CPM_MODULE_CACHE_DIR` for all modules
+that don't already exist in your project's build directory. If the module is
+not found in the cache directory, CPM will download the module into the cache
+directory. This is useful if you find yourself with no or limited internet
+access from time to time as your cache directory will be searched before
+attempting to download the repository from the internet.
 
 Here's a quick example of using this variable from the command line:
 
@@ -704,12 +704,12 @@ Here's a quick example of using this variable from the command line:
   cmake -DCPM_MODULE_CACHE_DIR=~/.cpm_cache ...
 ```
 
-The cache directory is searched only when no modules are found in your
-project's build directory. If a module is found in the cache directory, the
-cache directory will be updated using the appropriate SCM, and it's directory
-contents will be copied into your project's build directory. Any subsequent
-invokation of CMake for your project will find the module in the build
-directory, and will not search in the cache directory. Unless you have cleaned
+The cache directory is searched only when a module is not found in your
+project's build directory. If the module is then found in the cache directory,
+the cache directory will be updated using the appropriate SCM and its
+directory contents will be copied into your project's build directory. Any
+subsequent invokation of CMake will find the module in your project's build
+directory and will not search in the cache directory. Unless you have cleaned
 the project or removed the build directory's modules.
 
 <a name="dependency-hierarchy"></a>
