@@ -906,6 +906,8 @@ macro(_cpm_update_git_repo dir tag)
     WORKING_DIRECTORY "${dir}"
     RESULT_VARIABLE error_code
     OUTPUT_VARIABLE tag_sha
+    OUTPUT_QUIET
+    ERROR_QUIET
     )
 
   # Is the hash checkout out that we want?
