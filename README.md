@@ -264,6 +264,7 @@ will maintain your build integrity even through upstream version upgrades.
 * Built entirely in CMake. Nothing else is required.
 * All CPM module code will be included in any generated project solution.
 * Will automatically detect preprocessor naming conflicts.
+* Optionally cache modules to a central directory to use CPM when you have no internet.
 
 ### Limitations
 
@@ -530,6 +531,9 @@ function outside of any call to CPM_Finish or CPM_InitModule
     [SVN_REPOSITORY repo]        # SVN repository to checkout.
     [SVN_REVISION rev]           # SVN revision.
     [SVN_TRUST_CERT 1]           # Trust the Subversion server site certificate
+    [USE_CACHING 1]              # Enables caching of repositories if the user 
+                                 # has specified CPM_MODULE_CACHING_DIR.
+                                 # Not enabled by default.
     )
 ```
 
@@ -680,6 +684,33 @@ regarding the function's parameters, see the comments at the top of CPM.cmake.
 
 For examples of using this function, see the
 [google test](https://github.com/iauns/cpm-google-test) CPM external.
+
+
+How do I cache modules?
+-----------------------
+
+CPM supports this feature by setting the `CPM_MODULE_CACHE_DIR` CMake variable
+to a common directory, such as `~/.cpm_cache`. When building a project with
+this variable, a search will be performed in `CPM_MODULE_CACHE_DIR` for all
+modules that don't already exist in your project's build directory. If the
+module is not found in the cache directory, CPM will download the module into
+the cache directory. This is useful if you find yourself with no or limited
+internet access from time to time as your cache directory will be searched
+before attempting to download the repository from the internet.
+
+Here's a quick example of using this variable from the command line:
+
+```
+  cmake -DCPM_MODULE_CACHE_DIR=~/.cpm_cache ...
+```
+
+The cache directory is searched only when no modules are found in your
+project's build directory. If a module is found in the cache directory, the
+cache directory will be updated using the appropriate SCM, and it's directory
+contents will be copied into your project's build directory. Any subsequent
+invokation of CMake for your project will find the module in the build
+directory, and will not search in the cache directory. Unless you have cleaned
+the project or removed the build directory's modules.
 
 <a name="dependency-hierarchy"></a>
 How do I see the module dependency hierarchy?
