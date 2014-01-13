@@ -11,7 +11,7 @@ include(../../CPM.cmake)
 # ++ MODULE: OpenGL platform
 CPM_AddModule("gl_platform"
   GIT_REPOSITORY "https://github.com/iauns/cpm-gl-platform"
-  GIT_TAG "1.3.0")
+  GIT_TAG "1.3.5")
 
 # ++ MODULE: aabb
 CPM_AddModule("aabb"
