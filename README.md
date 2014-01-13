@@ -264,7 +264,7 @@ will maintain your build integrity even through upstream version upgrades.
 * Built entirely in CMake. Nothing else is required.
 * All CPM module code will be included in any generated project solution.
 * Will automatically detect preprocessor naming conflicts.
-* Optionally cache modules to a central directory to use CPM when you have no internet.
+* Optionally cache downloaded modules and repositories to a central directory.
 
 ### Limitations
 
