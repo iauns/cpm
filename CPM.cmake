@@ -920,9 +920,11 @@ macro(_cpm_update_git_repo dir tag)
       WORKING_DIRECTORY "${dir}"
       RESULT_VARIABLE error_code
       TIMEOUT 15
+      OUTPUT_QUIET
+      ERROR_QUIET
       )
     if(error_code)
-      message("Failed to fetch repository '${repo}'. Skipping fetch.")
+      message(STATUS "Failed to fetch repository '${repo}'. Skipping fetch.")
     endif()
 
     execute_process(
