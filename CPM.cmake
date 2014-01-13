@@ -283,6 +283,12 @@ macro(_cpm_debug_log debug)
   endif()
 endmacro()
 
+# Check to see if the CPM_CACHE_DIR environment variable is set, but
+# CPM_MODULE_CACHE_DIR is not set yet.
+if ((NOT DEFINED CPM_MODULE_CACHE_DIR) AND (NOT "$ENV{CPM_CACHE_DIR}" STREQUAL ""))
+  set(CPM_MODULE_CACHE_DIR "$ENV{CPM_CACHE_DIR}")
+endif()
+
 # Record where this list file is located. We pass this directory into our
 # modules so they can also include SpirePM.
 # We do NOT want to access CMAKE_CURRENT_LIST_DIR from a function invokation.
