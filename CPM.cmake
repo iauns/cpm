@@ -1076,7 +1076,7 @@ macro(_cpm_update_svn_repo dir revision trustCert svn_user_pw_args)
     OUTPUT_QUIET
     ERROR_QUIET)
   if (result)
-    set(msg "Command failed: ${result}\n")
+    set(msg "Command failed: ${result}. ")
     set(msg "${msg} '${cmd}'")
     set(msg "Skipping SVN update. ${msg}.")
     message(STATUS "${msg}")
