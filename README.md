@@ -712,6 +712,45 @@ subsequent invokation of CMake will find the module in your project's build
 directory and will not search in the cache directory. Unless you have cleaned
 the project or removed the build directory's modules.
 
+How do I cache CPM itself?
+--------------------------
+
+Use the following code snippet instead of the one given above. This snippet
+checks to see if CPM exists in the cache directory before attempting to
+download it.
+
+```cmake
+#------------------------------------------------------------------------------
+# Required CPM Setup - See: http://github.com/iauns/cpm
+#------------------------------------------------------------------------------
+set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
+find_package(Git)
+if(NOT GIT_FOUND)
+  message(FATAL_ERROR "CPM requires Git.")
+endif()
+if ((NOT EXISTS ${CPM_DIR}/CPM.cmake) AND (DEFINED CPM_MODULE_CACHE_DIR))
+  if (EXISTS "${CPM_MODULE_CACHE_DIR}/github_iauns_cpm")
+    message(STATUS "Found cached version of CPM.")
+    file(COPY "${CPM_MODULE_CACHE_DIR}/github_iauns_cpm/" DESTINATION ${CPM_DIR})
+  endif()
+endif()
+if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
+  message(STATUS "Cloning repo (https://github.com/iauns/cpm)")
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" clone https://github.com/iauns/cpm ${CPM_DIR}
+    RESULT_VARIABLE error_code
+    OUTPUT_QUIET ERROR_QUIET)
+  if(error_code)
+    message(FATAL_ERROR "CPM failed to get the hash for HEAD")
+  endif()
+endif()
+include(${CPM_DIR}/CPM.cmake)
+
+# Modules go here...
+
+CPM_Finish()
+```
+
 <a name="dependency-hierarchy"></a>
 How do I see the module dependency hierarchy?
 ---------------------------------------------
