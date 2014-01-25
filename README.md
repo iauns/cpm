@@ -43,13 +43,11 @@ are not built as CPM modules.
 Brief Example
 =============
 
-Below is a sample of a CMakeLists.txt file that uses 3 modules. The modules
-include: platform specific OpenGL headers, an axis aligned bounding box
+Below is a sample of a CMakeLists.txt file that uses 3 modules. These modules
+are: platform specific OpenGL headers, an axis aligned bounding box
 implementation, and G-truc's GLSL vector math library. See the next section
 for a full explanation of how to use CPM and work with the namespaces it
-creates. The following CMakeLists.txt is self-contained and will build as-is.
-CMakeLists.txt. Feel free to ignore the 'Setup Source' section as it exists
-only to make this example self contained:
+creates. The following CMakeLists.txt is self-contained and will build as-is:
 
 ```cmake
   cmake_minimum_required(VERSION 2.8.7 FATAL_ERROR)
@@ -100,8 +98,11 @@ only to make this example self contained:
   #-----------------------------------------------------------------------
   # Setup source
   #-----------------------------------------------------------------------
-  # Create main.cpp instead of relying on main.cpp already being present. This
-  # is done only to keep this CMakeLists.txt self-contained.
+
+  # NOTE: Feel free to ignore this section. It simply creates a main.cpp source
+  # file from scratch instead of relying on the source being present. This is
+  # done only to keep this CMakeLists.txt self-contained.
+
   file(WRITE src/main.cpp "#include <iostream>\n")
   file(APPEND src/main.cpp "#include <glm-aabb/AABB.hpp>\n")
   file(APPEND src/main.cpp "#include <glm/glm.hpp>\n\n")
