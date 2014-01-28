@@ -46,8 +46,8 @@ Brief Example
 Below is a sample of a CMakeLists.txt file that uses 3 modules. These modules
 are: platform specific OpenGL headers, an axis aligned bounding box
 implementation, and G-truc's GLSL vector math library. See the next section
-for a full explanation of how to use CPM and work with the namespaces it
-creates. The following CMakeLists.txt is self-contained and will build as-is:
+for a full explanation of how to use CPM. The following CMakeLists.txt is
+self-contained and will build as-is:
 
 ```cmake
   cmake_minimum_required(VERSION 2.8.7 FATAL_ERROR)
