@@ -1205,7 +1205,7 @@ macro(_cpm_ensure_hg_repo_is_current use_caching)
 
   else()
     # Target directory found, attempt to update.
-    _cpm_update_git_repo(${dir} ${tag})
+    _cpm_update_hg_repo(${dir} ${tag})
   endif()
 
 endmacro()
