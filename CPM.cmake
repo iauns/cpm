@@ -61,6 +61,8 @@
 #    [TARGET_DIR dir]             # Required - Directory to place repository.
 #    [GIT_REPOSITORY repo]        # Git repository to clone and update in TARGET_DIR.
 #    [GIT_TAG tag]                # Git tag to checkout.
+#    [HG_REPOSITORY repo]         # HG repository to clone and update in TARGET_DIR.
+#    [HG_REVISION rev]            # HG tag.
 #    [SVN_REPOSITORY repo]        # SVN repository to checkout.
 #    [SVN_REVISION rev]           # SVN revision.
 #    [SVN_TRUST_CERT 1]           # Trust the Subversion server site certificate
@@ -1370,7 +1372,7 @@ function(CPM_EnsureRepoIsCurrent)
   elseif(DEFINED _CPM_REPO_HG_REPOSITORY)
     _cpm_ensure_hg_repo_is_current(use_caching)
   else()
-    message(FATAL_ERROR "CPM_EnsureRepoIsCurrent: You must specify an SVN or GIT repository.")
+    message(FATAL_ERROR "CPM_EnsureRepoIsCurrent: You must specify an SVN, GIT or HG repository.")
   endif()
 
 endfunction()
