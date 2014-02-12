@@ -62,7 +62,7 @@
 #    [GIT_REPOSITORY repo]        # Git repository to clone and update in TARGET_DIR.
 #    [GIT_TAG tag]                # Git tag to checkout.
 #    [HG_REPOSITORY repo]         # HG repository to clone and update in TARGET_DIR.
-#    [HG_REVISION rev]            # HG tag.
+#    [HG_TAG rev]                 # HG tag.
 #    [SVN_REPOSITORY repo]        # SVN repository to checkout.
 #    [SVN_REVISION rev]           # SVN revision.
 #    [SVN_TRUST_CERT 1]           # Trust the Subversion server site certificate
