@@ -608,15 +608,30 @@ endmacro()
 # we can set variables in the parent namespace (if any).
 # name - Same as the name parameter in CPM_AddModule. A preprocessor definition
 #        using this name will be generated for namespaces.
-macro(CPM_InitModule name)
+macro(CPM_InitModule)
+
+  # Check to see if we have any optional arguments if CPM_MODULE_NAME
+  # is not set.
+  if(NOT DEFINED CPM_MODULE_NAME)
+    # Check for optional name argument
+    set (extra_macro_args ${ARGN})
+    list(LENGTH extra_macro_args num_extra_args)
+    if (${num_extra_args} GREATER 0)
+      list(GET extra_macro_args 0 optional_arg)
+      set(CPM_MODULE_NAME ${optional_arg})
+    else()
+      message(FATAL_ERROR "CPM_InitModule: CPM_MODULE_NAME not set and no optional name argument provided.")
+    endif()
+  endif()
+
   # Ensure the parent function knows what we decided to name ourselves.
   # This name will correspond to our module's namespace directives.
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
-    set(CPM_LAST_MODULE_NAME ${name} PARENT_SCOPE)
+    set(CPM_LAST_MODULE_NAME ${CPM_MODULE_NAME} PARENT_SCOPE)
   endif()
 
   # Build the appropriate definition for the module. We stored the unique ID
-  _cpm_build_preproc_name(${name} __CPM_TMP_VAR)
+  _cpm_build_preproc_name(${CPM_MODULE_NAME} __CPM_TMP_VAR)
   if (NOT DEFINED CPM_UNIQUE_ID)
     set(CPM_UNIQUE_ID CPM_TESTING_UPPER_LEVEL_NAMESPACE)
   endif()
