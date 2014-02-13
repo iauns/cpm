@@ -1,11 +1,10 @@
-
 #-----------------------------------------------------------------------
 # CPM configuration
 #-----------------------------------------------------------------------
 if(NOT DEFINED CPM_MODULE_NAME)
-message(FATAL_ERROR "CPM_MODULE_NAME needs to be set before initializing cpm")
+  message(FATAL_ERROR "CPM_MODULE_NAME needs to be set before initializing a CPM module")
 endif()
-set(CPM_REPOSITORY https://github.com/toeb/cpm)
+set(CPM_REPOSITORY https://github.com/iauns/cpm)
 set(CPM_LIB_TARGET_NAME ${CPM_MODULE_NAME})
 if ((DEFINED CPM_DIR) AND (DEFINED CPM_UNIQUE_ID) AND (DEFINED CPM_TARGET_NAME))
   set(CPM_LIB_TARGET_NAME ${CPM_TARGET_NAME})
