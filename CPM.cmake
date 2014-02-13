@@ -279,11 +279,6 @@ if(NOT GIT_FOUND)
   message(FATAL_ERROR "CPM requires Git.")
 endif()
 
-find_package(Hg)
-if(NOT HG_FOUND)
- message("CPM could not find Mercurial(Hg) Mecurial based packages will fail")
-endif()
-
 macro(_cpm_debug_log debug)
   if ((DEFINED _CPM_DEBUG_LOG) AND (_CPM_DEBUG_LOG))
     message("== ${debug}")
@@ -1148,6 +1143,12 @@ macro(_cpm_ensure_hg_repo_is_current use_caching)
 
   set(repo ${_CPM_REPO_HG_REPOSITORY})
   set(dir ${_CPM_REPO_TARGET_DIR})
+
+  # Attempt to find the mercurial package
+  find_package(Hg)
+  if(NOT HG_FOUND)
+    message(FATAL_ERROR "CPM could not find Mercurial(Hg). Cannot ensure ${repo} is current.")
+  endif()
 
   if (NOT EXISTS "${dir}/")
 
