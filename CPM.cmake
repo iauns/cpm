@@ -1855,5 +1855,11 @@ if (DEFINED CPM_MODULE_CACHE_DIR)
       USE_CACHING FALSE
       )
   endif()
+  if (NOT EXISTS "${CPM_MODULE_CACHE_DIR}/init-cpm.cmake")
+    file(COPY ${CPM_DIR_OF_CPM}/init-cpm.cmake DESTINATION ${CPM_MODULE_CACHE_DIR}/)
+  endif()
+  if (NOT EXISTS "${CPM_MODULE_CACHE_DIR}/init-cpm-module.cmake")
+    file(COPY ${CPM_DIR_OF_CPM}/init-cpm-module.cmake DESTINATION ${CPM_MODULE_CACHE_DIR}/)
+  endif()
 endif()
 
