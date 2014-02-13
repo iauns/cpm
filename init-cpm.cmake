@@ -1,6 +1,3 @@
-#------------------------------------------------------------------------------
-# Required CPM Setup - no need to modify - See: https://github.com/iauns/cpm
-#------------------------------------------------------------------------------
 set(CPM_REPOSITORY https://github.com/iauns/cpm)
 set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm_packages" CACHE TYPE STRING)
 find_package(Git)

@@ -1,6 +1,3 @@
-#-----------------------------------------------------------------------
-# CPM configuration
-#-----------------------------------------------------------------------
 if(NOT DEFINED CPM_MODULE_NAME)
   message(FATAL_ERROR "CPM_MODULE_NAME needs to be set before initializing a CPM module")
 endif()
