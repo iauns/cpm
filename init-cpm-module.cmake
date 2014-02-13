@@ -17,7 +17,7 @@ else()
     execute_process(
       COMMAND "${GIT_EXECUTABLE}" clone ${CPM_REPOSITORY} ${CPM_DIR}
       RESULT_VARIABLE error_code
-      OUTPUT_VARIABLE head_sha)
+      OUTPUT_QUIET ERROR_QUIET)
     if(error_code)
       message(FATAL_ERROR "CPM failed to get the hash for HEAD")
     endif()
