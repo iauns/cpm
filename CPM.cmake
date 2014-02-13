@@ -956,25 +956,25 @@ macro(_cpm_clone_git_repo repo dir tag)
 endmacro()
 
 macro(_cpm_update_hg_repo dir tag)
- message(STATUS "updating hg repository (${dir} @ ${tag})")
- execute_process(
- COMMAND "${HG_EXECUTABLE}" update
- WORKING_DIRECTORY "${dir}"
- RESULT_VARIABLE error_code)
+  message(STATUS "updating hg repository (${dir} @ ${tag})")
+  execute_process(
+    COMMAND "${HG_EXECUTABLE}" update
+    WORKING_DIRECTORY "${dir}"
+    RESULT_VARIABLE error_code)
 
- if(error_code)
-  message("could not update hg repo in : '${dir}'")
- endif()
+  if(error_code)
+    message("could not update hg repo in : '${dir}'")
+  endif()
 
- execute_process(
-  COMMAND "${HG_EXECUTABLE}" checkout "${tag}"
-  WORKING_DIRECTORY "${dir}"
-  RESULT_VARIABLE error_code
- )
+  execute_process(
+    COMMAND "${HG_EXECUTABLE}" checkout "${tag}"
+    WORKING_DIRECTORY "${dir}"
+    RESULT_VARIABLE error_code
+    )
 
-if(error_code)
- message(FATAL_ERROR "could not checkout sepcified tag: '${tag}'" )
-endif()
+  if(error_code)
+    message(FATAL_ERROR "could not checkout sepcified tag: '${tag}'" )
+  endif()
 endmacro()
 
 macro(_cpm_update_git_repo dir tag)
