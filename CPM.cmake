@@ -655,6 +655,14 @@ macro(CPM_InitModule)
   _cpm_propogate_export_map_up()
   _cpm_propogate_forward_decl_map_up()
 
+  # Propogate CPM_LIBRARIES upwards and remove any duplicates that may exist.
+  # Added so only one target_link_libraries will be required at the application
+  # level instead of calling target_link_libraries in every module.
+  if (CPM_LIBRARIES)
+    list(REMOVE_DUPLICATES CPM_LIBRARIES)
+    set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
+  endif()
+
   # Setup the module with appropriate definitions and includes.
   # We can do this because we are not in a new scope; instead, we are in a macro
   # which executes in the parent scope (since it is literally inserted into
