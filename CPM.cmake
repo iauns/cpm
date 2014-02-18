@@ -659,7 +659,6 @@ macro(CPM_InitModule)
   # Added so only one target_link_libraries will be required at the application
   # level instead of calling target_link_libraries in every module.
   if (CPM_LIBRARIES)
-    list(REMOVE_DUPLICATES CPM_LIBRARIES)
     set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
   endif()
 
@@ -1811,7 +1810,8 @@ function(CPM_AddModule name)
     if (("${TARGET_TYPE}" STREQUAL "STATIC_LIBRARY")
       OR ("${TARGET_TYPE}" STREQUAL "MODULE_LIBRARY")
       OR ("${TARGET_TYPE}" STREQUAL "SHARED_LIBRARY"))
-      set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
+      set(CPM_LIBRARIES ${CPM_LIBRARIES} "${CPM_TARGET_NAME}")
+      set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
     endif()
     set(CPM_DEPENDENCIES ${CPM_DEPENDENCIES} "${CPM_TARGET_NAME}" PARENT_SCOPE)
   else()
@@ -1843,6 +1843,14 @@ function(CPM_AddModule name)
   _cpm_propogate_target_lib_map_up()
   _cpm_propogate_export_map_up()
   _cpm_propogate_forward_decl_map_up()
+
+  # Propogate CPM_LIBRARIES upwards and remove any duplicates that may exist.
+  # Added so only one target_link_libraries will be required at the application
+  # level instead of calling target_link_libraries in every module.
+  if (CPM_LIBRARIES)
+    list(REMOVE_DUPLICATES CPM_LIBRARIES)
+    set(CPM_LIBRARIES ${CPM_LIBRARIES} PARENT_SCOPE)
+  endif()
 
   if (COMMAND CPM_PostModuleExecCallback)
     CPM_PostModuleExecCallback()
