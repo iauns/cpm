@@ -167,6 +167,10 @@
 #
 #  CPM_HIERARCHY_LEVEL          - Contains current CPM hierarchy level.
 #
+#  CPM_ROOT_BIN_DIR             - Since add_subdirectory changes the binary
+#                                 directory, this is the root binary directory
+#                                 for CPM modules.
+#
 # NOTE: End users aren't required to finalize their modules after they add them
 # because all appropriate constraints do not need to be propogated further then
 # the top level file. 
@@ -314,6 +318,11 @@ set(CPM_KV_LIST_FORWARD_DECL_MAP ${CPM_KV_LIST_FORWARD_DECL_MAP} ${CPM_UNIQUE_ID
 # Increment the module hierarchy level if it exists.
 if (NOT DEFINED CPM_HIERARCHY_LEVEL)
   set(CPM_HIERARCHY_LEVEL 0)
+endif()
+
+# Set the root binary directory, if it doesn't already exist.
+if (NOT DEFINED CPM_ROOT_BIN_DIR)
+  set(CPM_ROOT_BIN_DIR ${CMAKE_BINARY_DIR}/cpm-bin)
 endif()
 
 # Initial display of the hierarchy if the user requested it.
@@ -1579,7 +1588,7 @@ function(CPM_AddModule name)
   _cpm_debug_log("Module full UNID: ${__CPM_FULL_UNID}")
 
   # Construct paths from UNID
-  set(__CPM_MODULE_BIN_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_FULL_UNID}/bin")
+  set(__CPM_MODULE_BIN_DIR "${CPM_ROOT_BIN_DIR}/${__CPM_FULL_UNID}/bin")
 
   if (__CPM_USING_GIT)
     set(__CPM_MODULE_SOURCE_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_FULL_UNID}/src")
