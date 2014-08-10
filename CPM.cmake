@@ -707,6 +707,17 @@ macro(CPM_Finish)
       GIT_TAG "origin/master"
       USE_CACHING FALSE
       )
+
+    # Ensure that the cached version of CPM is up-to-date and cloned.
+    if ((DEFINED CPM_MODULE_CACHE_DIR) AND (NOT DEFINED CPM_MODULE_CACHE_NO_WRITE))
+      CPM_EnsureRepoIsCurrent(
+        TARGET_DIR "${CPM_MODULE_CACHE_DIR}/github_iauns_cpm"
+        GIT_REPOSITORY "https://github.com/iauns/cpm"
+        GIT_TAG "origin/master"
+        USE_CACHING FALSE
+        )
+    endif()
+
   endif()
 endmacro()
 
@@ -1868,24 +1879,4 @@ function(CPM_AddModule name)
   _cpm_debug_log("Ending module: ${name}")
 
 endfunction()
-
-
-# Check to see if we should cache a copy of CPM in the cache directory.
-if (DEFINED CPM_MODULE_CACHE_DIR)
-  if (NOT EXISTS "${CPM_MODULE_CACHE_DIR}/github_iauns_cpm/")
-    # Clone the CPM repository into cache.
-    CPM_EnsureRepoIsCurrent(
-      TARGET_DIR "${CPM_MODULE_CACHE_DIR}/github_iauns_cpm"
-      GIT_REPOSITORY "https://github.com/iauns/cpm"
-      GIT_TAG "origin/master"
-      USE_CACHING FALSE
-      )
-  endif()
-  if (NOT EXISTS "${CPM_MODULE_CACHE_DIR}/init-cpm.cmake")
-    file(COPY ${CPM_DIR_OF_CPM}/init-cpm.cmake DESTINATION ${CPM_MODULE_CACHE_DIR}/)
-  endif()
-  if (NOT EXISTS "${CPM_MODULE_CACHE_DIR}/init-cpm-module.cmake")
-    file(COPY ${CPM_DIR_OF_CPM}/init-cpm-module.cmake DESTINATION ${CPM_MODULE_CACHE_DIR}/)
-  endif()
-endif()
 
