@@ -25,26 +25,30 @@ macro(_cpm_clone_svn_repo repo dir revision)
   endif()
 endmacro()
 
-macro(_cpm_update_svn_repo dir revision)
-  if (NOT ${_svn_cpm_trustCert} STREQUAL " ")
-    set(validTrustCert ${_svn_cpm_trustCert})
-  endif()
-  if (NOT ${_svn_cpm_user_pw_args} STREQUAL " ")
-    set(valid_svn_user_pw_args ${_svn_cpm_user_pw_args})
-  endif()
-  set(cmd ${Subversion_SVN_EXECUTABLE} up -r ${revision}
-    --non-interactive ${validTrustCert} ${valid_svn_user_pw_args})
-  execute_process(
-    COMMAND ${cmd}
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY "${dir}"
-    OUTPUT_QUIET
-    ERROR_QUIET)
-  if (result)
-    set(msg "Command failed: ${result}. ")
-    set(msg "${msg} '${cmd}'")
-    set(msg "Skipping SVN update. ${msg}.")
-    message(STATUS "${msg}")
+macro(_cpm_update_svn_repo dir revision offline)
+  if (NOT offline)
+    if (NOT ${_svn_cpm_trustCert} STREQUAL " ")
+      set(validTrustCert ${_svn_cpm_trustCert})
+    endif()
+    if (NOT ${_svn_cpm_user_pw_args} STREQUAL " ")
+      set(valid_svn_user_pw_args ${_svn_cpm_user_pw_args})
+    endif()
+    set(cmd ${Subversion_SVN_EXECUTABLE} up -r ${revision}
+      --non-interactive ${validTrustCert} ${valid_svn_user_pw_args})
+    execute_process(
+      COMMAND ${cmd}
+      RESULT_VARIABLE result
+      WORKING_DIRECTORY "${dir}"
+      OUTPUT_QUIET
+      ERROR_QUIET)
+    if (result)
+      set(msg "Command failed: ${result}. ")
+      set(msg "${msg} '${cmd}'")
+      set(msg "Skipping SVN update. ${msg}.")
+      message(STATUS "${msg}")
+    endif()
+  else()
+    message(STATUS "SVN: CPM_OFFLINE set. Ignoring SVN update to revision.")
   endif()
 endmacro()
 

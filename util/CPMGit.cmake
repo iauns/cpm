@@ -66,7 +66,7 @@ macro(_cpm_clone_git_repo repo dir tag)
 endmacro()
 
 
-macro(_cpm_update_git_repo dir tag)
+macro(_cpm_update_git_repo dir tag offline)
   # Attempt to update with a timeout.
   execute_process(
     COMMAND "${GIT_EXECUTABLE}" rev-list --max-count=1 HEAD
@@ -105,16 +105,18 @@ macro(_cpm_update_git_repo dir tag)
   # Is the hash checkout out that we want?
   if(error_code OR is_remote_ref OR NOT ("${tag_sha}" STREQUAL "${head_sha}"))
     # Fetch the remote repository and limit it to 15 seconds.
-    execute_process(
-      COMMAND "${GIT_EXECUTABLE}" fetch
-      WORKING_DIRECTORY "${dir}"
-      RESULT_VARIABLE error_code
-      TIMEOUT 15
-      OUTPUT_QUIET
-      ERROR_QUIET
-      )
-    if(error_code)
-      message(STATUS "Failed to fetch repository '${repo}'. Skipping fetch.")
+    if (NOT ${offline})
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" fetch
+        WORKING_DIRECTORY "${dir}"
+        RESULT_VARIABLE error_code
+        TIMEOUT 15
+        OUTPUT_QUIET
+        ERROR_QUIET
+        )
+      if(error_code)
+        message(STATUS "Failed to fetch repository '${repo}'. Skipping fetch.")
+      endif()
     endif()
 
     execute_process(
@@ -129,14 +131,17 @@ macro(_cpm_update_git_repo dir tag)
       message(FATAL_ERROR "Failed to checkout tag: '${tag}'")
     endif()
 
-    execute_process(
-      COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
-      WORKING_DIRECTORY "${dir}"
-      RESULT_VARIABLE error_code
-      )
-    if(error_code)
-      message("Failed to update submodules in: '${dir}'. Skipping submodule update.")
+    if (NOT ${offline})
+      execute_process(
+        COMMAND "${GIT_EXECUTABLE}" submodule update --recursive
+        WORKING_DIRECTORY "${dir}"
+        RESULT_VARIABLE error_code
+        )
+      if(error_code)
+        message("Failed to update submodules in: '${dir}'. Skipping submodule update.")
+      endif()
     endif()
+
   endif()
 endmacro()
 

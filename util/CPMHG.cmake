@@ -48,15 +48,17 @@ macro(_cpm_clone_hg_repo repo dir tag)
 
 endmacro()
 
-macro(_cpm_update_hg_repo dir tag)
+macro(_cpm_update_hg_repo dir tag offline)
   message(STATUS "updating hg repository (${dir} @ ${tag})")
-  execute_process(
-    COMMAND "${HG_EXECUTABLE}" update
-    WORKING_DIRECTORY "${dir}"
-    RESULT_VARIABLE error_code)
+  if (NOT offline)
+    execute_process(
+      COMMAND "${HG_EXECUTABLE}" update
+      WORKING_DIRECTORY "${dir}"
+      RESULT_VARIABLE error_code)
 
-  if(error_code)
-    message("could not update hg repo in : '${dir}'")
+    if(error_code)
+      message("could not update hg repo in : '${dir}'")
+    endif()
   endif()
 
   execute_process(

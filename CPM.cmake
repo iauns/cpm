@@ -51,8 +51,8 @@
 #
 # Define CPM_NO_UPDATE to disable update checks for CPM.
 #
-# Define CPM_OFFLINE to disable all network accesses. For scenarious where
-# you know all of your repositories are cached locally, this can speed things
+# Define CPM_OFFLINE to disable all network access. For scenarious where
+# you know all of your repositories are cached locally this can speed things
 # up greatly.
 #
 # Many settings are automatically applied for modules. Setting SOURCE_DIR is
