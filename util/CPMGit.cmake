@@ -1,8 +1,9 @@
-macro(_cpm_clone_git_repo repo dir tag)
+# CPM's support for GIT.
 
+macro(_cpm_clone_git_repo repo dir tag)
   # Simply clones the git repository at ${repo} into ${dir}
   # No other checks are performed.
-  message(STATUS "Cloning repo (${repo} @ ${tag})")
+  message(STATUS "Cloning git repo (${repo} @ ${tag})")
 
   # Much of this clone code is taken from external project's generation
   # of its *gitclone.cmake files.
@@ -150,78 +151,5 @@ macro(_cpm_ensure_git_repo_is_current use_caching)
   set(repo ${_CPM_REPO_GIT_REPOSITORY})
   set(dir ${_CPM_REPO_TARGET_DIR})
 
-  if (NOT EXISTS "${dir}/")
-
-    # If there exists a cache repository, check the cache directory before
-    # cloning a new instance of the repository. This results in the following
-    # two scenarios:
-    #
-    # 1) If we determine that there is cached instance of the repo then update
-    #    the cached repo and copy the cache directory to our current directory.
-    #
-    # 2) If we do not find a cached repository, clone it into the cache
-    #    directory, then follow steps in #1.
-    #
-
-    # All modules will be cached in the cache directory.
-    if ((DEFINED CPM_MODULE_CACHE_DIR) AND (${use_caching}))
-
-      if (NOT EXISTS ${CPM_MODULE_CACHE_DIR})
-        file(MAKE_DIRECTORY ${CPM_MODULE_CACHE_DIR})
-      endif()
-
-      # Generate unique id for repo and check the cache directory.
-      set(__CPM_ENSURE_CACHE_UNID ${repo})
-      _cpm_make_valid_unid_or_path(__CPM_ENSURE_CACHE_UNID)
-
-      # Use unique id (non-versioned) to lookup the repository in
-      # the cache directory.
-      set(__CPM_ENSURE_CACHE_DIR "${CPM_MODULE_CACHE_DIR}/${__CPM_ENSURE_CACHE_UNID}")
-      if (EXISTS ${__CPM_ENSURE_CACHE_DIR})
-        # Update the repository, then copy it. Only update if we can
-        # write to the cache directory.
-        message(STATUS "Found cached version of ${repo}.")
-
-        # Todo: We really shouldn't update the tag in the cache directory.
-        #       Simply fetching the contents would suffice.
-        if (NOT DEFINED CPM_MODULE_CACHE_NO_WRITE)
-          _cpm_update_git_repo(${__CPM_ENSURE_CACHE_DIR} ${tag})
-        endif()
-
-        # We are positive the directory exists, although it may not be
-        # updated. Copy it.
-        file(COPY "${__CPM_ENSURE_CACHE_DIR}/" DESTINATION ${dir})
-
-        # Update git repo once more when it is in the target directory.
-        # We will need this call to set the correct tag if we fix the todo
-        # item above.
-        _cpm_update_git_repo(${dir} ${tag})
-      else()
-        message(STATUS "Creating cached version of ${repo}.")
-        # If we can write to the cache directory, then clone it, update it,
-        # then copy it to the target directory.
-        if (DEFINED CPM_MODULE_CACHE_NO_WRITE)
-          # Clone directly into the target directory.
-          _cpm_clone_git_repo(${repo} ${dir} ${tag})
-          _cpm_update_git_repo(${dir} ${tag})
-        else()
-          _cpm_clone_git_repo(${repo} ${__CPM_ENSURE_CACHE_DIR} ${tag})
-          _cpm_update_git_repo(${__CPM_ENSURE_CACHE_DIR} ${tag})
-          file(COPY "${__CPM_ENSURE_CACHE_DIR}/" DESTINATION ${dir})
-          _cpm_update_git_repo(${dir} ${tag}) # Sanity
-        endif()
-      endif()
-
-    else()
-      # No cache directory is present, simply clone into target directory
-      # and update it.
-      _cpm_clone_git_repo(${repo} ${dir} ${tag})
-      _cpm_update_git_repo(${dir} ${tag})
-    endif()
-
-  else()
-    # Target directory found, attempt to update.
-    _cpm_update_git_repo(${dir} ${tag})
-  endif()
-
+  _cpm_ensure_scm_repo_is_current(${use_caching} ${tag} ${repo} ${dir})
 endmacro()

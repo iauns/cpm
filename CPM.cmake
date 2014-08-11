@@ -873,6 +873,7 @@ macro(_cpm_obtain_version_from_params parentVar)
   endif()
 endmacro()
 
+include(${CPM_DIR_OF_CPM}/util/CPMCommonSCM.cmake)
 include(${CPM_DIR_OF_CPM}/util/CPMGit.cmake)
 include(${CPM_DIR_OF_CPM}/util/CPMHG.cmake)
 include(${CPM_DIR_OF_CPM}/util/CPMSVN.cmake)
@@ -1040,6 +1041,8 @@ function(CPM_AddModule name)
     set(__CPM_PATH_UNID_VERSION "${__CPM_NEW_GIT_TAG}")
     string(TOLOWER ${__CPM_PATH_UNID_VERSION} __CPM_PATH_UNID_VERSION)
   endif()
+
+  # TODO: Add support for mercurial.
 
   # Check to see if the source is stored locally.
   if (DEFINED _CPM_SOURCE_DIR)
