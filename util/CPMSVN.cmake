@@ -26,7 +26,7 @@ macro(_cpm_clone_svn_repo repo dir revision)
 endmacro()
 
 macro(_cpm_update_svn_repo dir revision offline)
-  if (NOT offline)
+  if (NOT ${offline})
     if (NOT ${_svn_cpm_trustCert} STREQUAL " ")
       set(validTrustCert ${_svn_cpm_trustCert})
     endif()

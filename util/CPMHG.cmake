@@ -50,7 +50,7 @@ endmacro()
 
 macro(_cpm_update_hg_repo dir tag offline)
   message(STATUS "updating hg repository (${dir} @ ${tag})")
-  if (NOT offline)
+  if (NOT ${offline})
     execute_process(
       COMMAND "${HG_EXECUTABLE}" update
       WORKING_DIRECTORY "${dir}"
