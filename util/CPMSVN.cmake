@@ -42,7 +42,7 @@ macro(_cpm_update_svn_repo dir revision offline)
       OUTPUT_QUIET
       ERROR_QUIET)
     if (result)
-      set(msg "Command failed: ${result}. ")
+      set(msg "Command failed: ${result}. Repo ${repo}. ")
       set(msg "${msg} '${cmd}'")
       set(msg "Skipping SVN update. ${msg}.")
       message(STATUS "${msg}")
@@ -82,6 +82,6 @@ macro(_cpm_ensure_svn_repo_is_current use_caching)
     set(_svn_cpm_user_pw_args ${_svn_cpm_user_pw_args} "--password=${_CPM_REPO_SVN_PASSWORD}")
   endif()
 
-  _cpm_ensure_scm_repo_is_current(${use_caching} ${tag} ${repo} ${dir})
+  _cpm_ensure_scm_repo_is_current(${use_caching} ${revision} ${repo} ${dir})
 endmacro()
 
