@@ -28,7 +28,7 @@ function RunTest
     ../${dirOnly}/test.sh ../${dirOnly}
     set -e
   else
-    cmake -D_CPM_DEBUG_LOG=1 ../${dirOnly}
+    cmake -DCPM_WRITE_HIERARCHY=1 -D_CPM_DEBUG_LOG=1 ../${dirOnly}
     #VERBOSE=1 make
     make
   fi
@@ -47,6 +47,9 @@ function RunTest
   # by CPM when running the test since we use the root directory as the CPM
   # directory.
   rm -rf ../modules
+
+  # Remove the depgraph directory.
+  rm -rf ../depgraph
 }
 
 if [[ -z "$TESTNAME" ]]; then

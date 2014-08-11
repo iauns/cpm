@@ -300,6 +300,16 @@ macro(_cpm_debug_log debug)
   endif()
 endmacro()
 
+macro(_cpm_json_out str)
+  if ((DEFINED CPM_WRITE_HIERARCHY) AND (CPM_WRITE_HIERARCHY))
+    file(APPEND ${__CPM_MODULE_DEP_GRAPH_JSON} ${str})
+  endif()
+endmacro()
+
+macro(_cpm_json_string_out key value)
+  _cpm_json_out("  \"${key}\":\"${value}\",\n")
+endmacro()
+
 # Check to see if the CPM_CACHE_DIR environment variable is set, but
 # CPM_MODULE_CACHE_DIR is not set yet.
 if ((NOT DEFINED CPM_MODULE_CACHE_DIR) AND (NOT "$ENV{CPM_CACHE_DIR}" STREQUAL ""))
@@ -334,6 +344,23 @@ endif()
 # Set the root binary directory, if it doesn't already exist.
 if (NOT DEFINED CPM_ROOT_BIN_DIR)
   set(CPM_ROOT_BIN_DIR ${CMAKE_BINARY_DIR}/cpm-bin)
+endif()
+
+# Generate this module's node in our dependency graph. Prepare for hierarchy
+# json output.
+if (NOT DEFINED __CPM_MODULE_DEP_GRAPH_DIR)
+  if ((DEFINED CPM_WRITE_HIERARCHY) AND (CPM_WRITE_HIERARCHY))
+    set(__CPM_MODULE_DEP_GRAPH_DIR "${CPM_DIR_OF_CPM}/depgraph")
+    set(__CPM_MODULE_DEP_GRAPH_JSON ${__CPM_MODULE_DEP_GRAPH_DIR}/desc.json)
+
+    # This removal may want to occur elsewhere. Any prior depgraph is removed
+    # so we can build a clean dependency graph.
+    file(REMOVE_RECURSE ${__CPM_MODULE_DEP_GRAPH_DIR})
+
+    file(MAKE_DIRECTORY ${__CPM_MODULE_DEP_GRAPH_DIR})
+    file(WRITE ${__CPM_MODULE_DEP_GRAPH_JSON} "{\n")
+    _cpm_json_string_out("graph-depth" "0")
+  endif()
 endif()
 
 # Initial display of the hierarchy if the user requested it.
@@ -730,6 +757,9 @@ macro(CPM_Finish)
     endif()
 
   endif()
+
+  # Finalize JSON desc.
+  _cpm_json_out("}\n")
 endmacro()
 
 # This macro forces one, and only one, version of a module to be linked into
@@ -1005,9 +1035,32 @@ function(CPM_AddModule name)
     _cpm_debug_log("Using CPM cache dir: ${CPM_MODULE_CACHE_DIR}")
   endif()
 
+  # Generate this module's node in our dependency graph. Prepare for hierarchy
+  # json output.
+  if (NOT DEFINED __CPM_MODULE_DEP_GRAPH_DIR)
+    set(__CPM_MODULE_DEP_GRAPH_DIR "${CPM_DIR_OF_CPM}/depgraph")
+
+    # This removal may want to occur elsewhere. Any prior depgraph is removed
+    # so we can build a clean dependency graph.
+    file(REMOVE_RECURSE ${__CPM_MODULE_DEP_GRAPH_DIR})
+  else()
+    set(__CPM_MODULE_DEP_GRAPH_DIR "${__CPM_MODULE_DEP_GRAPH_DIR}/${name}")
+  endif()
+  set(__CPM_MODULE_DEP_GRAPH_JSON ${__CPM_MODULE_DEP_GRAPH_DIR}/desc.json)
+
+  # Begin constructing a json file for the current node describing all
+  # relevant attributes for tools that want to walk the dependency graph.
+  if ((DEFINED CPM_WRITE_HIERARCHY) AND (CPM_WRITE_HIERARCHY))
+    file(MAKE_DIRECTORY ${__CPM_MODULE_DEP_GRAPH_DIR})
+    file(WRITE ${__CPM_MODULE_DEP_GRAPH_JSON} "{\n")
+  endif()
+
+  _cpm_json_string_out("name" "${name}")
+
   # Increase the hierarchy level by 1. Mandatory for propogate calls to work
   # at the top level.
   math(EXPR CPM_HIERARCHY_LEVEL "${CPM_HIERARCHY_LEVEL}+1")
+  _cpm_json_string_out("graph-depth" "${CPM_HIERARCHY_LEVEL}")
 
   # Parse all function arguments into our namespace prepended with _CPM_.
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
@@ -1040,22 +1093,32 @@ function(CPM_AddModule name)
     string(TOLOWER ${__CPM_PATH_UNID} __CPM_PATH_UNID)
     set(__CPM_PATH_UNID_VERSION "${__CPM_NEW_GIT_TAG}")
     string(TOLOWER ${__CPM_PATH_UNID_VERSION} __CPM_PATH_UNID_VERSION)
+
+    _cpm_json_string_out("source-control" "git")
+    _cpm_json_string_out("scm-tag" "${__CPM_NEW_GIT_TAG}")
+    _cpm_json_string_out("scm-repo" "${_CPM_GIT_REPOSITORY}")
   endif()
 
   # TODO: Add support for mercurial.
 
   # Check to see if the source is stored locally.
   if (DEFINED _CPM_SOURCE_DIR)
+    _cpm_json_string_out("source-control" "local")
+
     get_filename_component(tmp_src_dir ${_CPM_SOURCE_DIR} ABSOLUTE)
+    _cpm_json_string_out("scm-tag" "n/a")
+    _cpm_json_string_out("scm-repo" "${tmp_src_dir}")
 
     if (DEFINED _CPM_SOURCE_GHOST_GIT_REPO)
       # See comment above regarding removing the .git postfix.
       string(REGEX REPLACE "\\.git$" "" _CPM_SOURCE_GHOST_GIT_REPO ${_CPM_SOURCE_GHOST_GIT_REPO})
       set(__CPM_PATH_UNID ${_CPM_SOURCE_GHOST_GIT_REPO})
+      _cpm_json_string_out("local-ghost-repo" "${_CPM_SOURCE_GHOST_GIT_REPO}")
 
       # Ghost tags have been taken into account in _cpm_obtain_version_from_params
       # So using __CPM_NEW_GIT_TAG here will work as expected with ghost tags.
       set(__CPM_PATH_UNID_VERSION "${__CPM_NEW_GIT_TAG}")
+      _cpm_json_string_out("local-ghost-tag" "${__CPM_NEW_GIT_TAG}")
 
       # Ensure all lower case. This string is used when testing preprocessor
       # name collisions.
@@ -1080,6 +1143,8 @@ function(CPM_AddModule name)
 
   # Construct paths from UNID
   set(__CPM_MODULE_BIN_DIR "${CPM_ROOT_BIN_DIR}/${__CPM_FULL_UNID}/bin")
+
+  _cpm_json_string_out("full-unid" "${__CPM_FULL_UNID}")
 
   if (__CPM_USING_GIT)
     set(__CPM_MODULE_SOURCE_DIR "${__CPM_BASE_MODULE_DIR}/${__CPM_FULL_UNID}/src")
@@ -1137,6 +1202,9 @@ function(CPM_AddModule name)
 
   # Save variables that get overwritten by subdirectory.
   set(CPM_PARENT_ADDITIONAL_DEFINITIONS ${CPM_ADDITIONAL_DEFINITIONS})
+
+  _cpm_json_string_out("source-path" "${__CPM_MODULE_SOURCE_DIR}")
+  _cpm_json_string_out("binary-path" "${__CPM_MODULE_BIN_DIR}")
 
   # Add the project's source code.
   if (NOT DEFINED CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID})
@@ -1225,6 +1293,7 @@ function(CPM_AddModule name)
     # Setup module interface definition. This is the name the module is using
     # to identify itself in it's headers.
     if (DEFINED CPM_LAST_MODULE_NAME)
+      _cpm_json_string_out("self-name" "${CPM_LAST_MODULE_NAME}")
       _cpm_check_and_add_preproc(${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
     else()
       message(FATAL_ERROR "A module (${name}) failed to define its name!")
@@ -1257,6 +1326,7 @@ function(CPM_AddModule name)
   else()
     # Set the name the module is using to setup its namespaces.
     set(CPM_LAST_MODULE_NAME ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}})
+    _cpm_json_string_out("self-name" "${CPM_LAST_MODULE_NAME}")
 
     _cpm_generate_map_names()
 
@@ -1327,8 +1397,6 @@ function(CPM_AddModule name)
     _cpm_check_and_add_preproc(${name} ${__CPM_FULL_UNID})
   endif()
 
-  # TODO: Remove the following line when we upgrade SCIRun.
-  set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}/3rdParty")
   set(CPM_DEFINITIONS ${CPM_DEFINITIONS} PARENT_SCOPE)
   set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} PARENT_SCOPE)
 
@@ -1357,6 +1425,11 @@ function(CPM_AddModule name)
   endif()
 
   _cpm_debug_log("Ending module: ${name}")
+
+  # Finalize our attribute JSON file.
+  if ((DEFINED CPM_WRITE_HIERARCHY) AND (CPM_WRITE_HIERARCHY))
+    _cpm_json_out("}\n")
+  endif()
 
 endfunction()
 
