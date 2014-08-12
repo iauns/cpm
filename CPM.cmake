@@ -174,6 +174,17 @@
 #  CPM_KV_LIST_SOURCEDIR_MAP    - List of user defined module names that have
 #                                 been added to the sourcedir map.
 #
+#  CPM_KV_DEPGRAPH_MAP_*        - Key/value map of dependency graph directories.
+#                                 Used to associate modules which will not
+#                                 have add_subdirectory executed against them
+#                                 (because add_subdirectory was already run)
+#                                 to their appropriate location inside the
+#                                 dependency graph.
+#                                 Key: Unique path (with version).
+#                                 Value: Directory containing last generated
+#                                        dependency graph entry for module.
+#  CPM_KV_LIST_DEPGRAPH_MAP     - List of depraph_map keys.
+#
 #  CPM_EXPORTED_MODULES         - Used to determine what modules are exported.
 #
 #  CPM_HIERARCHY_LEVEL          - Contains current CPM hierarchy level.
@@ -619,6 +630,19 @@ macro(_cpm_propogate_forward_decl_map_up)
   endif()
 endmacro()
 
+# Propogates depgraph map upwards.
+macro(_cpm_propogate_depgraph_map_up)
+  if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
+    foreach(_cpm_kvName IN LISTS CPM_KV_LIST_DEPGRAPH_MAP)
+      set(CPM_KV_DEPGRAPH_MAP_${_cpm_kvName} ${CPM_KV_DEPGRAPH_MAP_${_cpm_kvName}} PARENT_SCOPE)
+    endforeach()
+    set(_cpm_kvName) # Clear kvName
+
+    # Now propogate the list itself upwards.
+    set(CPM_KV_LIST_DEPGRAPH_MAP ${CPM_KV_LIST_DEPGRAPH_MAP} PARENT_SCOPE)
+  endif()
+endmacro()
+
 # Propogates target library map up.
 macro(_cpm_propogate_target_lib_map_up)
   if (NOT CPM_HIERARCHY_LEVEL EQUAL 0)
@@ -696,6 +720,7 @@ macro(CPM_InitModule)
 
   _cpm_propogate_source_added_map_up()
   _cpm_propogate_version_map_up()
+  _cpm_propogate_depgraph_map_up()
   _cpm_propogate_include_map_up()
   _cpm_propogate_definition_map_up()
   _cpm_propogate_target_lib_map_up()
@@ -1305,6 +1330,12 @@ function(CPM_AddModule name)
     set(CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID} ${CPM_LAST_MODULE_NAME})
     set(CPM_KV_LIST_SOURCE_ADDED_MAP ${CPM_KV_LIST_SOURCE_ADDED_MAP} ${__CPM_FULL_UNID})
 
+    # Log the directory we used to generate the dependency graph for
+    # this module (so we can duplicate it later if this dependency is
+    # used elsewhere).
+    set(CPM_KV_DEPGRAPH_MAP_${__CPM_FULL_UNID} ${__CPM_MODULE_DEP_GRAPH_DIR})
+    set(CPM_KV_LIST_DEPGRAPH_MAP ${CPM_KV_LIST_DEPGRAPH_MAP} ${__CPM_FULL_UNID})
+
     set(CPM_INCLUDE_DIRS ${CPM_INCLUDE_DIRS} "${__CPM_MODULE_SOURCE_DIR}")
 
     # Add ${__CPM_MODULE_SOURCE_DIR} to our include directory map.
@@ -1323,15 +1354,28 @@ function(CPM_AddModule name)
     set(CPM_KV_LIST_DEFINITION_MAP ${CPM_KV_LIST_DEFINITION_MAP} ${__CPM_FULL_UNID})
     set(CPM_KV_LIST_LIB_TARGET_MAP ${CPM_KV_LIST_LIB_TARGET_MAP} ${__CPM_FULL_UNID})
 
+    # Finalize our attribute JSON file.
+    # We terminate writing of our attribute file here because we don't want
+    # to overwrite any existing file that is copied in the else() below.
+    if ((DEFINED CPM_WRITE_HIERARCHY) AND (CPM_WRITE_HIERARCHY))
+      _cpm_json_out("}\n")
+    endif()
+
   else()
     # Set the name the module is using to setup its namespaces.
     set(CPM_LAST_MODULE_NAME ${CPM_KV_SOURCE_ADDED_MAP_${__CPM_FULL_UNID}})
-    _cpm_json_string_out("self-name" "${CPM_LAST_MODULE_NAME}")
 
     _cpm_generate_map_names()
 
     # Ensure our module's preprocessor definition is present.
     _cpm_check_and_add_preproc(${CPM_LAST_MODULE_NAME} ${__CPM_FULL_UNID})
+
+    # Lookup our depgraph entry and copy it in place of our __CPM_MODULE_DEP_GRAPH_DIR
+    # This is the reason we can't have any more json writes.
+    if ((DEFINED CPM_WRITE_HIERARCHY) AND (CPM_WRITE_HIERARCHY))
+      file(REMOVE_RECURSE ${__CPM_MODULE_DEP_GRAPH_DIR})
+      file(COPY ${CPM_KV_DEPGRAPH_MAP_${__CPM_FULL_UNID}} DESTINATION ${__CPM_MODULE_DEP_GRAPH_DIR})
+    endif()
 
     # Lookup the module by full unique ID and pull their definitions and additional include directories.
     if (DEFINED ${INCLUDE_MAP_NAME})
@@ -1352,6 +1396,9 @@ function(CPM_AddModule name)
     _cpm_handle_exports_for_module(${__CPM_FULL_UNID})
 
   endif()
+
+  # NO MORE JSON WRITES AFTER THIS POINT. Otherwise you will overwrite
+  # entries in pre-existing modules.
 
   # Build forward declarations.
   if (DEFINED CPM_SAVED_PARENT_UNIQUE_ID)
@@ -1406,6 +1453,7 @@ function(CPM_AddModule name)
   _cpm_propogate_source_added_map_up()
 
   # Export the rest of the maps for exported modules and the like.
+  _cpm_propogate_depgraph_map_up()
   _cpm_propogate_include_map_up()
   _cpm_propogate_definition_map_up()
   _cpm_propogate_target_lib_map_up()
@@ -1425,11 +1473,6 @@ function(CPM_AddModule name)
   endif()
 
   _cpm_debug_log("Ending module: ${name}")
-
-  # Finalize our attribute JSON file.
-  if ((DEFINED CPM_WRITE_HIERARCHY) AND (CPM_WRITE_HIERARCHY))
-    _cpm_json_out("}\n")
-  endif()
 
 endfunction()
 
