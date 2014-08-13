@@ -1374,7 +1374,7 @@ function(CPM_AddModule name)
     # This is the reason we can't have any more json writes.
     if ((DEFINED CPM_WRITE_HIERARCHY) AND (CPM_WRITE_HIERARCHY))
       file(REMOVE_RECURSE ${__CPM_MODULE_DEP_GRAPH_DIR})
-      file(COPY ${CPM_KV_DEPGRAPH_MAP_${__CPM_FULL_UNID}} DESTINATION ${__CPM_MODULE_DEP_GRAPH_DIR})
+      file(COPY ${CPM_KV_DEPGRAPH_MAP_${__CPM_FULL_UNID}}/ DESTINATION ${__CPM_MODULE_DEP_GRAPH_DIR})
     endif()
 
     # Lookup the module by full unique ID and pull their definitions and additional include directories.
