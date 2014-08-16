@@ -317,9 +317,17 @@ macro(_cpm_json_out str)
   endif()
 endmacro()
 
+set(__CPM_JSON_PRIOR_ENTRY_EXISTS FALSE)
+
 macro(_cpm_json_string_out key value)
-  _cpm_json_out("  \"${key}\":\"${value}\",\n")
+  if (__CPM_JSON_PRIOR_ENTRY_EXISTS)
+    _cpm_json_out(",\n")
+  endif()
+  set(__CPM_JSON_PRIOR_ENTRY_EXISTS TRUE)
+  _cpm_json_out("  \"${key}\":\"${value}\"")
 endmacro()
+
+# TODO: Write json_number_out when applicable.
 
 # Check to see if the CPM_CACHE_DIR environment variable is set, but
 # CPM_MODULE_CACHE_DIR is not set yet.
@@ -1356,7 +1364,7 @@ function(CPM_AddModule name)
     # We terminate writing of our attribute file here because we don't want
     # to overwrite any existing file that is copied in the else() below.
     if ((DEFINED CPM_WRITE_HIERARCHY) AND (CPM_WRITE_HIERARCHY))
-      _cpm_json_out("}\n")
+      _cpm_json_out("\n}\n")
     endif()
 
   else()
