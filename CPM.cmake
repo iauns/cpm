@@ -370,7 +370,6 @@ if (NOT DEFINED __CPM_MODULE_DEP_GRAPH_DIR)
 
     file(MAKE_DIRECTORY ${__CPM_MODULE_DEP_GRAPH_DIR})
     file(WRITE ${__CPM_MODULE_DEP_GRAPH_JSON} "{\n")
-    _cpm_json_string_out("graph-depth" "0")
   endif()
 endif()
 
@@ -1085,7 +1084,6 @@ function(CPM_AddModule name)
   # Increase the hierarchy level by 1. Mandatory for propogate calls to work
   # at the top level.
   math(EXPR CPM_HIERARCHY_LEVEL "${CPM_HIERARCHY_LEVEL}+1")
-  _cpm_json_string_out("graph-depth" "${CPM_HIERARCHY_LEVEL}")
 
   # Parse all function arguments into our namespace prepended with _CPM_.
   _cpm_parse_arguments(CPM_AddModule _CPM_ "${ARGN}")
