@@ -790,8 +790,19 @@ macro(CPM_Finish)
 
   endif()
 
+  # We follow the exact format of the modules themselves.
+  # Our parser requires this.
+  _cpm_json_string_out("name" "")
+  _cpm_json_string_out("source-control" "")
+  _cpm_json_string_out("scm-tag" "")
+  _cpm_json_string_out("scm-repo" "")
+  _cpm_json_string_out("full-unid" "")
+  _cpm_json_string_out("source-path" "")
+  _cpm_json_string_out("binary-path" "")
+  _cpm_json_string_out("self-name" "")
+
   # Finalize JSON desc.
-  _cpm_json_out("}\n")
+  _cpm_json_out("\n}\n")
 endmacro()
 
 # This macro forces one, and only one, version of a module to be linked into
@@ -1137,7 +1148,7 @@ function(CPM_AddModule name)
     _cpm_json_string_out("source-control" "local")
 
     get_filename_component(tmp_src_dir ${_CPM_SOURCE_DIR} ABSOLUTE)
-    _cpm_json_string_out("scm-tag" "n/a")
+    _cpm_json_string_out("scm-tag" "")
     _cpm_json_string_out("scm-repo" "${tmp_src_dir}")
 
     if (DEFINED _CPM_SOURCE_GHOST_GIT_REPO)
