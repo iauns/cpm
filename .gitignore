@@ -5,6 +5,7 @@ bin
 cpm
 modules
 externals
+depgraph
 
 # Compiled Object files
 *.slo

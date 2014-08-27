@@ -796,6 +796,7 @@ macro(CPM_Finish)
   _cpm_json_string_out("source-control" "")
   _cpm_json_string_out("scm-tag" "")
   _cpm_json_string_out("scm-repo" "")
+  _cpm_json_string_out("repo-unid" "")
   _cpm_json_string_out("full-unid" "")
   _cpm_json_string_out("source-path" "")
   _cpm_json_string_out("binary-path" "")
@@ -1186,6 +1187,7 @@ function(CPM_AddModule name)
   # Construct paths from UNID
   set(__CPM_MODULE_BIN_DIR "${CPM_ROOT_BIN_DIR}/${__CPM_FULL_UNID}/bin")
 
+  _cpm_json_string_out("repo-unid" "${__CPM_PATH_UNID}")
   _cpm_json_string_out("full-unid" "${__CPM_FULL_UNID}")
 
   if (__CPM_USING_GIT)
