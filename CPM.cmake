@@ -792,7 +792,7 @@ macro(CPM_Finish)
 
   # We follow the exact format of the modules themselves.
   # Our parser requires this.
-  _cpm_json_string_out("name" "")
+  _cpm_json_string_out("name" "cpm-root")
   _cpm_json_string_out("source-control" "")
   _cpm_json_string_out("scm-tag" "")
   _cpm_json_string_out("scm-repo" "")
@@ -800,7 +800,7 @@ macro(CPM_Finish)
   _cpm_json_string_out("full-unid" "")
   _cpm_json_string_out("source-path" "")
   _cpm_json_string_out("binary-path" "")
-  _cpm_json_string_out("self-name" "")
+  _cpm_json_string_out("self-name" "cpm-root")
 
   # Finalize JSON desc.
   _cpm_json_out("\n}\n")
