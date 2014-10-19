@@ -798,7 +798,7 @@ macro(CPM_Finish)
   _cpm_json_string_out("scm-repo" "")
   _cpm_json_string_out("repo-unid" "cpm-root")
   _cpm_json_string_out("full-unid" "cpm-root")
-  _cpm_json_string_out("source-path" ".")
+  _cpm_json_string_out("source-path" "${CMAKE_CURRENT_SOURCE_DIR}")
   _cpm_json_string_out("binary-path" "")
   _cpm_json_string_out("self-name" "cpm-root")
 
