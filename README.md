@@ -5,21 +5,26 @@ CPM
 
 A C++ Package Manager based on CMake and Git.
 
-CPM is designed to promote small, well-tested, and composable C++ modules. It
-allows you to link against multiple different versions of the same statically
-linked library / module so that you can include other C++ modules that may
-depend on older or newer versions of the same modules you are using. CPM will
-automatically download and build these C++ modules for you. To explore CPM's
-ecosystem head over to the CPM website: http://cpmcpp.org (or
-http://cmakepm.org).
+CPM is designed to promote small, well-tested, composable C++ modules. CPM
+allows you to link against multiple different versions of the same static
+library without symbol conflicts. You can include other C++ modules that may
+depend on older or newer versions of the same modules you are using.
+Additionally, CPM will automatically download and build C++ modules for you. To
+explore CPM's ecosystem head over to the CPM website: http://cpm.rocks .
 
-You can also manage C or C++ libraries that do not use CPM. A number of
-'external' modules are already in the
-[cpm-modules](https://github.com/iauns/cpm-modules.git) repository.  These
-modules abstract away the details of downloading, building, and linking
-against various projects. Just be aware that you cannot statically link
-against multiple different versions of these 'external' modules because they
-are not built as CPM modules.
+You can manage C or C++ libraries that do not utilize CPM. A number of
+'external' modules are already listed on the website. These modules abstract
+away the details of downloading, building, and linking against various
+projects. Just be aware that you cannot statically link against multiple
+different versions of these 'external' modules because they are not built as
+CPM modules and do not manage symbols like real CPM modules do.
+
+For an example of a module with various inter-dependencies, checkout
+[cpm-es-render](http://cpm.rocks/mod/gh/iauns/cpm-es-render). Here's an
+example dependency graph that the cpm website automatically generated for this
+module:
+
+[![cpm-es-render dependency graph](images/depgraph-small.gif)](http://cpm.rocks/mod/gh/iauns/cpm-es-render)
 
 **Table of Contents**
 
@@ -445,15 +450,14 @@ consumer of your module.
 Registering Your Module
 -----------------------
 
-Once you have finished writing your module, fork
-http://github.com/iauns/cpm-modules.git and submit your module via a pull
-request. You only have to do this once per module, and your module will be
-registered with the cpm website.
+Once you have finished writing your module, add your repository to the
+ecosystem using the [CPM website](http://cpm.rocks/mod/add). A dependency
+graph will be automatically generated for your module, and you will be able to
+see others using your module.
 
 Note that this step is *not* mandatory. You can use your module without
-registering it by just pointing CPM to the URL of your git repository.
-Module registration is recommended because it makes it easier for others to
-find.
+registering it by pointing CPM to the URL of your git repository. Module
+registration is recommended because it makes it easier for others to find.
 
 Building Externals
 ------------------
