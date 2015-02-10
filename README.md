@@ -19,7 +19,7 @@ projects. Just be aware that you cannot statically link against multiple
 different versions of these 'external' modules because they are not built as
 CPM modules and do not manage symbols like real CPM modules do.
 
-For an example of a module with various inter-dependencies, checkout
+For an example of a module with various interdependencies, check out
 [cpm-es-render](http://cpm.rocks/mod/gh/iauns/cpm-es-render). Here's an
 example dependency graph that the cpm website automatically generated for this
 module:
