@@ -282,10 +282,19 @@ foreach(line IN LISTS lines)
     set(_cpm_keyword_sep "|")
   endif()
 endforeach()
+
 # Duplicate of the 'Are we already parsing a function?' code above.
 # Just completes the regex.
 if(_cpm_func)
   set(_cpm_keywords_${_cpm_func} "${_cpm_keywords_${_cpm_func}})$")
+endif()
+
+# Set cmake policies
+# cmake --help-policy CMP0054
+if (COMMAND cmake_policy)
+  if (POLICY CMP0054)
+    cmake_policy(SET CMP0054 NEW)
+  endif()
 endif()
 
 # Include dependencies
