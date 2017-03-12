@@ -3,6 +3,11 @@ CPM
 
 [![Build Status](https://travis-ci.org/iauns/cpm.png)](https://travis-ci.org/iauns/cpm)
 
+**Note** CPM is not being actively maintained. I plan on keeping the website
+active but don't plan on making further modifications to the codebase. If
+anyone is interested in moving the project forward please contact me (iauns)
+by sending an e-mail or opening an issue.
+
 A C++ Package Manager based on CMake and Git.
 
 CPM is designed to promote small, well-tested, composable C++ modules. CPM
