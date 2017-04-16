@@ -237,7 +237,7 @@ the module's github page into your code. For example, to access AABB's
 functionality we would include its interface header file like so:
 
 ```
-#include <glm-aabb/AABB.hpp>
+# include <glm-aabb/AABB.hpp>
 ```
 
 ### Compiler Flags
@@ -732,9 +732,9 @@ checks to see if CPM exists in the cache directory before attempting to
 download it.
 
 ```cmake
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Required CPM Setup - See: http://github.com/iauns/cpm
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
 find_package(Git)
 if(NOT GIT_FOUND)
