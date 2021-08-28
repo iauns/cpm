@@ -6,17 +6,13 @@ SOURCE_DIR=$1
 
 set +e
 
-cmake ${SOURCE_DIR}
+cmake ${SOURCE_DIR} || true
 rc=$?
-if [[ $rc != 0 ]]; then
+if [ $rc -ne 0 ]; then
   # We are successful if we fail to configure (conflicting namespaces).
-  echo ""
-  echo "SUCCESS: Failed to cmake with conflicting namespaces."
-  echo ""
+  echo -ne "\nSUCCESS: Failed to cmake with conflicting namespaces.\n\n"
   exit 0
 else
-  echo ""
-  echo "FAILED: Shouldn't be able to successfully configure on a project with conflicting namespaces."
-  echo ""
+  echo -ne "\nFAILED: Shouldn't be able to successfully configure on a project with conflicting namespaces.\n\n"
   exit 1
 fi
